@@ -121,36 +121,62 @@ nach der Regel aus Entscheidung 2 serverfähig gebaut. Gegen SSR spräche
 personalisierter oder sekündlich wechselnder Inhalt — beides trifft nicht zu
 (111 Events, täglicher Rhythmus).
 
-### 4. Eigenes Theme, abgeleitet aus relilab.org
+### 4. Eigenes Theme nach dem Designsystem FOERBICO × rpi-virtuell
 
-Das vorhandene `rpi`-Theme gehört zu rpi-virtuell und weicht spürbar ab:
+Maßgeblich ist das **Farbfusion- und Typografie-Konzept v2** für den
+Community-Hub ([Farbkarte][fk], Februar 2026). Es ordnet relilab als
+Tochtermarke von rpi-virtuell ein und legt Farben, Schriftrollen und
+Einsatzregeln fest.
 
-| | `rpi` (vorhanden) | relilab.org (Ziel) |
+[fk]: https://rpi-virtuell.github.io/FOERBICO_und_rpi-virtuell/farbkarte-komplementaer.html
+
+**Dies ersetzt die frühere Ableitung aus relilab.org.** Zuvor stand hier das
+Blocksy-Theme der WordPress-Seite als Quelle, mit `#2872fa` als Primärfarbe und
+Roboto Condensed als ausdrücklich falscher, weil rpi-eigener Schrift. Beides
+gilt nicht mehr: Die Farbkarte setzt relilab auf `#34B2F6` und weist Condensed
+eine eigene Rolle zu. Wo Ist-Zustand und Designsystem sich widersprechen,
+gewinnt das Designsystem — das Schaufenster soll nicht die alte Seite
+nachbauen, sondern in die gemeinsame Markenwelt passen.
+
+```
+--relilab:      #34b2f6   Primärfarbe
+--relilab-tief: #1a8fd0   Verweise und Hover auf hellem Grund
+--magenta:      #d225f8   Endpunkt des relilab-Gradienten
+--amber:        #f29422   Primärakzent: Aktionen, Filter, Hervorhebungen
+--pink:         #e54d9a   Community-Events, partizipative Formate
+--mint:         #2ecc88   Funktionsfarbe: Erfolg, Status
+--fau:          #04316a   dunkelster Ton: Fußzeile, Schrift auf Farbflächen
+--rl-text:      #1a1e2e   Fließtext
+--rl-text-leise:#5a6178   Metazeilen
+--rl-linie:     #e6e9f2
+--rl-flaeche:   #f6f7fb
+--rl-flaeche-2: #eef0f7
+Container:      max. 1499px
+Kopfzeilenhöhe: 120px
+```
+
+**Drei Schriften, drei Rollen** — die Aufteilung ist Teil des Systems, nicht
+Geschmack:
+
+| Schrift | Rolle | Herkunft |
 |---|---|---|
-| Primärfarbe | `#203A8F` | `#2872fa` |
-| Sekundär | Orange `#FFA500` | Dunkelblau `#192a3d` |
-| Fließtext | Roboto **Condensed** | **Roboto** |
-| Überschriften | Yanone Kaffeesatz | Yanone Kaffeesatz |
+| Yanone Kaffeesatz | Headlines, Display, Community-Bereiche | Community |
+| Roboto Condensed | Navigation, Labels, Marker, Metazeilen | FOERBICO |
+| Roboto | Fließtext, Beschreibungen | rpi-virtuell |
 
-Aus dem Blocksy-Theme von relilab.org extrahiert
-(`wp-content/uploads/blocksy/css/global.css`):
+**Einsatzregeln der Akzente:** Amber für Aktionen und aktive Zustände, Pink für
+Termine und Community-Formate, der Gradient `#34B2F6 → #D225F8` als
+relilab-Submarke (Wortmarke, Aufmacher), Mint für Statusmeldungen.
 
-```
---rl-blau:        #2872fa   Primärfarbe, Verweise
---rl-blau-dunkel: #1559ed   Hover
---rl-text:        #3A4F66   Fließtext
---rl-dunkel:      #192a3d   Überschriften
---rl-linie:       #e1e8ed
---rl-flaeche:     #f2f5f7
---rl-flaeche-2:   #FAFBFC
---rl-weiss:       #ffffff
-Schrift Text:         Roboto
-Schrift Überschriften: Yanone Kaffeesatz 700
-Container:            max. 1499px
-Kopfzeilenhöhe:       120px
-```
+**Schrift auf Farbflächen.** Weiß erreicht auf `#34B2F6` nur 2,37:1 und auf
+Amber 2,32:1 — beides unter den 4,5:1, die normaler Text nach WCAG AA braucht.
+Aktive Zustände tragen deshalb `--fau` als Textfarbe (5,35:1 bzw. 5,47:1). Die
+Palette bleibt unverändert; das betrifft allein die Schrift darauf. Die
+Farbkarte trifft dazu keine Aussage, also ist es eine Festlegung dieses
+Projekts.
 
-Die Werte werden **kopiert, nicht verlinkt.** Würde der Client das
+Die Werte werden **kopiert, nicht verlinkt** — weder das WordPress-Stylesheet
+noch die Farbkarte werden zur Laufzeit geladen. Würde der Client das
 WordPress-Stylesheet laden, wäre WordPress nicht überflüssig, sondern
 Voraussetzung.
 
@@ -228,6 +254,9 @@ relilab-client/
 ├─ docs/superpowers/
 │  ├─ specs/                 YYYY-MM-DD-<thema>-design.md
 │  └─ plans/                 YYYY-MM-DD-<thema>.md
+├─ mockup/index.html         Gestaltungsabstimmung: eine Datei, Daten
+│                            eingebettet, rendert im Browser — der Client
+│                            selbst rendert serverseitig (Entscheidung 3)
 ├─ src/
 │  ├─ app.css                Theme relilab + Tokens
 │  ├─ app.html
