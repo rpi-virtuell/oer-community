@@ -65,6 +65,10 @@ nav.haupt button[aria-current="page"]{background:var(--rl-blau);color:#fff}
 .datum .monat{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--rl-text)}
 .datum .jahr{font-size:.7rem;color:#8298ad}
 .termin.vergangen .datum .tag{color:#8298ad}
+.termin-bild{flex:0 0 76px;height:76px;border-radius:8px;overflow:hidden;background:var(--rl-flaeche);display:flex;align-items:center;justify-content:center}
+.termin-bild img{width:100%;height:100%;object-fit:cover}
+.termin-bild span{font-family:var(--schrift-ueber);font-size:.95rem;color:#c3d2e0}
+.termin.vergangen .termin-bild img{filter:grayscale(.55);opacity:.75}
 .termin-txt{flex:1;min-width:0}
 .termin-txt h3{font-size:1.15rem;margin:0 0 6px}
 
@@ -110,6 +114,7 @@ footer.fuss .marke{color:#fff;margin-bottom:12px}
   header.kopf{position:static}
   .kopf-innen{flex-direction:column;align-items:flex-start;padding:16px 0;gap:12px}
   section.block{padding:36px 0}
+  .termin-bild{display:none}
 }
 </style>
 </head>
@@ -210,6 +215,9 @@ function zeileTermin(t){
   return `<button class="termin ${vorbei?'vergangen':''}" onclick="oeffne('t','${t.id}')">
     <div class="datum"><div class="tag">${F.tag(t.start)}</div>
       <div class="monat">${F.monat(t.start)}</div><div class="jahr">${F.jahr(t.start)}</div></div>
+    <div class="termin-bild">${t.bild
+      ? `<img src="${esc(t.bild)}" alt="" loading="lazy">`
+      : `<span aria-hidden="true">relilab</span>`}</div>
     <div class="termin-txt"><h3>${esc(t.titel)}</h3>
       <div class="meta"><span>${F.zeit(t.start)} Uhr</span>
         ${t.ort?`<span class="marker">${esc(ortKurz(t.ort))}</span>`:''}
@@ -264,7 +272,7 @@ const ANSICHTEN = {
         <button aria-pressed="${zustand.richtung==='vergangen'}" onclick="setRichtung('vergangen')">Vergangene</button>
       </div>
       ${filterleiste()}
-      <p class="zaehler" style="margin:-16px 0 24px">${xs.length} Termine</p>
+      <p class="zaehler" style="margin:-16px 0 24px">${xs.length} ${xs.length===1?'Termin':'Termine'}${zustand.thema?` zum Thema „${esc(zustand.thema)}“`:''}</p>
       ${xs.length?`<div class="liste">${xs.map(zeileTermin).join('')}</div>`
         :`<div class="leer">Keine Termine in diesem Zeitraum.</div>`}
     </div></section>`;
