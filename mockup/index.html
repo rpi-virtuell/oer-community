@@ -108,6 +108,30 @@ nav.haupt button[aria-current="page"]{background:var(--relilab);color:var(--fau)
 .umschalter button{font-family:var(--schrift-label);font-size:.95rem;font-weight:500;border:0;background:#fff;color:var(--rl-text);padding:9px 22px;cursor:pointer}
 .umschalter button[aria-pressed="true"]{background:var(--relilab);color:var(--fau);font-weight:700}
 
+/* Aufmacher zweispaltig: Text und Bewegtbild */
+.aufmacher-raster{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:48px;align-items:center}
+.aufmacher-bild{margin:0;border-radius:14px;overflow:hidden;box-shadow:0 12px 44px rgba(4,49,106,.28);background:rgba(255,255,255,.14);aspect-ratio:16/9}
+.aufmacher-bild img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Knoepfe im Verlauf Magenta -> Orange, wie auf relilab.org */
+.knopf{display:inline-block;font-family:var(--schrift-label);font-size:1.06rem;font-weight:700;
+  color:#fff;text-decoration:none;padding:11px 24px;border-radius:6px;letter-spacing:.01em;
+  background:linear-gradient(90deg,var(--magenta) 0%,var(--pink) 50%,#e8721a 100%);
+  text-shadow:0 1px 2px rgba(90,20,0,.35);
+  box-shadow:0 3px 14px rgba(210,37,248,.26);transition:transform .15s,box-shadow .15s}
+.knopf:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(210,37,248,.36);color:#fff;text-decoration:none}
+.knopf-hell{margin-top:26px;background:#fff;color:#a512c4;font-weight:700;text-shadow:none;box-shadow:0 4px 18px rgba(4,49,106,.22)}
+.knopf-hell:hover{color:#8d0fa8}
+.knopf-gross{border-radius:999px;padding:13px 32px;font-size:1.05rem}
+
+/* Die vier Kaesten */
+.kaesten{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:26px;max-width:1180px;margin:0 auto}
+.kasten{background:#fff;border:1px solid var(--rl-linie);border-radius:12px;padding:30px 32px 32px;box-shadow:var(--schatten)}
+.kasten h2{font-size:1.9rem;margin:0 0 16px}
+.kasten p{margin:0 0 22px;color:var(--rl-text)}
+.kasten-knoepfe{display:flex;flex-wrap:wrap;gap:12px}
+.newsletter{text-align:center;margin-top:40px}
+
 section.block{padding:56px 0}
 section.block.grau{background:var(--rl-flaeche);border-top:1px solid var(--rl-linie);border-bottom:1px solid var(--rl-linie)}
 .block-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:28px;flex-wrap:wrap}
@@ -144,6 +168,8 @@ footer.fuss .marke span{background:linear-gradient(135deg,var(--relilab) 0%,#f28
   .kopf-innen{flex-direction:column;align-items:flex-start;padding:16px 0;gap:12px}
   section.block{padding:36px 0}
   .termin-bild{display:none}
+  .aufmacher-raster{grid-template-columns:1fr;gap:32px}
+  .kasten{padding:24px}
 }
 </style>
 </head>
@@ -223,6 +249,24 @@ function md(s){
   schliessen(); return out.join('\n');
 }
 
+// Texte und Ziele der vier Kaesten von relilab.org uebernommen
+const KAESTEN = [
+  { titel:'Wer wir sind',
+    text:'Das relilab ist das, was du daraus machst. Wenn du Teilnehmer*innen fragst, wirst du ganz unterschiedliche Antworten erhalten.',
+    knoepfe:[['Lerne uns kennen!','https://relilab.org/wer-wir-sind/']] },
+  { titel:'Wie wir arbeiten',
+    text:'Du bist auf der Suche nach Strukturen um religionsbezogene Bildung voranzubringen. Lass dich in unserem Netzwerk inspirieren.',
+    knoepfe:[['Lass dich inspirieren!','https://relilab.org/wiewirarbeiten']] },
+  { titel:'Was wir tun',
+    text:'Entdecke die verschiedenen <a href="https://relilab.org/termine/" target="_blank" rel="noopener">synchronen</a> und <a href="https://relilab.org/category/formate-asynchron/lernmodul/" target="_blank" rel="noopener">asynchronen</a> Anlässe, die dich zum Lernen inspirieren möchten.',
+    knoepfe:[['synchrone Anlässe','https://relilab.org/termine/'],
+             ['asynchrone Anlässe','https://relilab.org/category/formate-asynchron/lernmodul/']] },
+  { titel:'Mitmachen',
+    text:'Du entscheidest, wie du hier lernst. Hier kannst du dich über die verschiedenen Möglichkeiten informieren.',
+    knoepfe:[['Deine Möglichkeiten','https://relilab.org/mitmachen/'],
+             ['relilab.context','https://relilab.org/context/']] }
+];
+
 let zustand = { ansicht:'start', thema:null, richtung:'kommend', detail:null };
 
 const bild = (b,alt) => b
@@ -264,20 +308,40 @@ const ANSICHTEN = {
   start(){
     const artikel = DATEN.artikel.slice(0,6);
     const kommend = DATEN.termine.filter(t=>t.start>=jetzt).sort((a,b)=>a.start-b.start).slice(0,5);
-    return `<div class="aufmacher"><div class="container">
-        <p class="augenbraue">relilab · Schaufenster im Nostr-Netz</p>
-        <h1>Religionspädagogik, digital gedacht</h1>
-        <p class="unter">Lernmodule, Beiträge und Fortbildungen aus dem relilab — als offene Inhalte im Nostr-Netz, lesbar überall.</p>
+    return `<div class="aufmacher"><div class="container aufmacher-raster">
+        <div>
+          <p class="augenbraue">relilab · Schaufenster im Nostr-Netz</p>
+          <h1>Gemeinsam religionsbezogene Bildung ermöglichen.</h1>
+          <p class="unter">Lernmodule, Beiträge und Fortbildungen aus dem relilab — als offene Inhalte im Nostr-Netz, lesbar überall.</p>
+          <a class="knopf knopf-hell" href="https://relilab.org/live" target="_blank" rel="noopener">👉 Am Live-Anlass teilnehmen 👈</a>
+        </div>
+        <figure class="aufmacher-bild">
+          <img src="https://relilab.org/wp-content/uploads/2024/09/White-Minimal-Jewelry-Channel-Intro-Outro-Youtube-Video-1.gif"
+               alt="Animiertes relilab-Intro" loading="lazy" decoding="async" width="1920" height="1080">
+        </figure>
       </div></div>
       <section class="block"><div class="container">
         <div class="block-kopf"><div><p class="augenbraue dunkel">Material &amp; Praxis</p><h2>Aktuelle Beiträge</h2></div>
           <button class="zurueck" onclick="geh('artikel')">Alle ${DATEN.artikel.length} Beiträge →</button></div>
         <div class="raster">${artikel.map(karteArtikel).join('')}</div>
       </div></section>
-      <section class="block grau"><div class="container">
+      <section class="block"><div class="container">
         <div class="block-kopf"><div><p class="augenbraue dunkel">Fortbildung &amp; Austausch</p><h2>Kommende Termine</h2></div>
           <button class="zurueck" onclick="geh('termine')">Alle Termine →</button></div>
         <div class="liste">${kommend.map(zeileTermin).join('')}</div>
+      </div></section>
+      <section class="block grau"><div class="container">
+        <div class="kaesten">
+          ${KAESTEN.map(k=>`<article class="kasten">
+            <h2>${esc(k.titel)}</h2>
+            <p>${k.text}</p>
+            <div class="kasten-knoepfe">${k.knoepfe.map(b=>
+              `<a class="knopf" href="${esc(b[1])}" target="_blank" rel="noopener">${esc(b[0])}</a>`).join('')}</div>
+          </article>`).join('')}
+        </div>
+        <div class="newsletter">
+          <a class="knopf knopf-gross" href="https://relilab.org/newsletter/" target="_blank" rel="noopener">👉 Anmeldung zum Newsletter 👈</a>
+        </div>
       </div></section>`;
   },
   artikel(){

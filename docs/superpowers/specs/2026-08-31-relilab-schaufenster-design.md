@@ -287,10 +287,41 @@ relilab-client/
 
 ### Ansichten
 
-1. **Startseite** — Aktuelles aus Artikeln, kommende Termine
+1. **Startseite** — Aufmacher, Aktuelles aus Artikeln, kommende Termine,
+   Einstiegskästen
 2. **Terminliste** — kommend/vergangen, nach Datum, Themenfilter
 3. **Artikelliste** — Lernmodule und Beiträge, Themenfilter
 4. **Detailansicht** — Artikel bzw. Termin unter stabiler `naddr`-Adresse
+
+### Übernommenes von relilab.org
+
+Die Startseite trägt Elemente der heutigen Seite weiter, damit sie als deren
+Nachfolgerin erkennbar bleibt:
+
+| Element | Quelle |
+|---|---|
+| Titel „Gemeinsam religionsbezogene Bildung ermöglichen." | Startseite relilab.org |
+| Animiertes Intro (GIF, 1920×1080) | `wp-content/uploads/2024/09/White-Minimal-…-1.gif` |
+| Knopf „Am Live-Anlass teilnehmen" | → `relilab.org/live` |
+| Vier Kästen: Wer wir sind · Wie wir arbeiten · Was wir tun · Mitmachen | Texte und Ziele unverändert |
+| Knopf „Anmeldung zum Newsletter" | → `relilab.org/newsletter/` |
+
+Die Kästen verweisen vorerst **zurück auf relilab.org**. Solange WordPress
+läuft, ist das richtig; beim Ablösen werden daraus eigene Seiten oder die
+Verweise entfallen. Das ist bewusst der Zwischenstand, kein Endzustand.
+
+**Das GIF wiegt 11,2 MB.** Es wird verzögert geladen (`loading="lazy"`), damit
+es den ersten Bildaufbau nicht blockiert, und die Fläche ist über
+`aspect-ratio` reserviert, damit nichts springt. Für den Dauerbetrieb gehört es
+verkleinert oder als Video ausgeliefert — ein GIF dieser Größe ist auf
+Mobilverbindungen nicht vertretbar. Das ist Aufgabe der Redaktion, nicht des
+Clients.
+
+**Knöpfe im Verlauf Magenta → Orange**, wie auf relilab.org. Weiße Schrift
+erreicht auf dem Orange-Ende nur 2,50:1. Der Verlauf endet daher bei `#e8721a`
+und die Schrift ist fett bei 1,06 rem — damit greift die WCAG-Grenze von 3:1
+für großen Text (3,06:1). Die Alternative wäre ein deutlich dunkleres Orange
+gewesen, das die Markenfarbe verfehlt hätte.
 
 ### Adressen
 
