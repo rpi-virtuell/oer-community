@@ -6,21 +6,40 @@
 <title>relilab-Schaufenster — Mockup</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Yanone+Kaffeesatz:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Condensed:wght@300;400;500;700&family=Yanone+Kaffeesatz:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --rl-blau:#2872fa; --rl-blau-dunkel:#1559ed; --rl-text:#3A4F66;
-  --rl-dunkel:#192a3d; --rl-linie:#e1e8ed; --rl-flaeche:#f2f5f7;
-  --rl-flaeche-2:#FAFBFC; --rl-weiss:#ffffff;
+  /* Institutionsfarben - Farbkarte FOERBICO x rpi-virtuell, v2 */
+  --relilab:#34b2f6;        /* Primaerfarbe relilab */
+  --relilab-tief:#1a8fd0;   /* dunklere Stufe fuer Hover und Text auf Weiss */
+  --magenta:#d225f8;        /* Endpunkt des relilab-Gradienten */
+  --rpi:#0072aa; --foerbico:#203a8f; --fusion:#1a5699; --fau:#04316a;
+  /* Warm-Spektrum - Akzente */
+  --amber:#f29422;          /* Primaerakzent: Aktionen, Hervorhebungen */
+  --amber-tief:#d97d13;
+  --pink:#e54d9a;           /* Community-Events, partizipative Formate */
+  --orange:#ff8103;         /* relilab-Orange: Akzent, Gamification */
+  --mint:#2ecc88;           /* Funktionsfarbe: Erfolg, Status */
+  /* Flaechen und Text */
+  --rl-text:#1a1e2e; --rl-text-leise:#5a6178;
+  --rl-dunkel:#04316a; --rl-linie:#e6e9f2; --rl-flaeche:#f6f7fb;
+  --rl-flaeche-2:#eef0f7; --rl-weiss:#ffffff;
+  --schatten:0 2px 24px rgba(20,50,100,.08);
+  --schatten-hover:0 8px 40px rgba(20,50,100,.15);
+  --verlauf:linear-gradient(135deg,var(--relilab) 0%,var(--magenta) 100%);
   --rl-container:1499px; --rl-kopf:120px;
+  /* Drei Schriften, drei Rollen */
   --schrift-text:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --schrift-label:"Roboto Condensed",Roboto,system-ui,sans-serif;
   --schrift-ueber:"Yanone Kaffeesatz",Roboto,system-ui,sans-serif;
+  /* Rueckwaertskompatible Namen */
+  --rl-blau:var(--relilab); --rl-blau-dunkel:var(--relilab-tief);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:var(--schrift-text);color:var(--rl-text);background:var(--rl-weiss);line-height:1.65;font-size:16px}
+body{margin:0;font-family:var(--schrift-text);font-weight:400;color:var(--rl-text);background:var(--rl-weiss);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4,h5,h6{font-family:var(--schrift-ueber);font-weight:700;color:var(--rl-dunkel);line-height:1.15;margin:0 0 .4em}
 h1{font-size:clamp(2rem,4vw,3rem)} h2{font-size:clamp(1.6rem,3vw,2.25rem)} h3{font-size:1.35rem}
-a{color:var(--rl-blau);text-decoration:none} a:hover{color:var(--rl-blau-dunkel);text-decoration:underline}
+a{color:var(--relilab-tief);text-decoration:none} a:hover{color:var(--magenta);text-decoration:underline}
 img{max-width:100%;display:block}
 .container{max-width:var(--rl-container);margin:0 auto;padding:0 24px}
 .schmal{max-width:820px}
@@ -29,42 +48,50 @@ img{max-width:100%;display:block}
 header.kopf{height:var(--rl-kopf);border-bottom:1px solid var(--rl-linie);background:var(--rl-weiss);position:sticky;top:0;z-index:50}
 .kopf-innen{height:100%;display:flex;align-items:center;justify-content:space-between;gap:24px}
 .marke{font-family:var(--schrift-ueber);font-size:2rem;font-weight:700;color:var(--rl-dunkel);letter-spacing:-.01em}
-.marke span{color:var(--rl-blau)}
+.marke span{background:var(--verlauf);-webkit-background-clip:text;background-clip:text;color:transparent}
 nav.haupt{display:flex;gap:8px;flex-wrap:wrap}
-nav.haupt button{font-family:var(--schrift-text);font-size:1rem;font-weight:500;color:var(--rl-text);background:none;border:0;padding:10px 16px;border-radius:6px;cursor:pointer}
+nav.haupt button{font-family:var(--schrift-label);font-size:1.05rem;font-weight:500;letter-spacing:.02em;color:var(--rl-text);background:none;border:0;padding:10px 18px;border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
 nav.haupt button:hover{background:var(--rl-flaeche);color:var(--rl-dunkel)}
-nav.haupt button[aria-current="page"]{background:var(--rl-blau);color:#fff}
+nav.haupt button[aria-current="page"]{background:var(--relilab);color:var(--fau);font-weight:700}
 
 /* Hinweisleiste Mockup */
-.hinweis{background:var(--rl-dunkel);color:#cbd8e6;font-size:.82rem;padding:8px 0;text-align:center}
+.hinweis{background:var(--rl-dunkel);color:#cbd8e6;font-family:var(--schrift-label);font-size:.86rem;padding:8px 0;text-align:center}
 .hinweis b{color:#fff}
 
 /* Aufmacher */
-.aufmacher{background:var(--rl-flaeche);border-bottom:1px solid var(--rl-linie);padding:56px 0}
-.aufmacher p.unter{font-size:1.15rem;max-width:680px;margin:0}
+.aufmacher{background:var(--verlauf);padding:72px 0 76px;color:#fff;position:relative;overflow:hidden}
+.aufmacher::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 78% 15%,rgba(255,255,255,.22),transparent 55%);pointer-events:none}
+.aufmacher .container{position:relative;z-index:1}
+.aufmacher h1{color:#fff}
+.aufmacher .augenbraue{font-family:var(--schrift-label);font-size:.82rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.82);margin:0 0 14px}
+.aufmacher p.unter{font-size:1.18rem;max-width:680px;margin:0;color:rgba(255,255,255,.94);font-weight:300}
 
 /* Raster */
 .raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px}
 .karte{background:var(--rl-weiss);border:1px solid var(--rl-linie);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .18s,transform .18s;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;width:100%}
-.karte:hover{box-shadow:0 8px 24px rgba(25,42,61,.1);transform:translateY(-2px)}
+.karte:hover{box-shadow:var(--schatten-hover);transform:translateY(-3px);border-color:transparent}
 .karte-bild{aspect-ratio:16/9;background:var(--rl-flaeche);display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--rl-linie)}
 /* Bilder sind 150x150-Thumbnails - zentriert statt verzerrt */
 .karte-bild img{width:96px;height:96px;object-fit:cover;border-radius:8px}
 .karte-innen{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
 .karte h3{margin:0;font-size:1.3rem}
 .karte .anriss{font-size:.93rem;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.meta{font-size:.82rem;color:#6b8299;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:auto;padding-top:8px}
-.marker{display:inline-block;background:var(--rl-flaeche);color:var(--rl-text);border-radius:999px;padding:3px 10px;font-size:.75rem}
-.marker.blau{background:#e8f0fe;color:var(--rl-blau-dunkel)}
+.meta{font-family:var(--schrift-label);font-size:.86rem;color:var(--rl-text-leise);display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:auto;padding-top:8px}
+.marker{font-family:var(--schrift-label);display:inline-block;background:var(--rl-flaeche-2);color:var(--rl-text-leise);border-radius:999px;padding:3px 11px;font-size:.78rem;font-weight:500;letter-spacing:.01em}
+.marker.pink{background:rgba(229,77,154,.13);color:#c22e7d}
+.marker.mint{background:rgba(46,204,136,.15);color:#1a9c63}
+.marker.amber{background:rgba(242,148,34,.16);color:var(--amber-tief)}
+.marker.blau{background:rgba(52,178,246,.14);color:var(--relilab-tief)}
 
 /* Termin-Datumsblock */
 .termin{display:flex;gap:18px;align-items:flex-start;padding:20px;border:1px solid var(--rl-linie);border-radius:10px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;transition:box-shadow .18s}
-.termin:hover{box-shadow:0 6px 18px rgba(25,42,61,.09)}
-.datum{flex:0 0 76px;text-align:center;background:var(--rl-flaeche);border-radius:8px;padding:10px 6px}
-.datum .tag{font-family:var(--schrift-ueber);font-size:2rem;font-weight:700;color:var(--rl-blau);line-height:1}
-.datum .monat{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--rl-text)}
-.datum .jahr{font-size:.7rem;color:#8298ad}
-.termin.vergangen .datum .tag{color:#8298ad}
+.termin:hover{box-shadow:var(--schatten-hover);border-color:transparent}
+.datum{flex:0 0 76px;text-align:center;background:rgba(229,77,154,.09);border-radius:8px;padding:10px 6px}
+.datum .tag{font-family:var(--schrift-ueber);font-size:2.1rem;font-weight:700;color:var(--pink);line-height:1}
+.datum .monat{font-family:var(--schrift-label);font-size:.75rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--rl-text)}
+.datum .jahr{font-family:var(--schrift-label);font-size:.72rem;color:var(--rl-text-leise)}
+.termin.vergangen .datum{background:var(--rl-flaeche-2)}
+.termin.vergangen .datum .tag{color:#93a0b8}
 .termin-bild{flex:0 0 76px;height:76px;border-radius:8px;overflow:hidden;background:var(--rl-flaeche);display:flex;align-items:center;justify-content:center}
 .termin-bild img{width:100%;height:100%;object-fit:cover}
 .termin-bild span{font-family:var(--schrift-ueber);font-size:.95rem;color:#c3d2e0}
@@ -74,41 +101,43 @@ nav.haupt button[aria-current="page"]{background:var(--rl-blau);color:#fff}
 
 /* Filterleiste */
 .filter{display:flex;flex-wrap:wrap;gap:8px;padding:20px 0;border-bottom:1px solid var(--rl-linie);margin-bottom:32px}
-.filter button{font-family:var(--schrift-text);font-size:.85rem;border:1px solid var(--rl-linie);background:#fff;color:var(--rl-text);padding:7px 14px;border-radius:999px;cursor:pointer}
-.filter button:hover{border-color:var(--rl-blau);color:var(--rl-blau)}
-.filter button[aria-pressed="true"]{background:var(--rl-blau);border-color:var(--rl-blau);color:#fff}
+.filter button{font-family:var(--schrift-label);font-size:.9rem;font-weight:500;border:1px solid var(--rl-linie);background:#fff;color:var(--rl-text);padding:7px 15px;border-radius:999px;cursor:pointer;transition:all .15s}
+.filter button:hover{border-color:var(--amber);color:var(--amber-tief)}
+.filter button[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--fau);font-weight:700}
 .umschalter{display:inline-flex;border:1px solid var(--rl-linie);border-radius:8px;overflow:hidden;margin-bottom:24px}
-.umschalter button{font-family:var(--schrift-text);font-size:.9rem;border:0;background:#fff;color:var(--rl-text);padding:9px 20px;cursor:pointer}
-.umschalter button[aria-pressed="true"]{background:var(--rl-blau);color:#fff}
+.umschalter button{font-family:var(--schrift-label);font-size:.95rem;font-weight:500;border:0;background:#fff;color:var(--rl-text);padding:9px 22px;cursor:pointer}
+.umschalter button[aria-pressed="true"]{background:var(--relilab);color:var(--fau);font-weight:700}
 
 section.block{padding:56px 0}
-section.block.grau{background:var(--rl-flaeche-2);border-top:1px solid var(--rl-linie);border-bottom:1px solid var(--rl-linie)}
+section.block.grau{background:var(--rl-flaeche);border-top:1px solid var(--rl-linie);border-bottom:1px solid var(--rl-linie)}
 .block-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:28px;flex-wrap:wrap}
 .block-kopf h2{margin:0}
+.augenbraue.dunkel{font-family:var(--schrift-label);font-size:.8rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--relilab-tief);margin:0 0 6px}
 .liste{display:flex;flex-direction:column;gap:14px}
 
 /* Detailansicht */
 .detail-kopf{padding:40px 0 28px;border-bottom:1px solid var(--rl-linie);margin-bottom:32px}
-.zurueck{background:none;border:0;color:var(--rl-blau);font:inherit;font-size:.9rem;cursor:pointer;padding:0;margin-bottom:20px}
+.zurueck{background:none;border:0;color:var(--relilab-tief);font-family:var(--schrift-label);font-size:.95rem;font-weight:500;cursor:pointer;padding:0;margin-bottom:20px}
 .zurueck:hover{text-decoration:underline}
 .inhalt{font-size:1.02rem}
 .inhalt h1,.inhalt h2,.inhalt h3,.inhalt h4,.inhalt h5,.inhalt h6{margin-top:1.6em}
 .inhalt h5,.inhalt h6{font-size:1.1rem}
 .inhalt img{border-radius:8px;margin:1.4em 0}
 .inhalt ul,.inhalt ol{padding-left:1.4em}
-.inhalt blockquote{border-left:3px solid var(--rl-blau);margin:1.4em 0;padding:.4em 0 .4em 1.2em;color:#5a7a99}
+.inhalt blockquote{border-left:3px solid var(--relilab);margin:1.4em 0;padding:.4em 0 .4em 1.2em;color:var(--rl-text-leise)}
 .inhalt code{background:var(--rl-flaeche);padding:2px 6px;border-radius:4px;font-size:.9em}
 .inhalt pre{background:var(--rl-flaeche);padding:16px;border-radius:8px;overflow-x:auto}
 .inhalt table{width:100%;border-collapse:collapse;margin:1.4em 0}
 .inhalt td,.inhalt th{border:1px solid var(--rl-linie);padding:8px 12px;text-align:left}
-.herkunft{background:var(--rl-flaeche);border-radius:8px;padding:16px 20px;font-size:.9rem;margin:32px 0}
+.herkunft{background:var(--rl-flaeche);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:16px 20px;font-size:.92rem;margin:32px 0}
 .herkunft strong{color:var(--rl-dunkel)}
 
-footer.fuss{background:var(--rl-dunkel);color:#a8bccf;padding:48px 0;margin-top:64px;font-size:.9rem}
-footer.fuss a{color:#8ab4ff}
+footer.fuss{background:var(--rl-dunkel);color:#a8bccf;padding:48px 0;margin-top:64px;font-size:.92rem;font-weight:300}
+footer.fuss a{color:var(--relilab)}
 footer.fuss .marke{color:#fff;margin-bottom:12px}
-.leer{padding:48px;text-align:center;color:#8298ad;background:var(--rl-flaeche);border-radius:10px}
-.zaehler{font-size:.88rem;color:#6b8299}
+footer.fuss .marke span{background:linear-gradient(135deg,var(--relilab) 0%,#f28ffb 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.leer{padding:48px;text-align:center;color:var(--rl-text-leise);background:var(--rl-flaeche);border-radius:10px}
+.zaehler{font-family:var(--schrift-label);font-size:.92rem;color:var(--rl-text-leise)}
 @media(max-width:640px){
   :root{--rl-kopf:auto}
   header.kopf{position:static}
@@ -134,10 +163,10 @@ footer.fuss .marke{color:#fff;margin-bottom:12px}
 
 <footer class="fuss">
   <div class="container">
-    <div class="marke">reli<span style="color:#8ab4ff">lab</span></div>
+    <div class="marke fuss-marke">reli<span>lab</span></div>
     <p>Schaufenster auf Nostr — Inhalte stammen aus dem Relay <code>relay.edufeed.org</code>,
        gespiegelt von <a href="https://relilab.org">relilab.org</a>.</p>
-    <p style="margin-top:20px;font-size:.82rem;opacity:.75">Mockup zur Gestaltungsabstimmung. Farben und Schriften aus dem Blocksy-Theme von relilab.org übernommen.</p>
+    <p style="margin-top:20px;font-size:.82rem;opacity:.75">Mockup zur Gestaltungsabstimmung. Farben und Schriften nach dem Designsystem <span style="white-space:nowrap">FOERBICO&nbsp;×&nbsp;rpi-virtuell</span> (Farbfusion &amp; Typografie-Konzept v2).</p>
   </div>
 </footer>
 
@@ -220,7 +249,7 @@ function zeileTermin(t){
       : `<span aria-hidden="true">relilab</span>`}</div>
     <div class="termin-txt"><h3>${esc(t.titel)}</h3>
       <div class="meta"><span>${F.zeit(t.start)} Uhr</span>
-        ${t.ort?`<span class="marker">${esc(ortKurz(t.ort))}</span>`:''}
+        ${t.ort?`<span class="marker pink">${esc(ortKurz(t.ort))}</span>`:''}
         ${vorbei?'<span class="marker">vergangen</span>':''}</div>
     </div></button>`;
 }
@@ -236,16 +265,17 @@ const ANSICHTEN = {
     const artikel = DATEN.artikel.slice(0,6);
     const kommend = DATEN.termine.filter(t=>t.start>=jetzt).sort((a,b)=>a.start-b.start).slice(0,5);
     return `<div class="aufmacher"><div class="container">
+        <p class="augenbraue">relilab · Schaufenster im Nostr-Netz</p>
         <h1>Religionspädagogik, digital gedacht</h1>
         <p class="unter">Lernmodule, Beiträge und Fortbildungen aus dem relilab — als offene Inhalte im Nostr-Netz, lesbar überall.</p>
       </div></div>
       <section class="block"><div class="container">
-        <div class="block-kopf"><h2>Aktuelle Beiträge</h2>
+        <div class="block-kopf"><div><p class="augenbraue dunkel">Material &amp; Praxis</p><h2>Aktuelle Beiträge</h2></div>
           <button class="zurueck" onclick="geh('artikel')">Alle ${DATEN.artikel.length} Beiträge →</button></div>
         <div class="raster">${artikel.map(karteArtikel).join('')}</div>
       </div></section>
       <section class="block grau"><div class="container">
-        <div class="block-kopf"><h2>Kommende Termine</h2>
+        <div class="block-kopf"><div><p class="augenbraue dunkel">Fortbildung &amp; Austausch</p><h2>Kommende Termine</h2></div>
           <button class="zurueck" onclick="geh('termine')">Alle Termine →</button></div>
         <div class="liste">${kommend.map(zeileTermin).join('')}</div>
       </div></section>`;
@@ -286,8 +316,8 @@ const ANSICHTEN = {
         <h1>${esc(obj.titel)}</h1>
         <div class="meta" style="margin-top:14px">
           ${ist_t
-            ? `<span class="marker blau">${F.datum(obj.start)}, ${F.zeit(obj.start)} Uhr</span>
-               ${obj.ort?`<span class="marker">${esc(ortKurz(obj.ort))}</span>`:''}`
+            ? `<span class="marker pink">${F.datum(obj.start)}, ${F.zeit(obj.start)} Uhr</span>
+               ${obj.ort?`<span class="marker pink">${esc(ortKurz(obj.ort))}</span>`:''}`
             : `<span>${F.datum(obj.datum)}</span>${obj.autor?`<span>von ${esc(obj.autor)}</span>`:''}`}
           ${obj.themen.filter(t=>DATEN.themen.includes(t)).slice(0,4).map(t=>`<span class="marker">${esc(t)}</span>`).join('')}
         </div>
