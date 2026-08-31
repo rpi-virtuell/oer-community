@@ -74,20 +74,52 @@ importiert eine Komponente oder eine Route.** Diese Grenze erodiert beim ersten
 ### 3. Server rendert Inhalt mit, Client übernimmt danach
 
 edufeed-app rendert **nicht** serverseitig: null `+page.server.js`, 41
-`+page.js`. Link-Vorschauen und Permalinks löst es über den Hook
+`+page.js` (Stand `origin/main`, August 2026). Link-Vorschauen und Permalinks löst es über den Hook
 `ogMetaHandle` (`src/lib/server/og.js`, 701 Zeilen) — der Server holt bei jeder
 Anfrage das Event vom Relay, extrahiert Titel, Anriss und Bild und injiziert
 OG-Tags vor `</head>`, mit Cache für Treffer und Fehltreffer.
 
-Das ist sauber gelöst und wird als Vorlage übernommen — aber es macht Inhalte
-nicht auffindbar: OG-Tags sind Metadaten, der Artikeltext bleibt außen vor.
-Für einen WordPress-Ersatz, dessen Inhalte heute vollständig im Quelltext
-stehen, wäre das ein Rückschritt.
+**Warum edufeed so gebaut ist, steht in der Historie** — und es war keine
+Entscheidung gegen serverseitiges Rendern, sondern eine Fehlerbehebung.
+Commit `b1a6c48` (10.03.2026): „Fix 404 on direct naddr URL navigation by
+disabling SSR — Routes using fetchEventById depend on client-side Nostr
+infrastructure (EventStore, relay pool) which isn't available during SSR."
+Direkte `naddr`-Links warfen 404, weil die Nostr-Schicht clientseitig gewachsen
+war. Das schnellste Mittel war `ssr = false` in drei Routen. Einen Monat
+später kamen die OG-Tags dazu — ohne SSR haben geteilte Links keine Vorschau —
+und wuchsen bis Juli 2026 auf die heutigen 701 Zeilen. Inzwischen steht
+`ssr = false` in **40** Routen.
+
+`og.js` ist damit nicht die Vorlage, sondern der Preis: 701 Zeilen, die den
+Server das Event holen lassen, um am Ende drei Metadatenfelder zu behalten und
+den Text zu verwerfen.
 
 **Also:** derselbe Hook-Ansatz, aber der Server rendert den Inhalt gleich mit.
 Er holt das Event ohnehin; es im HTML zu belassen statt zu verwerfen ist der
 kleine Schritt von „Vorschau funktioniert" zu „Suchmaschine sieht den Artikel".
 Listenseiten nutzen `+page.server.js` gegen denselben Server-Cache.
+
+**Der Grund ist nicht SEO.** Auffindbarkeit ist nur einer von vier Punkten, und
+für ein Schaufenster nicht einmal der wichtigste:
+
+1. **Weniger Code, nicht mehr.** Der Server-Cache steht ohnehin (siehe
+   Datenfluss). Clientseitiges Rendern bräuchte ihn **zusätzlich** zu einer
+   zweiten Datenschicht im Browser, die dasselbe Relay noch einmal abfragt —
+   genau die doppelte Fehlerquelle, die weiter unten für die Live-Aktualisierung
+   abgelehnt wird.
+2. **Lesbar ohne JavaScript** — Screenreader, restriktive Schulnetze, alte
+   Geräte. Bei einer Bildungsplattform kein Randfall.
+3. **Ein Umlauf statt vier.** Clientseitig: HTML, dann JS, dann WebSocket zum
+   Relay, dann Events abwarten, dann rendern.
+4. **Fehlerfälle bleiben einfach.** „Letzter gültiger Stand mit Hinweis auf sein
+   Alter" ist serverseitig ein Cache-Zugriff; clientseitig braucht es
+   Ladezustände, Wiederholungslogik und Fehlerbanner in jeder Komponente.
+
+Die edufeed-Variante wäre die Übernahme einer Umgehung für ein Problem, das
+dieses Projekt nicht hat: Die Nostr-Schicht ist noch nicht geschrieben und wird
+nach der Regel aus Entscheidung 2 serverfähig gebaut. Gegen SSR spräche
+personalisierter oder sekündlich wechselnder Inhalt — beides trifft nicht zu
+(111 Events, täglicher Rhythmus).
 
 ### 4. Eigenes Theme, abgeleitet aus relilab.org
 
