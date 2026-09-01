@@ -250,10 +250,12 @@ führen.
 
 ```
 relilab-client/
-├─ CLAUDE.md                 Projektgedächtnis: Entscheidungen, Stolpersteine
-├─ docs/superpowers/
-│  ├─ specs/                 YYYY-MM-DD-<thema>-design.md
-│  └─ plans/                 YYYY-MM-DD-<thema>.md
+├─ CLAUDE.md                 Projektgedächtnis: Regeln für die tägliche Arbeit
+├─ docs/
+│  ├─ designsystem.md        Farben, Schriften, Maße, Kontrastregeln
+│  └─ superpowers/
+│     ├─ specs/              YYYY-MM-DD-<thema>-design.md
+│     └─ plans/              YYYY-MM-DD-<thema>.md
 ├─ mockup/index.html         Gestaltungsabstimmung: eine Datei, Daten
 │                            eingebettet, rendert im Browser — der Client
 │                            selbst rendert serverseitig (Entscheidung 3)
