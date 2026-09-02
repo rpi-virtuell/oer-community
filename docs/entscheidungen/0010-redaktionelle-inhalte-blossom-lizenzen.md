@@ -77,6 +77,18 @@ Prüfung): `helpers/image-license.js` (`buildLicenseTemplate`),
   Lösung liegt beim Bot") gilt nur noch für Altbestand aus dem Bot.
 - **Der Bot-Bestand bleibt als Testdatensatz** für Mock-Relay und
   Fixtures nützlich — er ist nur nicht der Startbestand der Instanz.
-- Blossom-Server: `blossom.serverUrl` ist in der edufeed-app
-  Konfiguration; welcher Server für relilab genutzt wird, ist mit der
-  Infrastruktur zu klären (offen).
+- **Blossom-Server: `https://blossom.edufeed.org/`** (geprüft am
+  02.09.2026: erreichbar, `access-control-allow-origin: *`, HSTS —
+  der Client kann die Bilder direkt laden). In der edufeed-app steckt
+  die Adresse in `blossom.serverUrl`; hier bleibt sie ebenfalls
+  Konfiguration, kein Code.
+- **Umfang: eine Handvoll** Beiträge und Termine. Nicht mehr, bis das
+  grundlegende Schema steht — siehe Abbruchbedingung.
+
+## Abbruchbedingung
+
+Der redaktionelle Bestand wird erst erweitert, wenn das Schema
+**belastbar** ist: Frontmatter/Tags, Lizenznachweis, Themen und die
+Darstellung greifen sauber ineinander, und ein Beitrag lässt sich ohne
+Nacharbeit einstellen. Vorher ist jeder zusätzliche Beitrag Aufwand, der
+beim nächsten Schemawechsel doppelt anfällt.

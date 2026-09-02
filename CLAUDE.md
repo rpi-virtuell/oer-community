@@ -181,8 +181,8 @@ Publikationstätigkeit anderer. **Neue Funktionen kommen mit einer Prüfung.**
 |---|---|---|
 | lokal (`pnpm dev`) | Arbeitskopie | `relay.edufeed.org` |
 | `dev.relilab.org` | `dev` | `relay.edufeed.org` |
-| `int.relilab.org` | `main` | später `relay.relilab.org` |
+| `int.relilab.org` | `main` | `relay.edufeed.org` |
 
-`relay.relilab.org` ist **noch kein Relay** (leeres Apache-Dokument, Zertifikat
-auf fremden Namen). Bis das behoben ist, läuft alles gegen
-`relay.edufeed.org`. Die Relay-Adresse ist Konfiguration, kein Code.
+Kein eigenes Relay — die Edufeed-Relays werden genutzt und bei Bedarf
+gespiegelt (ADR-0008). Bilder liegen auf `https://blossom.edufeed.org/`
+(ADR-0010). Beide Adressen sind Konfiguration, kein Code.

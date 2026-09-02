@@ -27,8 +27,10 @@ dass er `kind:1063` auflösen und die Lizenz **sichtbar ausweisen** muss.
 Bilder ohne auflösbaren Nachweis werden kenntlich gemacht, nicht
 stillschweigend angezeigt.
 
-**Offen:** Welcher Blossom-Server für relilab genutzt wird (gehört zur
-Infrastruktur-Klärung). Wie viele Beiträge/Termine „exemplarisch" heißt.
+**Geklärt (02.09. nachmittags):** Blossom-Server ist
+`https://blossom.edufeed.org/` — erreichbar geprüft, CORS offen, der
+Client kann direkt laden. Umfang: **eine Handvoll** Beiträge und Termine,
+bis das grundlegende Schema belastbar ist; erst dann erweitern.
 
 **Nächster Schritt:** unverändert das SvelteKit-Gerüst — die
 Lizenzanzeige gehört in die Detailansicht und die Karten, ist also Teil
