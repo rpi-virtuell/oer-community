@@ -10,6 +10,11 @@ Hier stehen nur die Regeln. Widersprechen sich beide, gilt die Spec — und
 diese Datei ist zu korrigieren.
 Farben, Schriften, Abstände: `docs/designsystem.md`.
 
+**Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
+(Logbuch, neuester Eintrag oben). Diese Datei hier beschreibt teils den
+Zielzustand — was davon schon existiert, sagt STATUS.md. Jede Arbeitssitzung
+beginnt dort und endet mit einem Eintrag dort.
+
 ## Zuschnitt
 
 Nur Lesen: Artikel, Termine, Detailansicht, Themenfilter.
