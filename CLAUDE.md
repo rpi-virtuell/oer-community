@@ -30,12 +30,24 @@ auch nicht abgeblendet oder als „demnächst".
 
 ## Die Regel, die am leichtesten erodiert
 
-**Nichts unter `src/lib/nostr/` importiert eine Komponente oder eine Route.**
+**Die Datenschicht kennt die Oberfläche nicht.** Nichts unter
+`src/lib/loaders/`, `src/lib/models/` oder `src/lib/services/` importiert eine
+Komponente oder eine Route.
 
-Die Nostr-Schicht trägt die Bezeichner von edufeed-app, damit ein späteres
-gemeinsames Paket ein Verschieben ist und kein Umschreiben. Die Grenze bricht
-beim ersten „nur schnell hier importieren". Der Abhängigkeitspfeil zeigt
-ausschließlich von `routes/` und `komponenten/` nach `lib/nostr/`, nie zurück.
+Die Grenze bricht beim ersten „nur schnell hier importieren". Der
+Abhängigkeitspfeil zeigt ausschließlich von `routes/` und `components/` nach
+`lib/`, nie zurück. Die Struktur folgt der edufeed-app, damit Muster wandern
+können (ADR-0009) — ein Sammelpfad `src/lib/nostr/` ist es ausdrücklich nicht.
+
+## Nostr-Operationen
+
+**Applesauce für alles, was mit Relays spricht** — nie `nostr-tools` für
+Relay-Kommunikation (fehlerhafte Serialisierung in `SimplePool`).
+
+**Vor dem Schreiben von Loader-, Model- oder Subscription-Code die MCPs
+befragen** statt aus dem Gedächtnis zu programmieren:
+`https://mcp.applesauce.build/mcp` für die Applesauce-API, **nostrbook.dev**
+für Kind- und NIP-Details (ADR-0009).
 
 ## Serverseitig rendern, nicht clientseitig
 

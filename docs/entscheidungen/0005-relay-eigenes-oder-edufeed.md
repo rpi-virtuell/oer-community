@@ -1,6 +1,6 @@
 # ADR-0005: Eigenes Relay unter relay.relilab.org oder Edufeed-Relay weiternutzen
 
-**Status:** offen
+**Status:** ersetzt durch ADR-0008 (2026-09-02)
 **Beteiligte:** Jörg, Steffen (Docker-Frage), intranda (Subdomain/Hosting)
 
 ## Kontext
@@ -13,7 +13,10 @@ in beiden Fällen möglich.
 
 ## Entscheidung
 
-Favorisiert ist Plan A. Zur Entscheidung fehlt: welche Relay-Software
+> **Überholt.** Die Infrastruktur ist bereits da; es wird gespiegelt
+> statt neu aufgesetzt — siehe ADR-0008.
+
+Favorisiert war Plan A. Zur Entscheidung fehlt: welche Relay-Software
 docker-fähig und wartbar ist → **Steffen anfragen**; Hosting-Ort
 (Kandidat: „kanban" bei intranda).
 

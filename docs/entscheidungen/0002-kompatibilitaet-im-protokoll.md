@@ -1,9 +1,12 @@
 # ADR-0002: Kompatibilität liegt im Protokoll, nicht im Code
 
-**Status:** angenommen (2026-08-31)
+**Status:** ersetzt durch ADR-0009 (2026-09-02)
 **Beteiligte:** Jörg — Bezeichner-Angleichung mit dem edufeed-Team ist noch abzusprechen (siehe Konsequenzen)
 
 ## Entscheidung
+
+> **Überholt.** Der isolierte Kern ist verworfen; Kompatibilität
+> entsteht über Protokoll und Werkzeuge — siehe ADR-0009.
 
 Wir teilen mit edufeed Kinds (30023, 31922/31923, später 30142), Relays
 und Tag-Konventionen (`d`, `h`, `t`) — aber keinen Code. Die

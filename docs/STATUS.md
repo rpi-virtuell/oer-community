@@ -9,6 +9,35 @@ hier steht nur der Stand.
 
 ---
 
+## 2026-09-02 (spät) — Framework bestätigt, drei Entscheidungen gefallen
+
+**Passiert:** Die Framework-Frage („evtl. brauchts kein Svelte") wurde
+gestellt und beantwortet: **SvelteKit bleibt** (ADR-0007). Damit ist auch
+die dahinterliegende Frage entschieden — das Schaufenster ist der Keim des
+Community Hubs, nicht nur ein Schaufenster. ADR-0003 (SSR, kein
+Browser-Zustand) ist ab jetzt ausdrücklich eine **Startbedingung mit
+Ablaufbedingung**, kein Dauerzustand.
+
+Zwei ADRs wurden ersetzt statt korrigiert:
+
+- **ADR-0005 → ADR-0008:** Kein eigenes Relay. `relay.edufeed.org` und
+  `amb-relay.edufeed.org` sind da, es wird gespiegelt. Die Frage an
+  Steffen nach Relay-Software entfällt für den Start.
+- **ADR-0002 → ADR-0009:** Der isolierte `src/lib/nostr/`-Kern ist
+  verworfen. Applesauce für alle Nostr-Operationen; `mcp.applesauce.build`
+  und nostrbook.dev sind bei der Entwicklung verbindlich. Struktur folgt
+  edufeed-app (`loaders/`, `models/`, `services/`, `stores/`).
+
+CLAUDE.md entsprechend korrigiert: Die Erosionsregel gilt jetzt für die
+Datenschicht insgesamt, nicht für einen Pfad, den es nicht gibt.
+
+**Noch offen:** ADR-0006 (Pilgern-MVP vs. Relilab-Klon) — präzisiert:
+„Edufeed-Light" ist als Begriff verworfen, es wird **nichts aus edufeed
+herausgeschnitten**, sondern eigenständig gebaut.
+
+**Nächster Schritt:** unverändert — SvelteKit-Gerüst. Jetzt ohne
+Framework-Vorbehalt und mit geklärter Datenschicht-Struktur.
+
 ## 2026-09-02 (abends) — ADRs eingeführt, offene Entscheidungen benannt
 
 **Passiert:** `docs/entscheidungen/` angelegt (ADR, eine Entscheidung pro
