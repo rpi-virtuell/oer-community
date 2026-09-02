@@ -28,6 +28,10 @@ angedeutet** — keine Bedienung anbieten, die dann scheitert. Also keine
 Schaltflächen, Menüpunkte oder Formulare für nicht vorhandene Funktionen,
 auch nicht abgeblendet oder als „demnächst".
 
+Das gilt auch nach ADR-0010: Inhalte werden **im Web-Frontend der
+edufeed-app** redaktionell eingestellt, nicht hier. Der relilab-client
+bleibt lesend — er zeigt die Lizenzen nur an.
+
 ## Die Regel, die am leichtesten erodiert
 
 **Die Datenschicht kennt die Oberfläche nicht.** Nichts unter
@@ -83,7 +87,9 @@ künftige Bot-Inhalte anderer Mandanten mit; `#h` allein ließe jeden herein,
 der auf den Community-Key taggt.
 
 Kinds: `30023` Artikel (NIP-23) · `31923` Termine zeitgebunden · `31922`
-ganztägig (kommt in den Daten nicht vor, wird mitgelesen).
+ganztägig (kommt in den Daten nicht vor, wird mitgelesen) · `1063`
+Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
+über die Hauptabfrage).
 
 ### Wiederkehrende Fallen
 
@@ -98,8 +104,17 @@ ganztägig (kommt in den Daten nicht vor, wird mitgelesen).
   Normalisierungstabelle in `src/lib/themen.js` ist Redaktionsarbeit und muss
   ohne Entwickler änderbar bleiben. Nicht filterbare Themen bleiben am
   Artikel sichtbar.
-- **Bilder sind 150×150-Thumbnails auf relilab.org.** Zentriert darstellen,
-  nicht auf Kartenbreite ziehen. Die Lösung liegt beim Bot, nicht hier.
+- **Zwei Sorten Bilder, zwei Verhaltensweisen** (ADR-0010):
+  *Altbestand aus dem Bot* sind 150×150-Thumbnails auf relilab.org —
+  zentriert darstellen, nicht auf Kartenbreite ziehen.
+  *Redaktionell eingestellte Inhalte* liegen auf Blossom, in voller Größe,
+  mit Lizenznachweis.
+- **Zu jedem Bild den Lizenznachweis auflösen und ausweisen.**
+  `kind:1063` über den SHA-256-Hash: `{ kinds: [1063], "#x": [hash] }`;
+  bei mehreren Treffern gewinnt das neueste `created_at`, Gleichstand nach
+  `id`. Pflichtangaben sind `license` (URL) und `credit` (Urhebernennung).
+  **Ein Bild ohne auflösbaren Nachweis wird als solches kenntlich gemacht** —
+  nicht stillschweigend anzeigen. Urheberrecht ist keine Kür.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.

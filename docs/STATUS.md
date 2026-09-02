@@ -9,6 +9,31 @@ hier steht nur der Stand.
 
 ---
 
+## 2026-09-02 (spät, 2) — Startbestand wird redaktionell erstellt, nicht übernommen
+
+**Passiert:** ADR-0010. Die 111 Bot-Events sind **nicht** der
+Startbestand der Instanz: Ihre Medien liegen weiterhin auf relilab.org,
+und für einen Teil fehlen Urheberrechtsangaben. Für v0.0.1 werden
+exemplarische Beiträge und Termine **redaktionell neu eingestellt**,
+Vorschaubilder auf **Blossom**, mit Lizenznachweis als `kind:1063`
+(NIP-94) nach der edufeed-Konvention — Pflichtfelder `license` und
+`credit`. Der bestehende Mechanismus der edufeed-app wird bedient,
+nichts neu erfunden.
+
+**Wirkung auf den Zuschnitt:** Das Einstellen braucht Anmeldung und
+Schreibpfad — beides bleibt **außerhalb** des relilab-client, im
+Web-Frontend der edufeed-app. Der Client bleibt lesend; neu ist nur,
+dass er `kind:1063` auflösen und die Lizenz **sichtbar ausweisen** muss.
+Bilder ohne auflösbaren Nachweis werden kenntlich gemacht, nicht
+stillschweigend angezeigt.
+
+**Offen:** Welcher Blossom-Server für relilab genutzt wird (gehört zur
+Infrastruktur-Klärung). Wie viele Beiträge/Termine „exemplarisch" heißt.
+
+**Nächster Schritt:** unverändert das SvelteKit-Gerüst — die
+Lizenzanzeige gehört in die Detailansicht und die Karten, ist also Teil
+davon. Der Bot-Bestand bleibt als Fixture-Quelle für Tests nützlich.
+
 ## 2026-09-02 (spät) — Framework bestätigt, drei Entscheidungen gefallen
 
 **Passiert:** Die Framework-Frage („evtl. brauchts kein Svelte") wurde
