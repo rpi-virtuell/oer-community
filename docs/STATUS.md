@@ -9,6 +9,25 @@ hier steht nur der Stand.
 
 ---
 
+## 2026-09-02 (abends) — ADRs eingeführt, offene Entscheidungen benannt
+
+**Passiert:** `docs/entscheidungen/` angelegt (ADR, eine Entscheidung pro
+Datei, mit Status). Die vier Spec-Entscheidungen sind jetzt ADR-0001 bis
+ADR-0004 referenzierbar; aus der Besprechung „Community Hub" (02.09.) sind
+zwei offene ADRs entstanden.
+
+**Offen (blockiert weitere Festlegungen):**
+
+- **ADR-0005** Relay: Plan A eigenes Relay (favorisiert) vs. Plan B
+  Edufeed-Relay — wartet auf Steffen (docker-fähige Software) und
+  Hosting-Klärung intranda.
+- **ADR-0006** Schwerpunkt: Pilgern-MVP/Edufeed-Light vs. Relilab-Klon —
+  mit Corinna nichts fest vereinbart; Verabredung „eins ausprobieren,
+  parallel ok".
+
+**Nächster Schritt:** unverändert (SvelteKit-Gerüst) — ADR-0005/0006
+blockieren den Client nicht, die Relay-Adresse ist Konfiguration.
+
 ## 2026-09-02 — Branches konsolidiert, Ausgangspunkt vereinheitlicht
 
 **Passiert:** `mockup` per Fast-Forward in `main` gemerged und gelöscht,

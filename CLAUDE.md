@@ -4,10 +4,13 @@ Lesendes Schaufenster für die nach Nostr konvertierten relilab-Inhalte —
 Artikel und Termine, in der Optik von relilab.org. Erster Schritt, WordPress
 abzulösen.
 
-**Begründungen stehen in
-`docs/superpowers/specs/2026-08-31-relilab-schaufenster-design.md`.**
-Hier stehen nur die Regeln. Widersprechen sich beide, gilt die Spec — und
-diese Datei ist zu korrigieren.
+**Warum eine Regel gilt, steht in `docs/entscheidungen/` (ADR)** — eine
+Entscheidung, eine Datei, mit Status. Die Spec
+`docs/superpowers/specs/2026-08-31-relilab-schaufenster-design.md` bleibt das
+Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004. Hier stehen
+nur die Regeln. Widerspricht diese Datei einer ADR, gilt die ADR — und diese
+Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
+(Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
 Farben, Schriften, Abstände: `docs/designsystem.md`.
 
 **Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
