@@ -17,6 +17,16 @@ Favorisiert ist Plan A. Zur Entscheidung fehlt: welche Relay-Software
 docker-fähig und wartbar ist → **Steffen anfragen**; Hosting-Ort
 (Kandidat: „kanban" bei intranda).
 
+## Recherche (02.09.2026)
+
+Die edufeed-app-CLAUDE.md (git.edufeed.org, `main`) dokumentiert die
+edufeed-Relay-Landschaft: ein Relay **pro Inhaltstyp** (Kalender, AMB
+`amb-relay.edufeed.org`, Longform, Kanban, Groups `groups.edufeed.org`),
+konfiguriert per Env-Variablen — plus `relay.edufeed.org` und
+`relay-rpi.edufeed.org` aus der FOERBICO-Pipeline. Bei Plan A wäre zu
+entscheiden, ob relilab ein einzelnes Relay reicht oder das
+Pro-Inhaltstyp-Muster übernommen wird.
+
 ## Konsequenzen
 
 - Die Relay-Adresse ist Konfiguration, kein Code — der Client ist von
