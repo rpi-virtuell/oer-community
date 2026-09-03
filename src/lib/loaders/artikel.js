@@ -4,6 +4,7 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
 /**
  * @typedef {import('../naddr.js').Adresse} Adresse
  * @typedef {import('../models/artikel.js').Artikel} Artikel
+ * @typedef {import('../services/relay.js').Event} Event
  * @typedef {import('../services/relay.js').Abfragegrund} Abfragegrund
  */
 
@@ -24,11 +25,16 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
  * @param {Adresse} eingabe.adresse
  * @param {string[]} eingabe.relays
  * @param {typeof eventsHolen} [eingabe.holen]  nur zum Prüfen austauschbar
- * @returns {Promise<{ artikel: Artikel|null, gefragteRelays: string[],
- *   fehler: string[], grund: Abfragegrund }>}
+ * `event` gibt das unveränderte Event mit heraus, `quellen` seine Herkunft.
+ * Die Entwickleransicht zeigt beides; der aufbereitete `artikel` hat Tags und
+ * Signatur schon verloren.
+ *
+ * @returns {Promise<{ artikel: Artikel|null, event: Event|null,
+ *   gefragteRelays: string[], fehler: string[], ohneTreffer: string[],
+ *   quellen: Record<string, string[]>, grund: Abfragegrund }>}
  */
 export async function artikelLaden({ adresse, relays, holen = eventsHolen }) {
-  const { events, gefragt, fehler, grund } = await eventsVonAllen(
+  const { events, gefragt, fehler, ohneTreffer, quellen, grund } = await eventsVonAllen(
     // Bewusst ohne adresse.relays — siehe oben.
     relays,
     {
@@ -40,10 +46,28 @@ export async function artikelLaden({ adresse, relays, holen = eventsHolen }) {
   );
 
   if (events.length === 0) {
-    return { artikel: null, gefragteRelays: gefragt, fehler, grund };
+    return {
+      artikel: null,
+      event: null,
+      gefragteRelays: gefragt,
+      fehler,
+      ohneTreffer,
+      quellen,
+      grund
+    };
   }
 
   // Ersetzbare Events: das neueste gewinnt.
   const neuestes = events.reduce((a, b) => (b.created_at > a.created_at ? b : a));
-  return { artikel: artikelAusEvent(neuestes), gefragteRelays: gefragt, fehler, grund };
+  return {
+    artikel: artikelAusEvent(neuestes),
+    event: neuestes,
+    gefragteRelays: gefragt,
+    fehler,
+    ohneTreffer,
+    // Nur die Herkunft des gewählten Events — die der verworfenen
+    // Vorgängerversionen wäre hier irreführend.
+    quellen: quellen[neuestes.id] ? { [neuestes.id]: quellen[neuestes.id] } : {},
+    grund
+  };
 }

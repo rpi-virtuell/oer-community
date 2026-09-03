@@ -52,3 +52,30 @@ describe('lizenzLaden meldet keine Stoerung im Erfolgsfall', () => {
     expect(ergebnis.grund).toBe('kein-relay-erreichbar');
   });
 });
+
+describe('lizenzLaden reicht die Herkunft des Nachweises durch', () => {
+  it('nennt das Relay, das den Nachweis lieferte — nicht das mit dem Artikel', async () => {
+    const holen = vi.fn(async (/** @type {string} */ url) => ({
+      events: url === 'wss://rpi/' ? [nachweisEvent] : [],
+      erreicht: true
+    }));
+
+    const ergebnis = await lizenzLaden({
+      hash: HASH,
+      relays: ['wss://relay.edufeed.org/', 'wss://rpi/'],
+      holen
+    });
+
+    expect(ergebnis.quellen[nachweisEvent.id]).toEqual(['wss://rpi/']);
+    expect(ergebnis.ohneTreffer).toEqual(['wss://relay.edufeed.org/']);
+  });
+
+  it('gibt alle gefundenen Events heraus, nicht nur den gewaehlten Nachweis', async () => {
+    const holen = vi.fn(async () => ({ events: [nachweisEvent], erreicht: true }));
+
+    const ergebnis = await lizenzLaden({ hash: HASH, relays: ['wss://rpi/'], holen });
+
+    expect(ergebnis.events).toHaveLength(1);
+    expect(ergebnis.events[0].id).toBe(nachweisEvent.id);
+  });
+});

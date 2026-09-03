@@ -9,6 +9,60 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-03 (spät) — Entwickleransicht: warum ein Bild fehlt, ist jetzt beantwortbar
+
+**Passiert:** ADR-0017. Unter `/[naddr]/json` liegen die Rohdaten hinter
+einem Beitrag: `kind:30023` und `kind:1063` nebeneinander, je mit dem
+Relay, das sie lieferte, dazu die fünf Schritte aus ADR-0013 mit Ergebnis
+je Schritt, die drei Hashes zum Vergleich und ein Signaturbefund. Die
+Artikelseite verweist per Aufklappbereich darauf, ohne die Daten
+einzubetten.
+
+Anlass war die Frage, wie man den Lizenznachweis überhaupt zu Gesicht
+bekommt — **er steht nicht im Artikel**. Der `30023` trägt nur den Hash
+im `x`-Tag; der Nachweis ist ein eigenes Event auf einem anderen Relay.
+Bisher zeigte die Seite nur das Ergebnis, nicht seinen Grund.
+
+**Adressprüfung und Relay-Abfrage liegen jetzt gemeinsam** in
+`loaders/beitrag.js`, den Artikelseite und JSON-Route beide nutzen.
+Sonst wäre die JSON-Route der Umweg um ADR-0016, sobald ein Wächter in
+einer Kopie fehlt. Am laufenden System geprüft: fremder Autor → 404.
+
+**Zwei Funde, beide am laufenden System belegt:**
+
+- **`verifyEvent` prüft die Signatur nicht gegen den Inhalt**, sondern
+  `sig` gegen `id`. Ein Event mit verändertem `content` und unberührter
+  `id`/`sig` kommt durch — `verifyEvent` meldet `true`. Erst der
+  Vergleich mit `getEventHash` bindet die Signatur an den Inhalt. Der
+  Test dazu wurde vor dem Code geschrieben und wäre nachträglich grün
+  geworden, ohne etwas zu prüfen.
+- **Die Relay-Trennung ist nicht disjunkt.** Der Referenzartikel liegt
+  inzwischen auf *beiden* Relays, sein Nachweis nur auf `relay-rpi`.
+  „Liegt der Nachweis auf keinem der Artikel-Relays" ist damit falsch,
+  obwohl ADR-0013 gilt. Die richtige Frage: Gibt es ein Relay, das den
+  Artikel hat und den Nachweis nicht? Antwort für den Referenzfall:
+  `relay.edufeed.org`.
+
+**Stand:** `pnpm test` 13 Dateien, **107 Tests grün** (33 neu).
+`pnpm check` 361 Dateien, 0 Fehler, 0 Warnungen. Beide Fälle gegen die
+echten Relays geprüft: der Referenzfall (fünf Schritte bestanden, drei
+Hashes gleich) und ein Artikel ohne `x`-Tag (Schritt 2 gescheitert,
+3 bis 5 als *ungeprüft* ausgewiesen, `gefragt: []` mit Erklärung —
+„kein Hash, keine Frage").
+
+**Nächster Schritt:** unverändert die Termin-Ansicht mit ihrem
+Leerzustand. Davor oder danach der Cache — die JSON-Route löst eine
+zweite Abfragerunde aus und ist bewusst `no-store`.
+
+**Offen, neu:** **Was folgt aus einer ungültigen Signatur?** Die Ansicht
+weist den Befund aus, zieht aber keine Konsequenz — ein Event mit
+gebrochener Signatur wird normal angezeigt. 404, Warnung, oder Anzeige
+ohne Bild? Braucht eine eigene Entscheidung (ADR-0017, Abschnitt
+„Offen"), weil ein solcher Beitrag nicht belegbar von der Quelle stammt,
+auf die sich ADR-0016 stützt.
+
+---
+
 ## 2026-09-03 (abends) — Architekturregeln prüfen sich selbst
 
 **Passiert:** ADR-0014. Drei Regeln, die bisher nur in CLAUDE.md und in

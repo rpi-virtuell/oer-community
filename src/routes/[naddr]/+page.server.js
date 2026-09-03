@@ -1,12 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { inhaltAufbereiten } from '$lib/inhalt.js';
 import { konfigLesen } from '$lib/konfig.js';
 import { naddrDekodieren } from '$lib/naddr.js';
-import { ABLEHNUNG_TEXT, adressePruefen } from '$lib/models/adresse.js';
-import { artikelLaden } from '$lib/loaders/artikel.js';
-import { etagHolen, lizenzLaden } from '$lib/loaders/lizenz.js';
-import { lizenzPruefen } from '$lib/models/lizenz.js';
+import { beitragLaden } from '$lib/loaders/beitrag.js';
 
 export const prerender = false;
 
@@ -22,52 +18,15 @@ export async function load({ params }) {
     error(400, ursache instanceof Error ? ursache.message : 'Unlesbare Adresse.');
   }
 
-  // Der naddr kommt von aussen: nur die eigene Quelle wird angezeigt
-  // (ADR-0016). Sonst waere dies ein offener Nostr-Renderer.
-  const zulaessig = adressePruefen(adresse, konfig);
-  if (!zulaessig.ok) {
-    error(404, ABLEHNUNG_TEXT[zulaessig.grund]);
+  // Adressprüfung, Relay-Abfrage und Lizenzauflösung liegen im Loader —
+  // dieselbe Vorarbeit nutzt die Entwickleransicht (ADR-0016).
+  const ergebnis = await beitragLaden({ adresse, konfig });
+
+  if (!ergebnis.ok) {
+    error(ergebnis.status, ergebnis.meldung);
   }
 
-  const { artikel, gefragteRelays, grund } = await artikelLaden({
-    adresse,
-    relays: konfig.relays
-  });
-
-  if (!artikel) {
-    // `grund` unterscheidet „keines erreichbar" von „hat geantwortet und
-    // nichts". Nur so heisst 404 wirklich 404.
-    if (grund !== null) {
-      error(
-        503,
-        `Kein Relay hat geantwortet. Gefragt wurden: ${gefragteRelays.join(', ')}. ` +
-          'Verbindung und RELAYS in der .env prüfen.'
-      );
-    }
-    error(
-      404,
-      `Kein Artikel mit d="${adresse.d}" von ${adresse.author.slice(0, 12)}… gefunden. ` +
-        `Gefragt wurden: ${gefragteRelays.join(', ')}.`
-    );
-  }
-
-  const { nachweis } = artikel.bildHash
-    ? await lizenzLaden({ hash: artikel.bildHash, relays: konfig.relays })
-    : { nachweis: null };
-
-  const etag =
-    artikel.bildUrl && /^https?:\/\//.test(artikel.bildUrl)
-      ? await etagHolen(artikel.bildUrl)
-      : undefined;
-
-  const lizenz = lizenzPruefen({
-    bildUrl: artikel.bildUrl,
-    bildHash: artikel.bildHash,
-    nachweis,
-    etag
-  });
-
-  const { html, entfernteBilder } = inhaltAufbereiten(artikel.inhalt);
+  const { artikel, lizenz, html, entfernteBilder } = ergebnis;
 
   return {
     artikel: {
@@ -79,6 +38,9 @@ export async function load({ params }) {
     },
     lizenz,
     html,
-    entfernteBilder
+    entfernteBilder,
+    // Für den Verweis auf die Entwickleransicht — der naddr, wie er in der
+    // URL stand, nicht neu kodiert.
+    naddr: params.naddr
   };
 }

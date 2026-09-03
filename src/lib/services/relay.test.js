@@ -89,3 +89,38 @@ describe('eventsVonAllen trennt "nicht erreichbar" von "hat nichts"', () => {
     expect(ergebnis.events).toHaveLength(1);
   });
 });
+
+describe('eventsVonAllen haelt fest, welches Relay ein Event lieferte', () => {
+  it('nennt zu jeder Event-id die Relays, die es hatten', async () => {
+    const holen = vi.fn(async (/** @type {string} */ url) => ({
+      events: url === 'wss://artikel/' ? [event('a1')] : [event('n1')],
+      erreicht: true
+    }));
+
+    const ergebnis = await eventsVonAllen(
+      ['wss://artikel/', 'wss://nachweis/'],
+      {},
+      { holen }
+    );
+
+    expect(ergebnis.quellen).toEqual({
+      a1: ['wss://artikel/'],
+      n1: ['wss://nachweis/']
+    });
+  });
+
+  it('nennt bei einem Event auf mehreren Relays alle, nicht nur das letzte', async () => {
+    const holen = vi.fn(async () => ({ events: [event('gleich')], erreicht: true }));
+
+    const ergebnis = await eventsVonAllen(['wss://a/', 'wss://b/'], {}, { holen });
+
+    expect(ergebnis.events).toHaveLength(1);
+    expect(ergebnis.quellen.gleich).toEqual(['wss://a/', 'wss://b/']);
+  });
+
+  it('liefert bei leerer Relay-Liste ein leeres Verzeichnis, nicht undefined', async () => {
+    const ergebnis = await eventsVonAllen([], {}, { holen: vi.fn() });
+
+    expect(ergebnis.quellen).toEqual({});
+  });
+});

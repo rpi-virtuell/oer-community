@@ -155,6 +155,10 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **Ohne `x`-Tag am Artikel gibt es keinen Lookup.** Kein Hash, keine
   Frage — das ist kein fehlender Nachweis, sondern eine fehlende Angabe.
   Betrifft 85 von 86 FOERBICO-Artikeln.
+- **`verifyEvent` allein prüft die Signatur nicht gegen den Inhalt.** Es
+  prüft `sig` gegen `id`; ein Event mit verändertem `content` und
+  unberührter `id`/`sig` kommt durch. Immer zusätzlich `getEventHash`
+  gegen die `id` vergleichen (ADR-0017).
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
@@ -163,6 +167,23 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 
 Artikel `published_at` absteigend · Termine kommend `start` aufsteigend ·
 Termine vergangen `start` absteigend.
+
+## Warum ein Bild fehlt: die Entwickleransicht
+
+`/[naddr]/json` zeigt die Rohdaten hinter einem Beitrag — `kind:30023` und
+`kind:1063` nebeneinander, mit Relay-Herkunft, der Prüfkette aus ADR-0013
+und dem Signaturbefund (ADR-0017). **Der Nachweis steht nicht im Artikel**;
+ohne diese Ansicht ist ein ausbleibendes Bild nicht diagnostizierbar.
+
+Zwei Regeln dazu:
+
+- **Die Prüfkette wird nicht zweimal implementiert.** Sie wird aus
+  `lizenzPruefen` abgeleitet — dessen `grund` sagt, welcher Schritt kippte.
+  Eine zweite Implementierung würde auseinanderlaufen und etwas anderes
+  behaupten als die Anzeige.
+- **Beide Routen laufen durch `loaders/beitrag.js`.** Dort liegen die
+  Wächter aus ADR-0016. Eine Route, die selbst dekodiert und lädt, ist der
+  Umweg daran vorbei.
 
 ## Fehlerfälle
 

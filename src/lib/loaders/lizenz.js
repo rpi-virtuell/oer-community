@@ -3,6 +3,7 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
 
 /**
  * @typedef {import('../models/lizenz.js').Nachweis} Nachweis
+ * @typedef {import('../services/relay.js').Event} Event
  * @typedef {import('../services/relay.js').Abfragegrund} Abfragegrund
  */
 
@@ -22,11 +23,17 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
  * @param {string} eingabe.hash
  * @param {string[]} eingabe.relays
  * @param {typeof eventsHolen} [eingabe.holen]  nur zum Prüfen austauschbar
- * @returns {Promise<{ nachweis: Nachweis|null, gefragteRelays: string[],
- *   fehler: string[], grund: Abfragegrund }>}
+ * `events` und `quellen` geben die Rohdaten mit heraus: welche Kandidaten es
+ * gab und von welchem Relay jeder kam. Die Entwickleransicht braucht das, um
+ * die Auswahl nachvollziehbar zu machen — der gewählte `nachweis` allein sagt
+ * nicht, ob es Mitbewerber gab.
+ *
+ * @returns {Promise<{ nachweis: Nachweis|null, events: Event[],
+ *   gefragteRelays: string[], fehler: string[], ohneTreffer: string[],
+ *   quellen: Record<string, string[]>, grund: Abfragegrund }>}
  */
 export async function lizenzLaden({ hash, relays, holen = eventsHolen }) {
-  const { events, gefragt, fehler, grund } = await eventsVonAllen(
+  const { events, gefragt, fehler, ohneTreffer, quellen, grund } = await eventsVonAllen(
     relays,
     { kinds: [1063], '#x': [hash] },
     { holen }
@@ -34,8 +41,11 @@ export async function lizenzLaden({ hash, relays, holen = eventsHolen }) {
 
   return {
     nachweis: nachweisAusEvents(events),
+    events,
     gefragteRelays: gefragt,
     fehler,
+    ohneTreffer,
+    quellen,
     grund
   };
 }

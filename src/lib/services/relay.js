@@ -128,6 +128,7 @@ export function eventsHolen(relayUrl, filter, optionen = {}) {
  * @property {string[]} gefragt      alle gefragten Relays
  * @property {string[]} fehler       Relays, die nicht erreichbar waren
  * @property {string[]} ohneTreffer  Relays, die antworteten und nichts hatten
+ * @property {Record<string, string[]>} quellen  Event-id → Relays, die es lieferten
  * @property {Abfragegrund} grund    warum nichts kam, sonst null
  */
 
@@ -142,6 +143,12 @@ export function eventsHolen(relayUrl, filter, optionen = {}) {
  * keine Störung. `grund` ist gesetzt, wenn gar keine belastbare Antwort
  * zustande kam — eine leere Relay-Liste bleibt so nicht unerklärt
  * („Nie eine leere Liste ohne Erklärung", CLAUDE.md).
+ *
+ * `quellen` hält fest, welches Relay welches Event lieferte. Ohne diese
+ * Angabe geht beim Deduplizieren nach `id` verloren, woher ein Event kam —
+ * und genau das ist die Aussage von ADR-0013: Der Lizenznachweis liegt
+ * nicht dort, wo der Artikel liegt. Ein Event kann von mehreren Relays
+ * kommen, darum eine Liste je `id`.
  *
  * @param {string[]} relayUrls
  * @param {Filter} filter
@@ -158,6 +165,7 @@ export async function eventsVonAllen(relayUrls, filter, optionen = {}) {
       gefragt,
       fehler: [],
       ohneTreffer: [],
+      quellen: {},
       grund: ZUSAMMENFUEHREN_OHNE_RELAYS
     };
   }
@@ -175,6 +183,8 @@ export async function eventsVonAllen(relayUrls, filter, optionen = {}) {
   const fehler = [];
   /** @type {string[]} */
   const ohneTreffer = [];
+  /** @type {Record<string, string[]>} */
+  const quellen = {};
 
   for (const { url, antwort } of ergebnisse) {
     if (!antwort.erreicht) {
@@ -182,7 +192,10 @@ export async function eventsVonAllen(relayUrls, filter, optionen = {}) {
     } else if (antwort.events.length === 0) {
       ohneTreffer.push(url);
     }
-    for (const e of antwort.events) nachId.set(e.id, e);
+    for (const e of antwort.events) {
+      nachId.set(e.id, e);
+      (quellen[e.id] ??= []).push(url);
+    }
   }
 
   const keinesErreicht = fehler.length === gefragt.length;
@@ -192,6 +205,7 @@ export async function eventsVonAllen(relayUrls, filter, optionen = {}) {
     gefragt,
     fehler,
     ohneTreffer,
+    quellen,
     grund: keinesErreicht ? ZUSAMMENFUEHREN_UNERREICHBAR : null
   };
 }

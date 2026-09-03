@@ -54,6 +54,26 @@
       relative Pfade, die nur auf der alten Website auflösen.
     </p>
   {/if}
+
+  <!--
+    Verweis auf die Entwickleransicht. Die Rohdaten stehen absichtlich NICHT
+    hier: sie würden das Dokument bei jedem Aufruf für jeden Leser verdoppeln,
+    und der Verweis erfüllt denselben Zweck.
+  -->
+  <details class="mt-12 border-t pt-4 text-sm" style="border-color: var(--rl-linie)">
+    <summary class="cursor-pointer" style="color: var(--rl-text-leise)">
+      Rohdaten (Entwickleransicht)
+    </summary>
+    <p class="mt-3" style="color: var(--rl-text-leise)">
+      Beitrag und Lizenznachweis sind zwei getrennte Events auf
+      unterschiedlichen Relays: der Beitrag als <code>kind:30023</code>, der
+      Nachweis als <code>kind:1063</code>. Die Ansicht zeigt beide mit ihrer
+      Herkunft, der Prüfkette und dem Signaturbefund.
+    </p>
+    <p class="mt-2">
+      <a class="underline" href="/{data.naddr}/json">{data.naddr.slice(0, 24)}…/json</a>
+    </p>
+  </details>
 </article>
 
 <style>
