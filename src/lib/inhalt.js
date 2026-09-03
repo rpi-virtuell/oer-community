@@ -6,10 +6,24 @@ const BILD = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 /**
  * Säubert Markdown und rendert es zu HTML.
  *
- * Relative Bildverweise werden entfernt, nicht aufgelöst: Sie zeigen auf
- * WordPress, und das aufzulösen hieße WordPress voraussetzen statt
- * ablösen (ADR-0013). Blockquotes bleiben stehen — bei FOERBICO sind es
- * echte Zitate, keine Autorenzeilen wie beim relilab-Bot (ADR-0012).
+ * **Bilder im Fließtext werden ausnahmslos entfernt** — auch absolute.
+ * Der Lizenznachweis wird über den SHA-256 aus dem `x`-Tag des Artikels
+ * gefunden (ADR-0013), und das gibt es nur für das Aufmacherbild. Zu
+ * einem Bild im Markdown existiert kein Hash und damit keine Möglichkeit,
+ * einen Nachweis zu finden — es dürfte also nie ausgeliefert werden.
+ *
+ * Zwei Sorten, ein Verhalten:
+ * - *relativ* (`nosTr-schrein.jpg`) löst nur gegen WordPress auf; das
+ *   aufzulösen hieße WordPress voraussetzen statt ablösen.
+ * - *absolut* (`https://cdn.midjourney.com/…`) ist erreichbar, aber
+ *   unattestiert. Im FOERBICO-Bestand sind das 25 Bilder in 10 Artikeln,
+ *   von Hosts wie midjourney und Wikimedia — Lizenzlage ungeklärt.
+ *
+ * Die entfernten Verweise werden gezählt und zurückgegeben; die Zahl ist
+ * die Redaktions-Aufgabenliste.
+ *
+ * Blockquotes bleiben stehen — bei FOERBICO sind es echte Zitate, keine
+ * Autorenzeilen wie beim relilab-Bot (ADR-0012).
  *
  * @param {string} markdown
  * @returns {{ html: string, entfernteBilder: string[] }}
@@ -21,8 +35,7 @@ export function inhaltAufbereiten(markdown) {
   /** @type {string[]} */
   const entfernteBilder = [];
 
-  const gesaeubert = roh.replace(BILD, (treffer, _alt, quelle) => {
-    if (/^https?:\/\//.test(quelle)) return treffer;
+  const gesaeubert = roh.replace(BILD, (_treffer, _alt, quelle) => {
     entfernteBilder.push(quelle);
     return '';
   });

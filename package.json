@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "vite dev",
@@ -26,17 +26,12 @@
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.3.3",
     "vite": "^7.1.14",
-    "vitest": "^4.0.0"
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "marked": "^18.0.11",
     "nostr-tools": "^2.25.1",
     "ws": "^8.21.3"
   },
-  "packageManager": "pnpm@10.20.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  }
+  "packageManager": "pnpm@11.25.0"
 }

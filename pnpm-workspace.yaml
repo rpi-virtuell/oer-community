@@ -1,0 +1,12 @@
+# esbuild braucht sein Build-Skript, sonst schlaegt Vite fehl.
+allowBuilds:
+  esbuild: true
+
+# daisyui 5.7.28 erschien am 03.09.2026 und ist damit juenger als
+# pnpms minimumReleaseAge-Schranke. Bewusst zugelassen: die Version
+# steht im Lockfile und ist die, mit der das Theme geprueft wurde.
+minimumReleaseAgeExclude:
+  - daisyui@5.7.28
+  - '@vitest/mocker@5.0.0'
+  - '@vitest/spy@5.0.0'
+  - vitest@5.0.0
