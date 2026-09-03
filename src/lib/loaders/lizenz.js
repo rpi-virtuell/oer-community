@@ -1,7 +1,10 @@
 import { nachweisAusEvents } from '../models/lizenz.js';
-import { eventsVonAllen } from '../services/relay.js';
+import { eventsHolen, eventsVonAllen } from '../services/relay.js';
 
-/** @typedef {import('../models/lizenz.js').Nachweis} Nachweis */
+/**
+ * @typedef {import('../models/lizenz.js').Nachweis} Nachweis
+ * @typedef {import('../services/relay.js').Abfragegrund} Abfragegrund
+ */
 
 /**
  * Lädt den Lizenznachweis zu einem Bildhash.
@@ -10,15 +13,31 @@ import { eventsVonAllen } from '../services/relay.js';
  * der Artikel liegt (ADR-0013, am Referenzfall geprüft: kind:1063 nur
  * auf relay-rpi.edufeed.org).
  *
- * @param {{ hash: string, relays: string[] }} eingabe
- * @returns {Promise<{ nachweis: Nachweis|null, fehler: string[] }>}
+ * `fehler` nennt nur nicht erreichbare Relays, nie eines, das antwortete und
+ * den Nachweis bloß nicht besitzt — sonst käme der Erfolgsfall mit einer
+ * Störungsmeldung daher. `grund` sagt, warum nichts kam, damit die
+ * Oberfläche nie ohne Erklärung leer bleibt.
+ *
+ * @param {object} eingabe
+ * @param {string} eingabe.hash
+ * @param {string[]} eingabe.relays
+ * @param {typeof eventsHolen} [eingabe.holen]  nur zum Prüfen austauschbar
+ * @returns {Promise<{ nachweis: Nachweis|null, gefragteRelays: string[],
+ *   fehler: string[], grund: Abfragegrund }>}
  */
-export async function lizenzLaden({ hash, relays }) {
-  const { events, fehler } = await eventsVonAllen(relays, {
-    kinds: [1063],
-    '#x': [hash]
-  });
-  return { nachweis: nachweisAusEvents(events), fehler };
+export async function lizenzLaden({ hash, relays, holen = eventsHolen }) {
+  const { events, gefragt, fehler, grund } = await eventsVonAllen(
+    relays,
+    { kinds: [1063], '#x': [hash] },
+    { holen }
+  );
+
+  return {
+    nachweis: nachweisAusEvents(events),
+    gefragteRelays: gefragt,
+    fehler,
+    grund
+  };
 }
 
 /**
