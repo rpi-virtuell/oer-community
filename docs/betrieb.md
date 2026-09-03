@@ -2,7 +2,13 @@
 
 **Server:** `46.225.82.96` (Hetzner, Ubuntu 24.04.4, 7,6 GB RAM, 65 GB frei)
 **Zugang:** `ssh -i ~/.ssh/id_cihacker joerg@46.225.82.96`
-**Verzeichnis:** `~/community-hub` · **Port:** 8080
+**Verzeichnis:** `~/community-hub` · **Port:** 8080, **nur auf `127.0.0.1`**
+**Werkzeuge:** Node 24.20.0 und pnpm 11.25.0 in `~/.local/node`
+**Läuft seit:** 03.09.2026 · `systemctl --user status community-hub`
+
+Der Dienst lauscht bewusst **nur lokal**. Der Node-Prozess soll nicht
+selbst im Netz stehen; von aussen erreichbar wird die Seite über einen
+Reverse-Proxy — siehe unten.
 
 ## Ausliefern
 
@@ -56,10 +62,56 @@ ssh -L 8080:localhost:8080 -i ~/.ssh/id_cihacker joerg@46.225.82.96
 Dann `http://localhost:8080/` im Browser — echt auf dem Server
 gerendert, nur nicht öffentlich.
 
-**Für eine öffentliche Adresse fehlen drei Dinge:** ein freigegebener
-Port, ein Name (DNS) und ein Zertifikat. Ohne die letzten zwei liefe es
-über HTTP — dann sind Reverse-Proxy und TLS fällig, und damit auch die
-Traefik-Frage aus CLAUDE.md wieder offen.
+## Der Weg zu einer öffentlichen Adresse
+
+Drei Dinge fehlen, und alle drei brauchen einen Handgriff von aussen:
+
+1. **Ein DNS-Name** auf `46.225.82.96`, etwa `hub.relilab.org`. Ein
+   Zertifikat gibt es bei Let's Encrypt nicht auf eine nackte IP.
+2. **Port 80 und 443 freigeben** in der Hetzner-Konsole. Port 80 braucht
+   Let's Encrypt für die Prüfung.
+3. **Caddy installieren** (braucht `sudo`, also ein Passwort):
+
+       sudo apt-get install -y caddy
+
+Die Konfiguration in `/etc/caddy/Caddyfile` ist dann drei Zeilen:
+
+       hub.relilab.org {
+           reverse_proxy localhost:8080
+       }
+
+Caddy besorgt das Zertifikat selbst und erneuert es.
+
+### Was der Reverse-Proxy leistet
+
+Fünf Dinge, die die Anwendung nicht kann:
+
+- **Verschlüsselung.** Ohne TLS ist mitlesbar, wer wann was aufruft —
+  und die Antwort ist **veränderbar**. Für ein Projekt, dessen Kern
+  Lizenzangaben sind, wäre eingefügter Fremdinhalt besonders misslich.
+- **Ein Name statt einer IP** — und damit Umzugsfähigkeit, ohne dass
+  Links brechen.
+- **Node steht nicht im Netz.** Der Proxy hält unvollständige Anfragen,
+  langsame Verbindungen und Überlastungsmuster ab.
+- **Ratenbegrenzung.** Jeder Seitenaufruf löst zwei Relay-Abfragen aus,
+  weil es (bewusst) keinen Cache gibt. Wer die Seite in einer Schleife
+  aufruft, erzeugt Last auf **fremder** Infrastruktur
+  (`relay.edufeed.org`). Die Anwendung kann das nicht begrenzen.
+- **Sicherheitsheader zentral** — HSTS, CSP, `X-Content-Type-Options`.
+
+**Caddy statt Traefik:** CLAUDE.md nennt Traefik, das lohnt bei mehreren
+zu routenden Containern. Hier ist es eine Anwendung ohne Docker; Caddy
+holt Zertifikate von allein und braucht keinen Unterbau.
+
+### Was die Anwendung schon selbst absichert (ADR-0016)
+
+- Relay-Hinweise aus dem `naddr` werden **ignoriert** — sonst könnte ein
+  Fremder den Server zu beliebigen Zielen verbinden lassen.
+- Nur `QUELLE_AUTOR` wird angezeigt; fremde Autoren ergeben 404.
+- Gerendertes HTML wird entschärft (`sanitize-html`), bevor es in die
+  Seite geht.
+- Fehlerseiten nennen in Produktion **keine** Pfade oder Stacktraces
+  (im Dev-Modus tun sie das — der läuft hier nicht).
 
 ## Nachsehen
 

@@ -47,6 +47,64 @@ die Merge-Regel auf den Ist-Stand bringen.
 
 ---
 
+## 2026-09-03 (abends) — Erster Code läuft, auf dem Server
+
+**Passiert:** Das SvelteKit-Gerüst steht und die **Artikel-Detailansicht
+läuft auf `46.225.82.96`** — serverseitig gerendert, mit über zwei Relays
+aufgelöster Bildlizenz. Der Referenzfall
+`die-kraft-der-gemeinschaft` zeigt Titel, Datum, Fließtext, das
+Blossom-Bild und „nosTr-schrein — Comenius-Institut, CC0 1.0".
+
+**Zwei Sicherheitslücken beim Abwägen einer Portfreigabe gefunden**
+(ADR-0016), beide am laufenden System belegt und behoben:
+
+- `artikelLaden` fragte die Relay-Hinweise **aus dem `naddr`** — ein
+  Fremder konnte den Server zu beliebigen Zielen verbinden lassen,
+  auch auf `127.0.0.1`. Die Hinweise werden jetzt ignoriert.
+- Der Filter nahm den Autor aus dem `naddr` statt `QUELLE_AUTOR`. Damit
+  war dies ein offener Nostr-Renderer für fremde Inhalte, deren Roh-HTML
+  über `{@html}` mit hinausging. Jetzt 404 bei fremdem Autor, dazu
+  `sanitize-html` vor der Ausgabe.
+
+**Eine Lücke in ADR-0013 geschlossen** (ADR-0015): Bilder im Fließtext
+gingen durch, wenn sie absolute URLs hatten — 25 Verweise in 10 Artikeln,
+darunter midjourney und Wikimedia. Sie können keinen Nachweis haben, weil
+es zu ihnen kein `x`-Tag gibt. Jetzt werden alle entfernt und gezählt.
+
+**Stand:**
+
+| Baustein | Zustand |
+|---|---|
+| SvelteKit-Gerüst, Designtokens | ✓ |
+| Detailansicht `/[naddr]` | ✓ läuft auf dem Server |
+| Lizenz-Kette (5 Schritte, mit Grund) | ✓ |
+| Tests | **71 grün**, `pnpm check` 0 Fehler |
+| Auslieferung | ✓ `betrieb/ausliefern.sh` |
+| Liste, Startseite, Termine | existiert nicht |
+
+**Werkzeugkette:** Node 24.20.0, pnpm 11.25.0, Vitest 5 — hier und auf
+dem Server. Die Vitest-4-Bindung kam allein von Node 20.
+
+**Betrieb weicht von CLAUDE.md ab:** kein Docker, kein Traefik. Der
+Server hat kein Docker und `sudo` verlangt ein Passwort; darum Node in
+`~/.local/node` und `systemd --user` auf Port 8080, **nur auf
+`127.0.0.1`**. Begründet in `docs/betrieb.md`.
+
+**Nächster Schritt:** Liste oder Startseite — und damit fällig: der
+**Cache**, dessen Abweichung befristet war. Ohne ihn löst jeder Aufruf
+zwei Relay-Abfragen aus; bei einer Liste wären es viele.
+
+**Offen:**
+
+- **Nicht öffentlich erreichbar.** Eine Firewall vor dem Server lässt nur
+  Port 22 durch. Ansehen per SSH-Tunnel. Für eine öffentliche Adresse
+  fehlen DNS-Name, Portfreigabe und ein Reverse-Proxy mit TLS (Caddy) —
+  Schritte in `docs/betrieb.md`.
+- **`pnpm lint` und `test:e2e` fehlen** — CLAUDE.md fordert sie vor jedem
+  Merge. Kein ESLint, kein Playwright eingerichtet.
+- **Kein Mock-Relay.** Die Loader sind nur über echte Abrufe geprüft.
+- **`main` hängt zurück** — alles liegt auf `dev`.
+
 ## 2026-09-03 (nachmittags) — FOERBICO wird die Datenquelle, Bildlizenz-Routine steht
 
 **Passiert:** ADR-0012 und ADR-0013. Die Datengrundlage wechselt vom
