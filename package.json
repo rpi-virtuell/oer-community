@@ -20,6 +20,7 @@
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/ws": "^8.18.1",
     "daisyui": "^5.7.28",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
