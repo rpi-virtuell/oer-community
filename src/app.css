@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+@plugin 'daisyui';
+
+:root {
+  --relilab: #34b2f6;
+  --relilab-tief: #1a8fd0;
+  --magenta: #d225f8;
+  --rpi: #0072aa;
+  --foerbico: #203a8f;
+  --fusion: #1a5699;
+  --fau: #04316a;
+
+  --amber: #f29422;
+  --amber-tief: #d97d13;
+  --pink: #e54d9a;
+  --orange: #ff8103;
+  --mint: #2ecc88;
+
+  --rl-text: #1a1e2e;
+  --rl-text-leise: #5a6178;
+  --rl-dunkel: #04316a;
+  --rl-linie: #e6e9f2;
+  --rl-flaeche: #f6f7fb;
+  --rl-flaeche-2: #eef0f7;
+  --rl-weiss: #ffffff;
+
+  --verlauf: linear-gradient(135deg, var(--relilab) 0%, var(--magenta) 100%);
+}
+
+body {
+  background: var(--rl-weiss);
+  color: var(--rl-text);
+  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+}
+
+/* Linkfarbe --rpi, nicht --relilab-tief: letzteres erreicht auf Weiss nur
+   3,57:1 und ist fuer Fliesstext zu schwach (docs/designsystem.md). */
+a { color: var(--rpi); }
+a:hover { color: var(--relilab-tief); }
