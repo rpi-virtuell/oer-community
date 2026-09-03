@@ -1,0 +1,11 @@
+[
+  {
+    "content": "{\"display_name\":\"Foerbico\",\"about\":null,\"picture\":null,\"banner\":null}",
+    "created_at": 1777726492,
+    "id": "c58106c3bcee1adfbe44868ea7bf7cc205b4212e51c3d06b5e1e83d47da29d0b",
+    "kind": 0,
+    "pubkey": "5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf",
+    "sig": "0b3e50e8c81c2429649f17c96c93a92bacb2b5d42e7536baf0e3c489abf0d4433f1dfb169e54427e911db588f342f4329459e662817b415b6ff65b54070b4125",
+    "tags": []
+  }
+]

@@ -9,6 +9,60 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-03 (nachmittags) — FOERBICO wird die Datenquelle, Bildlizenz-Routine steht
+
+**Passiert:** ADR-0012 und ADR-0013. Die Datengrundlage wechselt vom
+relilab-Bot auf den **FOERBICO-Bestand** — dort ist erstmals ein Beitrag
+nach der Zielkonvention aus ADR-0010 überarbeitet:
+`die-kraft-der-gemeinschaft`, Bild auf Blossom, `x`-Tag, Lizenznachweis
+CC0 / Comenius-Institut. Hash selbst nachgerechnet: stimmt.
+
+**Bestand geprüft** (Autor `5a12b41e…`, 03.09.2026):
+
+| Größe | Wert |
+|---|---|
+| Artikel `kind:30023` | **86** |
+| Termine `31923`/`31922` | **0** |
+| Bildverweise gesamt | **269** |
+| Aufmacher auf Blossom **mit** `x` | **1** |
+| Lizenznachweise `kind:1063` | **1** |
+| `t`-Tags | 43 (auf 25 Artikeln) |
+
+**Drei Befunde, die die Umsetzung prägen:**
+
+1. **Der Lizenznachweis liegt auf einem anderen Relay als der Artikel.**
+   Der `kind:1063` steht nur auf `relay-rpi.edufeed.org` — nicht auf
+   `relay.edufeed.org`, das der `naddr` nennt. Ein Lookup am Artikel-Relay
+   hätte das korrekt attestierte Bild als „ohne Nachweis" markiert.
+2. **Ohne `x`-Tag ist kein Lookup möglich** — 85 von 86 Artikeln. Das ist
+   kein fehlender Nachweis, sondern eine fehlende Angabe.
+3. **Aufmacher und Fließtext laufen auseinander.** Im überarbeiteten
+   Beitrag zeigt `image` auf Blossom, das Markdown weiter auf
+   `![](nosTr-schrein.jpg)` — relativ, nur gegen WordPress auflösbar.
+   166 von 269 Bildverweisen sind so.
+
+**Entschieden:** Artikel erscheinen alle, **ein Bild aber nur mit
+auflösbarem Nachweis** (ADR-0013, strenger als ADR-0010 — ein kenntlich
+gemachtes Bild ist trotzdem veröffentlicht). Der Filter nutzt bei FOERBICO
+**den Autor allein**, weil 85 Artikel kein `h`-Tag haben; die
+Doppelfilter-Regel bleibt für Bot-Quellen gültig (ADR-0012).
+
+relilab bleibt in CLAUDE.md dokumentiert, aber **nicht in Betrieb**.
+
+**Stand:** unverändert Dokumentation, kein Code — jetzt aber mit geprüfter
+Datenquelle und vollständiger Auflösungskette für Bildlizenzen.
+
+**Nächster Schritt:** Die Auflösungskette braucht (a) ein **Prüfskript für
+die Redaktion**, das einen Beitrag vor dem Einstellen gegen die fünf
+Schritte aus ADR-0013 testet, und (b) eine **Redaktions-Checkliste** für
+den Web-Editor. Danach das SvelteKit-Gerüst, mit
+`die-kraft-der-gemeinschaft` als Fixture.
+
+**Offen:** Ob und wann die 85 unattestierten Beiträge überarbeitet werden,
+ist Redaktionsarbeit ohne Termin — der Hub zeigt den Fortschritt, statt
+ihn zu verdecken. Zwei stichprobenhaft geprüfte Fremd-Aufmacher liefern
+schon **404**, die Bilder sind dort also ohnehin verloren.
+
 ## 2026-09-03 — Projekt umbenannt: community-hub
 
 **Passiert:** ADR-0011. Das Repository hieß `relilab-client` — ein Name aus

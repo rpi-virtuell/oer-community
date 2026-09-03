@@ -1,0 +1,48 @@
+[
+  {
+    "content": "",
+    "created_at": 1788433537,
+    "id": "ebbbb1dcd1bfce58c25e97b74d905b9b63bd725528f4075d42aab15e6c4e2cea",
+    "kind": 1063,
+    "pubkey": "5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf",
+    "sig": "e1452966e1b73a4f688e056f210f6538c2ee429ad92efebd5f9e45d7a63b52d056b594d4b05cb3080d09aee207a0f2fd1542a1ee4d34e5c7587b6dc1d9322f07",
+    "tags": [
+      [
+        "url",
+        "https://blossom.edufeed.org/a2a54ea54f386ba0abceb4d28498c4c5c0b66da153bdec04c36bf40a6c32bf5b.jpeg"
+      ],
+      [
+        "x",
+        "a2a54ea54f386ba0abceb4d28498c4c5c0b66da153bdec04c36bf40a6c32bf5b"
+      ],
+      [
+        "m",
+        "image/jpeg"
+      ],
+      [
+        "size",
+        "146385"
+      ],
+      [
+        "title",
+        "nosTr-schrein"
+      ],
+      [
+        "license",
+        "https://creativecommons.org/publicdomain/zero/1.0/"
+      ],
+      [
+        "credit",
+        "Comenius-Institut"
+      ],
+      [
+        "p",
+        "5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf"
+      ],
+      [
+        "client",
+        "Edufeed"
+      ]
+    ]
+  }
+]

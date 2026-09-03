@@ -74,52 +74,85 @@ stehen hat, ist eine Fehlerbehebung von März 2026, keine Architekturwahl
 
 ## Daten
 
-Beide Schlüssel kommen aus der Konfiguration, nie aus dem Code:
+**Aktive Quelle ist FOERBICO** (ADR-0012), nicht der relilab-Bot. Alle
+Schlüssel und Relay-Adressen kommen aus der Konfiguration, nie aus dem Code.
+
+- FOERBICO (Autor):
+  `5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf`
+
+```json
+{ "kinds": [30023, 31922, 31923],
+  "authors": ["5a12b41e…"] }
+```
+
+**Hier filtert der Autor allein** — 85 der 86 Artikel haben kein `h`-Tag,
+der Doppelfilter ließe genau einen durch. Das ist eine begründete Ausnahme
+für einen redaktionellen Account (ADR-0012), keine neue Regel.
+
+**Für Bot-Quellen gilt weiter: beide Kriterien zusammen, nie eines allein.**
+`authors` allein zöge künftige Bot-Inhalte anderer Mandanten mit; `#h` allein
+ließe jeden herein, der auf den Community-Key taggt. Die relilab-Quelle ist
+dokumentiert, aber **nicht in Betrieb**:
 
 - Termine-Bot (Absender):
   `f6c14ab7add65d61cf9311a8685575c3f2de0ca540bc4ddf916f76f089f1aa43`
 - relilab-Community (`h`-Tag):
   `48706e894e64be57a250d3cd1f4c8a0f69ca900937936f8bd11a1329cd3c97e3`
 
-```json
-{ "kinds": [30023, 31922, 31923],
-  "authors": ["f6c14ab7…"],
-  "#h":      ["48706e89…"] }
-```
-
-**Beide Kriterien zusammen filtern, nie eines allein.** `authors` allein zöge
-künftige Bot-Inhalte anderer Mandanten mit; `#h` allein ließe jeden herein,
-der auf den Community-Key taggt.
-
 Kinds: `30023` Artikel (NIP-23) · `31923` Termine zeitgebunden · `31922`
-ganztägig (kommt in den Daten nicht vor, wird mitgelesen) · `1063`
-Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
-über die Hauptabfrage).
+ganztägig · `1063` Lizenznachweis zu Bildern (NIP-94, wird über `#x`
+nachgeschlagen, nicht über die Hauptabfrage).
+
+**FOERBICO hat derzeit keine Termine** (0 Events `31922`/`31923`). Die
+Termin-Ansicht wird gebaut und muss ihren Leerzustand erklären.
+
+**Der Lizenznachweis liegt auf einem anderen Relay als der Artikel.**
+Der Artikel steht auf `relay.edufeed.org`, sein `kind:1063` nur auf
+`relay-rpi.edufeed.org`. Der Lizenz-Lookup fragt **alle** konfigurierten
+Relays (ADR-0013) — nie nur das aus dem `naddr`.
 
 ### Wiederkehrende Fallen
 
 - **Anzeigedatum von Artikeln ist `published_at`, nicht `created_at`.**
   Termine haben kein `published_at` — dort zählt `start`.
-- **Events werden nie verändert.** Sie sind unveränderlich, und der Bot ist
-  nicht unser Code. Content-Rückstände (Autorenzeile als Blockquote,
-  Kadence-CSS-Reste) werden **beim Rendern** gesäubert.
-  Die Autorenzeile nicht verwerfen, sondern als „von X, ursprünglich auf
-  relilab.org" auswerten.
-- **Themen normalisieren.** 195 `t`-Tags mit Tippfehlern und Dubletten. Die
+- **Events werden nie verändert.** Sie sind unveränderlich und nicht unser
+  Code. Was zu säubern ist, wird **beim Rendern** gesäubert.
+  **Die Bot-Säuberungsregeln gelten für FOERBICO nicht unverändert**
+  (ADR-0012): kein Kadence, kein `wp-block`. Vorhanden sind 19 Blockquotes
+  (meist echte Zitate, **nicht** automatisch Autorenzeilen), 5 absolute
+  Site-Pfade `](/…`, 3-mal Roh-HTML (`<br>`). Nicht blind auf Blockquotes
+  losgehen — erst prüfen, was dort steht.
+  Für relilab-Altbestand gilt weiter: Autorenzeile nicht verwerfen, sondern
+  als „von X, ursprünglich auf relilab.org" auswerten.
+- **Themen normalisieren.** Bei FOERBICO 43 `t`-Tags auf nur 25 von 86
+  Artikeln, mit Dubletten (`OER` neben `Open Educational Resources (OER)`,
+  `OER-Community` neben `OER-Communities`); der relilab-Bot hatte 195. Die
   Normalisierungstabelle in `src/lib/themen.js` ist Redaktionsarbeit und muss
   ohne Entwickler änderbar bleiben. Nicht filterbare Themen bleiben am
   Artikel sichtbar.
-- **Zwei Sorten Bilder, zwei Verhaltensweisen** (ADR-0010):
-  *Altbestand aus dem Bot* sind 150×150-Thumbnails auf relilab.org —
-  zentriert darstellen, nicht auf Kartenbreite ziehen.
-  *Redaktionell eingestellte Inhalte* liegen auf Blossom, in voller Größe,
-  mit Lizenznachweis.
+- **Bilder erscheinen nur mit Nachweis** (ADR-0013). Redaktionell
+  eingestellte Bilder liegen auf Blossom, in voller Größe, mit
+  Lizenznachweis — im FOERBICO-Bestand ist das derzeit **eines von 86**.
+  Für relilab-Altbestand gilt: 150×150-Thumbnails, zentriert darstellen,
+  nicht auf Kartenbreite ziehen.
+- **Relative Bildpfade im Markdown werden nicht aufgelöst** (ADR-0013).
+  `![](nosTr-schrein.jpg)` löst nur gegen WordPress auf — das wäre
+  WordPress als Voraussetzung. Entfernen und zählen; die Zahl ist die
+  Redaktions-Aufgabenliste. Betrifft 166 von 269 Bildverweisen.
 - **Zu jedem Bild den Lizenznachweis auflösen und ausweisen.**
-  `kind:1063` über den SHA-256-Hash: `{ kinds: [1063], "#x": [hash] }`;
-  bei mehreren Treffern gewinnt das neueste `created_at`, Gleichstand nach
-  `id`. Pflichtangaben sind `license` (URL) und `credit` (Urhebernennung).
-  **Ein Bild ohne auflösbaren Nachweis wird als solches kenntlich gemacht** —
-  nicht stillschweigend anzeigen. Urheberrecht ist keine Kür.
+  `kind:1063` über den SHA-256-Hash: `{ kinds: [1063], "#x": [hash] }`,
+  **über alle konfigurierten Relays** — der Nachweis liegt oft nicht dort,
+  wo der Artikel liegt. Bei mehreren Treffern gewinnt das neueste
+  `created_at`, Gleichstand nach `id`. Pflichtangaben sind `license` (URL)
+  **und** `credit` (Urhebernennung); fehlt eines, gilt der Nachweis als
+  nicht aufgelöst.
+  **Ohne auflösbaren Nachweis wird das Bild nicht ausgeliefert** (ADR-0013,
+  strenger als ADR-0010): Der Artikel erscheint vollständig, nur ohne Bild.
+  Ein kenntlich gemachtes Bild ist urheberrechtlich trotzdem veröffentlicht.
+  Urheberrecht ist keine Kür.
+- **Ohne `x`-Tag am Artikel gibt es keinen Lookup.** Kein Hash, keine
+  Frage — das ist kein fehlender Nachweis, sondern eine fehlende Angabe.
+  Betrifft 85 von 86 FOERBICO-Artikeln.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
@@ -176,9 +209,13 @@ benannt `YYYY-MM-DD-<thema>`.
 pnpm check && pnpm lint && pnpm test && pnpm test:e2e
 ```
 
-Tests laufen gegen ein Mock-Relay mit den 111 echten Events aus
-`test/fixtures/` — ohne Netz und ohne Abhängigkeit von der
-Publikationstätigkeit anderer. **Neue Funktionen kommen mit einer Prüfung.**
+Tests laufen gegen ein Mock-Relay mit echten Events aus `test/fixtures/` —
+ohne Netz und ohne Abhängigkeit von der Publikationstätigkeit anderer.
+**Neue Funktionen kommen mit einer Prüfung.**
+
+Als Fixture-Grundlage dient der FOERBICO-Bestand (ADR-0012), insbesondere
+der Referenzfall `die-kraft-der-gemeinschaft` mit seinem Lizenznachweis —
+er ist der einzige Fall, der die ganze Kette aus ADR-0013 durchläuft.
 
 ## Umgebungen
 
@@ -190,4 +227,15 @@ Publikationstätigkeit anderer. **Neue Funktionen kommen mit einer Prüfung.**
 
 Kein eigenes Relay — die Edufeed-Relays werden genutzt und bei Bedarf
 gespiegelt (ADR-0008). Bilder liegen auf `https://blossom.edufeed.org/`
-(ADR-0010). Beide Adressen sind Konfiguration, kein Code.
+(ADR-0010). Alle Adressen sind Konfiguration, kein Code.
+
+**Mehrere Relays sind Pflicht, nicht Redundanz** (ADR-0013):
+
+| Relay | wofür |
+|---|---|
+| `relay.edufeed.org` | Artikel und Termine |
+| `relay-rpi.edufeed.org` | **Lizenznachweise `kind:1063`** |
+| `amb-relay.edufeed.org` | AMB-Metadaten |
+
+Der Lizenz-Lookup fragt alle, weil der Nachweis nicht dort liegt, wo der
+Artikel liegt.
