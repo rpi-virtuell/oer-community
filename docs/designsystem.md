@@ -1,4 +1,4 @@
-# Designsystem relilab-Client
+# Designsystem community-hub
 
 **Grundlage:** Farbfusions- und Typografiekonzept FOERBICO × rpi-virtuell,
 v2 (Februar 2026) —

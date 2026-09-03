@@ -1,4 +1,4 @@
-# relilab-Client
+# community-hub
 
 Lesendes Schaufenster für die nach Nostr konvertierten relilab-Inhalte —
 Artikel und Termine, in der Optik von relilab.org. Erster Schritt, WordPress
@@ -6,12 +6,17 @@ abzulösen.
 
 **Warum eine Regel gilt, steht in `docs/entscheidungen/` (ADR)** — eine
 Entscheidung, eine Datei, mit Status. Die Spec
-`docs/superpowers/specs/2026-08-31-relilab-schaufenster-design.md` bleibt das
-Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004. Hier stehen
+`docs/superpowers/specs/2026-08-31-community-hub-schaufenster-design.md`
+bleibt das Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004. Hier stehen
 nur die Regeln. Widerspricht diese Datei einer ADR, gilt die ADR — und diese
 Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
 (Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
 Farben, Schriften, Abstände: `docs/designsystem.md`.
+
+**Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
+`community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
+ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Marke,
+Domain und Farbtoken; umbenannt wurde nur der Projektname.
 
 **Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
 (Logbuch, neuester Eintrag oben). Diese Datei hier beschreibt teils den
@@ -29,7 +34,7 @@ Schaltflächen, Menüpunkte oder Formulare für nicht vorhandene Funktionen,
 auch nicht abgeblendet oder als „demnächst".
 
 Das gilt auch nach ADR-0010: Inhalte werden **im Web-Frontend der
-edufeed-app** redaktionell eingestellt, nicht hier. Der relilab-client
+edufeed-app** redaktionell eingestellt, nicht hier. Der community-hub
 bleibt lesend — er zeigt die Lizenzen nur an.
 
 ## Die Regel, die am leichtesten erodiert

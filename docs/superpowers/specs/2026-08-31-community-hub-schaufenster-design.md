@@ -1,4 +1,4 @@
-# relilab-Client: Schaufenster auf Nostr
+# community-hub: Schaufenster auf Nostr
 
 **Stand:** 31.08.2026 · **Ziel:** `dev.relilab.org`
 
@@ -61,7 +61,7 @@ aktiv ist.
 
 ### 2. Kompatibilität liegt im Protokoll, nicht im Code
 
-Der relilab-Client ist edufeed-kompatibel, weil er dieselben Events liest:
+Der community-hub ist edufeed-kompatibel, weil er dieselben Events liest:
 gleiche Kinds, gleiche Relays, gleiche Tag-Konventionen, `naddr`-Adressen, die in
 beiden Clients auflösen. Nicht, weil er dieselben Funktionen aufruft.
 
@@ -249,7 +249,7 @@ führen.
 ## Aufbau
 
 ```
-relilab-client/
+community-hub/
 ├─ CLAUDE.md                 Projektgedächtnis: Regeln für die tägliche Arbeit
 ├─ docs/
 │  ├─ designsystem.md        Farben, Schriften, Maße, Kontrastregeln

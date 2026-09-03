@@ -4,10 +4,39 @@ Neuester Eintrag oben. Jeder Eintrag beantwortet drei Fragen:
 **Was ist passiert? Wo steht das Projekt? Was ist der nächste Schritt?**
 
 Regeln stehen in `../CLAUDE.md`, Begründungen in
-`superpowers/specs/2026-08-31-relilab-schaufenster-design.md` —
-hier steht nur der Stand.
+`superpowers/specs/2026-08-31-community-hub-schaufenster-design.md`
+— hier steht nur der Stand.
 
 ---
+
+## 2026-09-03 — Projekt umbenannt: community-hub
+
+**Passiert:** ADR-0011. Das Repository hieß `relilab-client` — ein Name aus
+der Zeit, in der das Vorhaben nur relilabs Inhalte anzeigen sollte. Seit
+ADR-0007 gilt: Das Schaufenster ist der Keim des Community Hubs. Der Name
+trug also eine Einschränkung, die nicht mehr gilt.
+
+Umbenannt wurden **nur Projektnamen**: Verzeichnis, Git-Remote-URL,
+Dokumenttitel und der Dateiname der Spec
+(`2026-08-31-community-hub-schaufenster-design.md`). **relilab bleibt
+stehen**, wo es Mandant, Marke, Domain oder Historie ist — die Domains
+`dev.relilab.org`/`int.relilab.org`, der Community-`h`-Tag, die Farbtoken
+`--relilab` aus der rpi-virtuell-Farbkarte und das Mockup.
+
+Angenommene ADRs (0001, 0002, 0006, 0009, 0010) sprechen weiter von
+`relilab-client` — sie werden nicht umgeschrieben, nur ersetzt. Gemeint ist
+`community-hub`.
+
+**Stand:** unverändert Dokumentation, kein Code. Ein Mehrmandantenbetrieb
+ist **nicht** beschlossen; relilab bleibt der einzige Mandant.
+
+**Nächster Schritt:** unverändert das SvelteKit-Gerüst — jetzt unter dem
+Paketnamen `community-hub`. Die Umbenennung fiel vor den Code, also den
+günstigsten Zeitpunkt.
+
+**Offen:** Das Repository muss **in Gitea** umbenannt werden
+(`Comenius-Institut/relilab-client` → `community-hub`); die lokale
+Remote-URL zeigt schon dorthin, bis dahin schlägt `git push` fehl.
 
 ## 2026-09-02 (spät, 2) — Startbestand wird redaktionell erstellt, nicht übernommen
 
@@ -21,7 +50,7 @@ Vorschaubilder auf **Blossom**, mit Lizenznachweis als `kind:1063`
 nichts neu erfunden.
 
 **Wirkung auf den Zuschnitt:** Das Einstellen braucht Anmeldung und
-Schreibpfad — beides bleibt **außerhalb** des relilab-client, im
+Schreibpfad — beides bleibt **außerhalb** des community-hub, im
 Web-Frontend der edufeed-app. Der Client bleibt lesend; neu ist nur,
 dass er `kind:1063` auflösen und die Lizenz **sichtbar ausweisen** muss.
 Bilder ohne auflösbaren Nachweis werden kenntlich gemacht, nicht
