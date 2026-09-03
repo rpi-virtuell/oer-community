@@ -10,8 +10,11 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
 /**
  * Lädt einen Artikel über seine naddr-Bestandteile.
  *
- * Gefragt werden die Relay-Hinweise aus dem naddr **und** die
- * konfigurierten Relays — ein Hinweis kann veraltet sein.
+ * **Die Relay-Hinweise aus dem `naddr` werden ignoriert.** Ein `naddr`
+ * kommt aus der URL und damit von aussen: Wer ihn baut, bestimmt seine
+ * Hinweise. Würden sie gefragt, könnte ein Fremder den Server zu
+ * beliebigen Zielen verbinden lassen — auch ins interne Netz oder auf
+ * `127.0.0.1` (ADR-0016). Gefragt werden nur die konfigurierten Relays.
  *
  * `fehler` nennt nur nicht erreichbare Relays; ein Relay, das antwortet und
  * den Artikel nicht besitzt, ist keine Störung. `grund` nennt die Ursache,
@@ -26,7 +29,8 @@ import { eventsHolen, eventsVonAllen } from '../services/relay.js';
  */
 export async function artikelLaden({ adresse, relays, holen = eventsHolen }) {
   const { events, gefragt, fehler, grund } = await eventsVonAllen(
-    [...adresse.relays, ...relays],
+    // Bewusst ohne adresse.relays — siehe oben.
+    relays,
     {
       kinds: [adresse.kind],
       authors: [adresse.author],

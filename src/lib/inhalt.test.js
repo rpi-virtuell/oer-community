@@ -75,3 +75,45 @@ describe('inhaltAufbereiten — Bilder im Fließtext haben keinen Nachweis', () 
     expect(html).not.toContain('<img');
   });
 });
+
+describe('inhaltAufbereiten — Roh-HTML wird entschärft', () => {
+  it('entfernt script-Elemente samt Inhalt', () => {
+    const { html } = inhaltAufbereiten('Davor\n\n<script>alert(1)</script>\n\nDanach');
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('alert(1)');
+    expect(html).toContain('Davor');
+    expect(html).toContain('Danach');
+  });
+
+  it('entfernt iframe, object und embed', () => {
+    const { html } = inhaltAufbereiten(
+      '<iframe src="https://boese.example"></iframe><object data="x"></object><embed src="y">'
+    );
+    expect(html).not.toContain('<iframe');
+    expect(html).not.toContain('<object');
+    expect(html).not.toContain('<embed');
+  });
+
+  it('entfernt Ereignis-Attribute', () => {
+    const { html } = inhaltAufbereiten('<p onclick="alert(1)">Text</p>');
+    expect(html).not.toContain('onclick');
+    expect(html).toContain('Text');
+  });
+
+  it('entfernt javascript:-Verweise, behält den Linktext', () => {
+    const { html } = inhaltAufbereiten('[Klick](javascript:alert(1))');
+    expect(html).not.toContain('javascript:');
+    expect(html).toContain('Klick');
+  });
+
+  it('behält harmloses Roh-HTML wie <br>', () => {
+    // Im FOERBICO-Bestand kommen genau diese vor (8 Stück).
+    // Der Sanitizer schreibt sie als <br /> — derselbe Tag.
+    expect(inhaltAufbereiten('Zeile<br>Zeile').html).toMatch(/<br\s*\/?>/);
+  });
+
+  it('behält gewöhnliche Links', () => {
+    const { html } = inhaltAufbereiten('[Text](https://example.org/seite)');
+    expect(html).toContain('href="https://example.org/seite"');
+  });
+});

@@ -3,6 +3,7 @@ import { env } from '$env/dynamic/private';
 import { inhaltAufbereiten } from '$lib/inhalt.js';
 import { konfigLesen } from '$lib/konfig.js';
 import { naddrDekodieren } from '$lib/naddr.js';
+import { ABLEHNUNG_TEXT, adressePruefen } from '$lib/models/adresse.js';
 import { artikelLaden } from '$lib/loaders/artikel.js';
 import { etagHolen, lizenzLaden } from '$lib/loaders/lizenz.js';
 import { lizenzPruefen } from '$lib/models/lizenz.js';
@@ -19,6 +20,13 @@ export async function load({ params }) {
     adresse = naddrDekodieren(params.naddr);
   } catch (ursache) {
     error(400, ursache instanceof Error ? ursache.message : 'Unlesbare Adresse.');
+  }
+
+  // Der naddr kommt von aussen: nur die eigene Quelle wird angezeigt
+  // (ADR-0016). Sonst waere dies ein offener Nostr-Renderer.
+  const zulaessig = adressePruefen(adresse, konfig);
+  if (!zulaessig.ok) {
+    error(404, ABLEHNUNG_TEXT[zulaessig.grund]);
   }
 
   const { artikel, gefragteRelays, grund } = await artikelLaden({
