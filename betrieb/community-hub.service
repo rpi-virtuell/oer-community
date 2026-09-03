@@ -10,7 +10,10 @@ Type=simple
 WorkingDirectory=%h/community-hub
 EnvironmentFile=%h/community-hub/.env
 Environment=NODE_ENV=production
-Environment=HOST=0.0.0.0
+# Nur lokal lauschen. Von aussen erreichbar wird die Seite ueber einen
+# Reverse-Proxy (TLS, Ratenbegrenzung) — nicht dadurch, dass der
+# Node-Prozess selbst im Netz steht. Siehe docs/betrieb.md.
+Environment=HOST=127.0.0.1
 Environment=PORT=8080
 ExecStart=%h/.local/node/bin/node build/index.js
 Restart=on-failure
