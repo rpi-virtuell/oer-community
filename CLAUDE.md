@@ -170,12 +170,19 @@ Termine vergangen `start` absteigend.
 
 ## Warum ein Bild fehlt: die Entwickleransicht
 
-`/[naddr]/json` zeigt die Rohdaten hinter einem Beitrag — `kind:30023` und
-`kind:1063` nebeneinander, mit Relay-Herkunft, der Prüfkette aus ADR-0013
-und dem Signaturbefund (ADR-0017). **Der Nachweis steht nicht im Artikel**;
+Ein aufklappbarer Bereich am Beitragsende zeigt die Rohdaten —
+`kind:30023` und `kind:1063` nebeneinander, mit Relay-Herkunft, der
+Prüfkette aus ADR-0013 und dem Signaturbefund (ADR-0017). Dieselben Daten
+liegen unter `/[naddr]/json`. **Der Nachweis steht nicht im Artikel**;
 ohne diese Ansicht ist ein ausbleibendes Bild nicht diagnostizierbar.
 
-Zwei Regeln dazu:
+**Geschaltet wird in der Fußzeile**, gemerkt in `localStorage` unter
+`community-hub-einstellungen` — Muster von edufeeds `appSettings.debugMode`
+(ADR-0009). Keine Einstellungsseite: die wäre Verwaltung.
+Aufbau und Bedienung folgen edufeeds `EventDebugInfo.svelte`, Farben und
+Abstände kommen aus `docs/designsystem.md`.
+
+Drei Regeln dazu:
 
 - **Die Prüfkette wird nicht zweimal implementiert.** Sie wird aus
   `lizenzPruefen` abgeleitet — dessen `grund` sagt, welcher Schritt kippte.
@@ -184,6 +191,10 @@ Zwei Regeln dazu:
 - **Beide Routen laufen durch `loaders/beitrag.js`.** Dort liegen die
   Wächter aus ADR-0016. Eine Route, die selbst dekodiert und lädt, ist der
   Umweg daran vorbei.
+- **`ungeprüft` ist nicht `gescheitert`.** Schritte nach einem Abbruch und
+  Schritt 5 ohne `etag` gelten als nicht geprüft (`ok: null`). Sie als
+  bestanden oder gescheitert zu zeigen behauptete eine Prüfung, die nicht
+  stattfand — dasselbe gilt für ein Relay, das nie gefragt wurde.
 
 ## Fehlerfälle
 
@@ -235,6 +246,10 @@ pnpm check && pnpm lint && pnpm test && pnpm test:e2e
 Tests laufen gegen ein Mock-Relay mit echten Events aus `test/fixtures/` —
 ohne Netz und ohne Abhängigkeit von der Publikationstätigkeit anderer.
 **Neue Funktionen kommen mit einer Prüfung.**
+
+**Komponenten werden mit `svelte/server` gerendert**, nicht in einem
+DOM-Nachbau: dieselbe Darstellung, die der Server ausliefert (ADR-0003).
+`vitest.config.js` lädt dafür das Svelte-Plugin, aber nicht `sveltekit()`.
 
 Als Fixture-Grundlage dient der FOERBICO-Bestand (ADR-0012), insbesondere
 der Referenzfall `die-kraft-der-gemeinschaft` mit seinem Lizenznachweis —

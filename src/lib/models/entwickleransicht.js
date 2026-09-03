@@ -85,6 +85,31 @@ const KETTE = [
 ];
 
 /**
+ * Ein Event als reines Datenobjekt, nur mit den Feldern aus NIP-01.
+ *
+ * **Nötig, weil Events vom Relay Symbol-Schlüssel tragen** (interne Marker
+ * der Nostr-Bibliotheken). SvelteKit serialisiert alles, was `load`
+ * zurückgibt, und bricht bei Symbolen ab — am laufenden System als HTTP 500
+ * belegt. `JSON.stringify` verschluckt sie dagegen stumm, die JSON-Route
+ * allein hätte den Fehler also nie gezeigt.
+ *
+ * @param {Event|null} event
+ * @returns {Event|null}
+ */
+function reinesEvent(event) {
+  if (!event) return null;
+  return {
+    id: event.id,
+    pubkey: event.pubkey,
+    created_at: event.created_at,
+    kind: event.kind,
+    tags: (event.tags ?? []).map((t) => [...t]),
+    content: event.content,
+    sig: event.sig
+  };
+}
+
+/**
  * Der Hash aus einem etag, ohne Anführungszeichen und `W/`-Präfix.
  *
  * Dieselbe Normalisierung wie in `lizenzPruefen` — hier, um den Wert
@@ -232,9 +257,13 @@ export function befundErstellen({
   // Artikel-Relays" wäre dann falsch, obwohl die Trennung bestehen bleibt.
   // Entscheidend ist die andere Richtung: Gibt es ein Relay, das den Artikel
   // hat und den Nachweis nicht? Genau dort holt das Bild sich kein Recht.
-  lizenzHerkunft.artikelRelaysOhneNachweis = artikelHerkunft.geliefertVon.filter(
-    (r) => !lizenzHerkunft.geliefertVon.includes(r)
-  );
+  // Fand keine Abfrage statt, hat kein Relay "den Nachweis nicht" — es
+  // wurde nie gefragt. Die Artikel-Relays hier zu nennen behauptete eine
+  // Antwort, die es nicht gab.
+  lizenzHerkunft.artikelRelaysOhneNachweis =
+    lizenzHerkunft.gefragt.length === 0
+      ? []
+      : artikelHerkunft.geliefertVon.filter((r) => !lizenzHerkunft.geliefertVon.includes(r));
   lizenzHerkunft.anderesRelayAlsArtikel =
     lizenzHerkunft.geliefertVon.length > 0 &&
     lizenzHerkunft.artikelRelaysOhneNachweis.length > 0;
@@ -277,12 +306,12 @@ export function befundErstellen({
 
   return {
     artikel: {
-      event: artikelEvent ?? null,
+      event: reinesEvent(artikelEvent ?? null),
       herkunft: artikelHerkunft,
       signatur: signaturPruefen(artikelEvent ?? null)
     },
     lizenz: {
-      event: nachweisEvent,
+      event: reinesEvent(nachweisEvent),
       herkunft: lizenzHerkunft,
       signatur: signaturPruefen(nachweisEvent),
       kandidaten: kandidaten.length,

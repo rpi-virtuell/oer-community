@@ -3,6 +3,7 @@ import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { naddrDekodieren } from '$lib/naddr.js';
 import { beitragLaden } from '$lib/loaders/beitrag.js';
+import { befundErstellen } from '$lib/models/entwickleransicht.js';
 
 export const prerender = false;
 
@@ -28,6 +29,21 @@ export async function load({ params }) {
 
   const { artikel, lizenz, html, entfernteBilder } = ergebnis;
 
+  // Der Befund wird immer mitgeliefert, nicht erst auf Knopfdruck: Der
+  // Debug-Schalter liegt im Browser (localStorage), der Server weiss also
+  // nicht, ob er gebraucht wird. Ihn nachzuladen brauchte eine zweite
+  // Datenschicht im Browser — genau das, was CLAUDE.md ausschliesst.
+  const befund = befundErstellen({
+    artikelEvent: ergebnis.artikelEvent,
+    artikelAbfrage: ergebnis.artikelAbfrage,
+    bildUrl: artikel.bildUrl,
+    bildHash: artikel.bildHash,
+    lizenzEvents: ergebnis.lizenzEvents,
+    lizenzAbfrage: ergebnis.lizenzAbfrage,
+    nachweis: ergebnis.nachweis,
+    etag: ergebnis.etag
+  });
+
   return {
     artikel: {
       titel: artikel.titel,
@@ -39,6 +55,7 @@ export async function load({ params }) {
     lizenz,
     html,
     entfernteBilder,
+    befund,
     // Für den Verweis auf die Entwickleransicht — der naddr, wie er in der
     // URL stand, nicht neu kodiert.
     naddr: params.naddr

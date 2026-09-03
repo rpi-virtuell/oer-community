@@ -50,6 +50,38 @@ Hashes gleich) und ein Artikel ohne `x`-Tag (Schritt 2 gescheitert,
 3 bis 5 als *ungeprüft* ausgewiesen, `gefragt: []` mit Erklärung —
 „kein Hash, keine Frage").
 
+**Nachtrag am selben Abend — die Ansicht sitzt jetzt in der Seite.**
+Nach dem Vorbild von edufeeds `EventDebugInfo.svelte`: aufklappbarer
+Bereich am Beitragsende, Kachelraster mit Kopierknöpfen, Marke „Aktiv"
+beim Aufklappen, Rohobjekte mit „kopieren / ausklappen". Geschaltet wird
+in der **Fußzeile** (`localStorage`, Muster von `appSettings.debugMode`)
+— keine Einstellungsseite, die wäre Verwaltung. Farben aus
+`docs/designsystem.md`, nicht DaisyUI: dort sind die Kontraste geprüft.
+Die JSON-Route bleibt zum Weiterverarbeiten.
+
+**Zwei weitere Funde, beide erst beim Aufrufen im Browser sichtbar:**
+
+- **HTTP 500 — Events tragen Symbol-Schlüssel.** SvelteKit serialisiert
+  alles aus `load` und bricht daran ab. `JSON.stringify` verschluckt sie
+  stumm, die JSON-Route allein hätte das nie gezeigt. Der Befund gibt
+  jetzt reine NIP-01-Objekte heraus.
+- **„hat den Beitrag, nicht den Nachweis" log bei fehlendem `x`-Tag.**
+  Dort fand gar keine Abfrage statt; beide Relays als „hat ihn nicht"
+  auszuweisen behauptete eine Antwort, die es nie gab.
+
+**Komponenten sind jetzt prüfbar:** `vitest.config.js` lädt das
+Svelte-Plugin, Tests rendern mit `svelte/server` — dieselbe Darstellung,
+die der Server ausliefert (ADR-0003).
+
+**Im Browser durchgespielt** (Chrome über CDP, echte Relays): Klick auf
+den Schalter → Bereich erscheint → in `localStorage` gemerkt →
+Aufklappen zeigt Marke und Kette → nach dem Neuladen noch an. Beide
+Fälle angesehen: Referenzfall (fünf `✓`) und Artikel ohne `x`-Tag
+(`✓ ✗ · · ·` mit Erklärung).
+
+**Stand nach dem Nachtrag:** **133 Tests grün**, `pnpm check` 369
+Dateien ohne Fehler oder Warnung.
+
 **Nächster Schritt:** unverändert die Termin-Ansicht mit ihrem
 Leerzustand. Davor oder danach der Cache — die JSON-Route löst eine
 zweite Abfragerunde aus und ist bewusst `no-store`.

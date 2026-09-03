@@ -212,6 +212,39 @@ describe('befundErstellen zeigt die Pruefkette aus ADR-0013', () => {
   });
 });
 
+describe('befundErstellen liefert reine Daten, die durch load() passen', () => {
+  it('gibt Events ohne Symbol-Schluessel heraus', () => {
+    // Events vom Relay tragen interne Marker als Symbol-Schluessel. SvelteKit
+    // serialisiert Daten aus load() und bricht daran ab (HTTP 500, am
+    // laufenden System belegt) — JSON.stringify verschluckt sie dagegen
+    // stumm, die JSON-Route allein deckt das also nicht auf.
+    const markiert = { ...ARTIKEL, [Symbol('relay')]: 'wss://irgendwo/' };
+    const befund = referenzfall({ artikelEvent: markiert });
+
+    expect(Object.getOwnPropertySymbols(befund.artikel.event ?? {})).toEqual([]);
+    expect(befund.artikel.event?.id).toBe(ARTIKEL.id);
+  });
+
+  it('gibt auch das Nachweis-Event ohne Symbole heraus', () => {
+    const markiert = { ...NACHWEIS, [Symbol('relay')]: 'wss://rpi/' };
+    const befund = referenzfall({
+      lizenzEvents: [markiert],
+      nachweis: nachweisAusEvents([markiert])
+    });
+
+    expect(Object.getOwnPropertySymbols(befund.lizenz.event ?? {})).toEqual([]);
+    expect(befund.lizenz.event?.id).toBe(NACHWEIS.id);
+  });
+
+  it('behaelt alle Felder, die ein Event ausmachen', () => {
+    const befund = referenzfall();
+
+    expect(Object.keys(befund.artikel.event ?? {}).sort()).toEqual(
+      ['content', 'created_at', 'id', 'kind', 'pubkey', 'sig', 'tags'].sort()
+    );
+  });
+});
+
 describe('befundErstellen weist die Signaturen aus', () => {
   it('bestaetigt die Signatur beider echten Events', () => {
     const befund = referenzfall();
@@ -291,6 +324,27 @@ describe('befundErstellen bleibt bei fehlenden Daten aussagefaehig', () => {
     expect(befund.lizenz.herkunft.gefragt).toEqual([]);
     expect(befund.lizenz.herkunft.grundText).toBeTruthy();
     expect(befund.lizenz.herkunft.grundText).toContain('x-Tag');
+  });
+
+  it('nennt keine Relays "ohne Nachweis", wenn nie gefragt wurde', () => {
+    // Ohne x-Tag fand keine Abfrage statt. Die Artikel-Relays als "hat den
+    // Nachweis nicht" auszuweisen behauptete eine Antwort, die es nie gab —
+    // am laufenden System als irreführende Zeile aufgefallen.
+    const befund = referenzfall({
+      bildHash: null,
+      lizenzEvents: [],
+      nachweis: null,
+      lizenzAbfrage: {
+        gefragteRelays: [],
+        fehler: [],
+        ohneTreffer: [],
+        quellen: {},
+        grund: null
+      }
+    });
+
+    expect(befund.lizenz.herkunft.artikelRelaysOhneNachweis).toEqual([]);
+    expect(befund.lizenz.herkunft.anderesRelayAlsArtikel).toBe(false);
   });
 
   it('nennt bei einem Artikel ohne Bild kein Bild als Grund', () => {

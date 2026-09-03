@@ -23,12 +23,27 @@ Route, oder beides.
 
 ## Entscheidung
 
-Wir liefern die Rohdaten unter **`/[naddr]/json`** aus — beide Events
-nebeneinander, mit Relay-Herkunft, der fünfstufigen Prüfkette aus ADR-0013
-und einem Signaturbefund. Die Artikelseite verweist per Aufklappbereich
-darauf, ohne die Daten selbst einzubetten.
+Wir zeigen die Rohdaten **in der Seite** — ein aufklappbarer Bereich am
+Beitragsende, beide Events nebeneinander, mit Relay-Herkunft, der
+fünfstufigen Prüfkette aus ADR-0013 und einem Signaturbefund. Dieselben
+Daten liegen zusätzlich unter **`/[naddr]/json`** zum Weiterverarbeiten.
 
-Drei Festlegungen dazu:
+**Aufbau und Bedienung folgen der edufeed-app** (`EventDebugInfo.svelte`):
+Chevron, Marke „Aktiv" beim Aufklappen, Abschnitte mit Kachelraster (Label
+links, Wert rechts), Kopierknöpfe an Einzelwerten, Rohobjekt in einem
+Block mit „kopieren" und „ausklappen". Muster sollen wandern können
+(ADR-0009). **Farben und Abstände aber aus `docs/designsystem.md`**, nicht
+die DaisyUI-Token von edufeed: dort sind die Kontrastwerte geprüft, und der
+Hub soll wie relilab.org aussehen. Die Marke „Aktiv" ist darum neutral
+getönt — bei `.78rem` erfüllt nur diese Variante die Anforderung (5,40:1).
+
+**Der Schalter liegt in der Fußzeile**, nicht auf einer Einstellungsseite:
+Eine solche wäre Verwaltung und damit außerhalb des Zuschnitts. Mechanik
+wie bei edufeed (`appSettings.debugMode`): Rune plus `localStorage`, hier
+unter `community-hub-einstellungen`. Ohne Schalter erscheint der Bereich
+nicht.
+
+Vier Festlegungen dazu:
 
 1. **Die Prüfkette wird nicht neu implementiert.** Sie wird aus
    `lizenzPruefen` abgeleitet: dessen `grund` sagt, welcher Schritt kippte,
@@ -42,14 +57,25 @@ Drei Festlegungen dazu:
 3. **`ungeprüft` ist nicht `gescheitert`.** Ein Schritt nach dem Abbruch und
    Schritt 5 ohne `etag` werden als *nicht geprüft* ausgewiesen (`ok: null`),
    nicht als bestanden und nicht als gescheitert.
+4. **Der Befund kommt vom Server, immer mit.** Der Schalter liegt im
+   Browser, der Server weiß also nicht, ob er gebraucht wird.
+   Nachzuladen bräuchte eine zweite Datenschicht im Browser — genau das,
+   was CLAUDE.md ausschließt. Der Bereich ist damit auch ohne
+   JavaScript im Dokument, sobald der Modus an ist.
 
 ## Konsequenzen
 
 - **Leichter:** Ein ausbleibendes Bild ist in einem Aufruf erklärt, statt
   über Relay-Abfragen von Hand rekonstruiert zu werden. Die drei Hashes
   (Artikel, Nachweis, ausgeliefertes Bild) stehen zum Vergleich nebeneinander.
-- **Schwerer:** Die Route löst eine zweite Abfragerunde aus; sie ist bewusst
-  `no-store`. Mit dem Cache (STATUS.md) entfällt das.
+- **Schwerer:** Der Befund wird bei jedem Seitenaufruf mitgeliefert, auch
+  wenn niemand ihn aufklappt — beim Referenzfall etwa 8 KB. Die JSON-Route
+  löst zusätzlich eine zweite Abfragerunde aus und ist bewusst `no-store`.
+  Mit dem Cache (STATUS.md) entfällt letzteres.
+- **Ein Bedienelement für Entwickler steht auf einer Leseseite.** Der
+  Schalter in der Fußzeile ist die bewusste Ausnahme von „Was es nicht gibt,
+  wird auch nicht angedeutet" — er *gibt* es, und er ist die einzige Stelle,
+  an der man ihn ohne Einstellungsseite unterbringt.
 - **Roh-HTML geht ungesäubert hinaus** — als JSON, nie als HTML. Festgehalten
   durch `content-type: application/json` und `X-Content-Type-Options:
   nosniff`. Ohne `nosniff` könnte ein Browser den Inhalt als HTML deuten und
@@ -59,7 +85,7 @@ Drei Festlegungen dazu:
   Dann ist die Ableitung aus `lizenzPruefen` gebrochen — und der Fehler liegt
   nicht in der Ansicht, sondern in der doppelten Wahrheit.
 
-## Zwei Funde bei der Umsetzung
+## Vier Funde bei der Umsetzung
 
 **`verifyEvent` allein prüft die Signatur nicht gegen den Inhalt.** Es prüft
 `sig` gegen `id`. Wer `content` oder `tags` verändert und `id` und `sig`
@@ -74,6 +100,19 @@ sein Nachweis nur auf `relay-rpi`. Die Frage „liegt der Nachweis auf keinem
 der Artikel-Relays" ist damit falsch, obwohl die Aussage von ADR-0013 gilt.
 Entscheidend ist die andere Richtung: Gibt es ein Relay, das den Artikel hat
 und den Nachweis nicht? Für den Referenzfall ist das `relay.edufeed.org`.
+Fand **gar keine** Abfrage statt (kein `x`-Tag), bleibt diese Liste leer —
+ein nie gefragtes Relay „hat den Nachweis nicht" nicht.
+
+**Events vom Relay tragen Symbol-Schlüssel.** SvelteKit serialisiert alles
+aus `load` und bricht daran ab — am laufenden System als HTTP 500 belegt.
+Der Befund gibt darum reine Datenobjekte mit den NIP-01-Feldern heraus.
+Bemerkenswert: `JSON.stringify` verschluckt Symbole stumm, die JSON-Route
+allein hätte den Fehler also nie gezeigt.
+
+**Komponenten sind jetzt prüfbar.** `vitest.config.js` lädt das
+Svelte-Plugin; Tests rendern mit `svelte/server`, also in derselben
+Darstellung, die der Server ausliefert (ADR-0003). Ohne das ließe sich an
+der Debug-Ansicht nur der Befund prüfen, nicht ihre Ausgabe.
 
 ## Offen: Was folgt aus einer ungültigen Signatur?
 
