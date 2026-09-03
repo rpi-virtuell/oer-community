@@ -9,6 +9,44 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-03 (abends) — Architekturregeln prüfen sich selbst
+
+**Passiert:** ADR-0014. Drei Regeln, die bisher nur in CLAUDE.md und in
+ADRs standen, laufen jetzt als Test mit: die Schichtgrenze
+(`src/lib/**` importiert nichts aus `routes/`/`components/`), das
+`nostr-tools`-Verbot für Relay-Kommunikation (ADR-0009) und das Verbot,
+die Serverdarstellung abzuschalten (ADR-0003). Prüfung liegt in
+`src/lib/architektur.test.js` und meldet bei Verstoß Datei, Zeile und
+die verletzte ADR.
+
+Anlass war die Frage, wieviel von Hendersons ADR-Sammlung hier schon
+integriert ist. Antwort: fast alles — Template, Status, Zeitstempel,
+Immutabilität, Falsifikationskriterium, sogar der Rat, das Verzeichnis
+`decisions` statt `adr` zu nennen (hier `entscheidungen`). Nicht
+vorhanden war nur der Gedanke der *Fitness Functions*: eine Entscheidung
+nicht nur dokumentieren, sondern automatisch zusichern. Genau das war
+für die Regel einschlägig, die CLAUDE.md selbst als die bezeichnet, „die
+am leichtesten erodiert".
+
+**Gegengeprüft, nicht nur grün gesehen:** Jede der drei Regeln wurde
+absichtlich verletzt (Route-Import in `inhalt.js`, `SimplePool` in
+`naddr.js`, `ssr = false` in einer Route) — alle drei schlagen an,
+danach wieder grün. Beim ersten Lauf fand der Test sich selbst, weil er
+das verbotene Muster in seiner eigenen Meldung zitiert; die Prüfdatei
+nimmt sich jetzt aus.
+
+**Stand:** `pnpm check` 341 Dateien, 0 Fehler, 0 Warnungen.
+`pnpm test` 9 Dateien, 52 Tests grün (3 neu). Die Datenschicht ist
+unverändert — es kam nur eine Prüfung dazu, kein Produktivcode.
+
+**Nächster Schritt:** unverändert die Termin-Ansicht mit ihrem
+Leerzustand (FOERBICO hat 0 Termine). Am Rand aufgefallen: CLAUDE.md
+nennt `pnpm lint` und `pnpm test:e2e` als Merge-Voraussetzung, beide
+Skripte existieren in `package.json` noch nicht — entweder anlegen oder
+die Merge-Regel auf den Ist-Stand bringen.
+
+---
+
 ## 2026-09-03 (nachmittags) — FOERBICO wird die Datenquelle, Bildlizenz-Routine steht
 
 **Passiert:** ADR-0012 und ADR-0013. Die Datengrundlage wechselt vom

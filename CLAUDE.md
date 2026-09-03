@@ -45,8 +45,10 @@ Komponente oder eine Route.
 
 Die Grenze bricht beim ersten „nur schnell hier importieren". Der
 Abhängigkeitspfeil zeigt ausschließlich von `routes/` und `components/` nach
-`lib/`, nie zurück. Die Struktur folgt der edufeed-app, damit Muster wandern
-können (ADR-0009) — ein Sammelpfad `src/lib/nostr/` ist es ausdrücklich nicht.
+`lib/`, nie zurück. **Das prüft `src/lib/architektur.test.js`**
+(ADR-0014) — zusammen mit dem `nostr-tools`-Verbot und `ssr = false`.
+Die Struktur folgt der edufeed-app, damit Muster wandern können
+(ADR-0009) — ein Sammelpfad `src/lib/nostr/` ist es ausdrücklich nicht.
 
 ## Nostr-Operationen
 
