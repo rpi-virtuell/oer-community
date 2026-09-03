@@ -1,0 +1,10 @@
+node_modules
+build
+.svelte-kit
+.git
+.env
+.env.sicherung-*
+docs
+mockup
+test
+*.test.js

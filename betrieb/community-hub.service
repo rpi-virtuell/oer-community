@@ -1,0 +1,22 @@
+# systemd --user-Unit: laeuft ohne root.
+# Ablage: ~/.config/systemd/user/community-hub.service
+# Aktivieren: systemctl --user enable --now community-hub
+[Unit]
+Description=community-hub (SvelteKit, adapter-node)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/community-hub
+EnvironmentFile=%h/community-hub/.env
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=8080
+ExecStart=%h/.local/node/bin/node build/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

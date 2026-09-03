@@ -1,0 +1,15 @@
+# Kein Traefik: eine Anwendung, kein zweiter Dienst, der einen Router braeuchte.
+# Nur nutzbar, wenn Docker auf dem Server installiert ist — siehe docs/betrieb.md.
+services:
+  hub:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '8080:3000'
+    environment:
+      QUELLE_AUTOR: ${QUELLE_AUTOR}
+      QUELLE_H_TAG: ${QUELLE_H_TAG:-}
+      RELAYS: ${RELAYS}
+      BLOSSOM_URL: ${BLOSSOM_URL}
+      HOST: 0.0.0.0
+      PORT: '3000'
