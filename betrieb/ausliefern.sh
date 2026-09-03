@@ -33,7 +33,8 @@ echo "== Dienst einrichten und starten =="
   cp ~/$FERN/betrieb/community-hub.service ~/.config/systemd/user/ && \
   loginctl enable-linger \$USER && \
   systemctl --user daemon-reload && \
-  systemctl --user enable --now community-hub && \
+  systemctl --user enable community-hub && \
+  systemctl --user restart community-hub && \
   sleep 3 && systemctl --user is-active community-hub"
 
 echo "== Prüfen =="
