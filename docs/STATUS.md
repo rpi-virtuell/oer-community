@@ -9,6 +9,51 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-04 — Detailansicht trägt das Designsystem
+
+**Passiert:** Die vorhandenen Ansichten — Artikelseite, Fußzeile,
+Fehlerseite — sind ins Designsystem gehoben (ADR-0004). Neu ist eine
+Kopfzeile mit der Wortmarke, verlinkt auf `/`, **ohne Navigation**: Es
+gibt nichts, wohin man navigieren könnte, und was es nicht gibt, wird
+nicht angedeutet. Die Textbreite ist „schmal" (820px), die Fußzeile
+dunkel auf `--fau` mit dem Debug-Schalter wie bisher.
+
+**Drei Schriften, drei Rollen — jetzt lokal.** Acht WOFF2-Subsets in
+`static/schriften/` (113 KB, latin + latin-ext), variable Fonts: eine
+Datei deckt 400 bis 700. Lizenztexte (OFL) liegen daneben. Vorher stand
+`Source Sans 3` im CSS, das nie geladen wurde — die Seite lief in der
+Systemschrift. `architektur.test.js` prüft jetzt, dass keine Schrift von
+Google kommt und jede `url()` auf eine vorhandene Datei zeigt.
+
+**Die drei Kontrastpunkte sind entschieden** (ADR-0018): Empfehlungen
+des Designsystems übernommen, als Tokens in `app.css`. Neu dabei:
+Augenbraue auf Weiß in `--rl-text-leise` (bei `.82rem` reicht
+`--relilab-tief` nicht) und `--fuss-text` für die Fußzeile.
+`test/kontrast.test.js` rechnet die WCAG-Werte aus den Tokens nach —
+die Zahlen im Designsystem sind damit Prüfung, nicht Behauptung.
+`--marker-amber-text` und `--verlauf-aufmacher` warten auf die
+Startseite; in der Detailansicht kommen sie nicht vor.
+
+**Kleinigkeiten, die dabei anfielen:** Datum als `<time datetime>`,
+Themen als Liste von Markern, Hinweise („Bild nicht angezeigt",
+„n Bildverweise entfernt") im Hinweiskasten mit Amber-Linie — der
+zweite nennt jetzt die Dateinamen, nicht nur die Zahl.
+
+**Stand:** `pnpm test` 17 Dateien, **149 Tests grün** (16 neu).
+`pnpm check` 372 Dateien, 0 Fehler. Im Browser gegen die echten Relays:
+alle vier Schriftdateien kommen mit 200 aus `static/`, `document.fonts`
+meldet vier geladene Faces, berechnete Stile stimmen (Yanone für `h1`
+und Wortmarke, Condensed für Metazeile und Bildunterschrift, Roboto im
+Fließtext, `--fau` in der Fußzeile). Fehlerseite (400, fremder Autor)
+mit Augenbraue und Meldung. Kein Google-Fonts-Verweis im ausgelieferten
+HTML. Der Referenzartikel trägt keine `t`-Tags — Marker sind deshalb
+nur im Test zu sehen, nicht am Referenzfall.
+
+**Offen:** `pnpm lint` und `pnpm test:e2e` aus der Merge-Checkliste in
+CLAUDE.md existieren als Skripte nicht — Zielzustand, nicht Ist.
+Startseite nach Mockup und Übersicht mit Themenfilter stehen weiter
+aus; dort kommen die neuen Tokens erstmals zum Einsatz.
+
 ## 2026-09-03 (spät) — Entwickleransicht: warum ein Bild fehlt, ist jetzt beantwortbar
 
 **Passiert:** ADR-0017. Unter `/[naddr]/json` liegen die Rohdaten hinter

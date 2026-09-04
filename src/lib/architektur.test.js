@@ -133,3 +133,54 @@ describe('Architekturregeln (ADR-0014)', () => {
     ).toEqual([]);
   });
 });
+
+describe('Gestaltungsregeln (ADR-0004, docs/designsystem.md)', () => {
+  const appCss = readFileSync(join(wurzel, 'src/app.css'), 'utf8');
+
+  /** Alle @font-face-Blöcke aus app.css. */
+  const fontFaces = appCss.match(/@font-face\s*\{[^}]*\}/g) ?? [];
+
+  it('deklariert die drei Schriften des Designsystems lokal', () => {
+    const familien = fontFaces
+      .map((block) => block.match(/font-family:\s*['"]?([^;'"]+)/)?.[1].trim())
+      .filter(Boolean);
+    expect(new Set(familien)).toEqual(
+      new Set(['Roboto', 'Roboto Condensed', 'Yanone Kaffeesatz'])
+    );
+  });
+
+  it('jede Schriftdatei aus @font-face liegt in static/', () => {
+    /** @type {string[]} */
+    const fehlend = [];
+    for (const block of fontFaces) {
+      for (const [, pfad] of block.matchAll(/url\(\s*['"]?(\/[^)'"]+)['"]?\s*\)/g)) {
+        try {
+          statSync(join(wurzel, 'static', pfad));
+        } catch {
+          fehlend.push(pfad);
+        }
+      }
+    }
+    expect(fontFaces.length).toBeGreaterThan(0);
+    expect(fehlend, 'Schriften werden lokal ausgeliefert (designsystem.md):\n' + fehlend.join('\n')).toEqual([]);
+  });
+
+  it('lädt keine Schrift von Google (Schulnetze, Datenschutz)', () => {
+    const dateien = quelldateien(join(wurzel, 'src'), (p) =>
+      /\.(js|svelte|css|html)$/.test(p)
+    );
+    /** @type {string[]} */
+    const verstoesse = [];
+    for (const datei of dateien) {
+      for (const { nr, text } of zeilen(datei)) {
+        if (/fonts\.g(oogleapis|static)\.com/.test(text)) {
+          verstoesse.push(`${datei}:${nr} — ${text.trim()}`);
+        }
+      }
+    }
+    expect(
+      verstoesse,
+      'Das Mockup nutzt das CDN, der Client nicht (designsystem.md):\n' + verstoesse.join('\n')
+    ).toEqual([]);
+  });
+});

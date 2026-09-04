@@ -2,6 +2,26 @@
   import { page } from '$app/state';
 </script>
 
-<h1 class="text-2xl font-bold">Das hat nicht geklappt</h1>
-<p class="mt-2 text-sm" style="color: var(--rl-text-leise)">Fehler {page.status}</p>
-<p class="mt-4">{page.error?.message}</p>
+<svelte:head>
+  <title>Fehler {page.status} — community-hub</title>
+</svelte:head>
+
+<header class="detail-kopf">
+  <p class="augenbraue">Fehler {page.status}</p>
+  <h1>Das hat nicht geklappt</h1>
+</header>
+<p class="meldung">{page.error?.message}</p>
+
+<style>
+  .detail-kopf {
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rl-linie);
+    margin-bottom: 32px;
+  }
+  .detail-kopf h1 {
+    margin-bottom: 0;
+  }
+  .meldung {
+    font-size: 1.02rem;
+  }
+</style>

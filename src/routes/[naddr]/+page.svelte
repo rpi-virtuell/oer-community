@@ -22,38 +22,37 @@
 </svelte:head>
 
 <article>
-  <h1 class="text-3xl font-bold leading-tight">{data.artikel.titel}</h1>
-
-  <p class="mt-2 text-sm" style="color: var(--rl-text-leise)">
-    veröffentlicht am {datum}
-  </p>
-
-  {#if data.artikel.themen.length > 0}
-    <ul class="mt-3 flex flex-wrap gap-2 text-xs">
-      {#each data.artikel.themen as thema (thema)}
-        <li class="rounded px-2 py-1" style="background: var(--rl-flaeche-2)">
-          {thema}
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  <header class="detail-kopf">
+    <h1>{data.artikel.titel}</h1>
+    <div class="metazeile">
+      <time datetime={data.artikel.veroeffentlicht}>{datum}</time>
+      {#if data.artikel.themen.length > 0}
+        <ul class="themen">
+          {#each data.artikel.themen as thema (thema)}
+            <li class="marker">{thema}</li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  </header>
 
   <Bildbereich lizenz={data.lizenz} titel={data.artikel.titel} />
 
   {#if data.artikel.zusammenfassung}
-    <p class="text-lg font-medium">{data.artikel.zusammenfassung}</p>
+    <p class="vorspann">{data.artikel.zusammenfassung}</p>
   {/if}
 
   <!-- Markdown aus dem Event; in inhalt.js gesäubert. -->
-  <div class="inhalt mt-6">{@html data.html}</div>
+  <div class="inhalt">{@html data.html}</div>
 
   {#if data.entfernteBilder.length > 0}
-    <p class="mt-8 text-sm" style="color: var(--rl-text-leise)">
-      {data.entfernteBilder.length} Bildverweis{data.entfernteBilder.length === 1
-        ? ''
-        : 'e'} im Text
-      {data.entfernteBilder.length === 1 ? 'wurde' : 'wurden'} nicht angezeigt:
-      relative Pfade, die nur auf der alten Website auflösen.
+    <p class="hinweis">
+      <strong>
+        {data.entfernteBilder.length} Bildverweis{data.entfernteBilder.length === 1 ? '' : 'e'}
+        im Text nicht angezeigt.
+      </strong>
+      Relative Pfade, die nur auf der alten Website auflösen:
+      {data.entfernteBilder.join(', ')}
     </p>
   {/if}
 
@@ -64,32 +63,97 @@
 </article>
 
 <style>
-  .inhalt :global(h2) {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-top: 2rem;
-    margin-bottom: 0.5rem;
+  .detail-kopf {
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rl-linie);
+    margin-bottom: 32px;
+  }
+  .detail-kopf h1 {
+    margin-bottom: 14px;
+  }
+  .themen {
+    display: contents;
+  }
+  .vorspann {
+    font-size: 1.15rem;
+    line-height: 1.55;
+    margin: 0 0 1.5rem;
+  }
+
+  /* Fließtext des Beitrags — Regeln aus mockup/index.html, .inhalt */
+  .inhalt {
+    font-size: 1.02rem;
+  }
+  .inhalt :global(h2),
+  .inhalt :global(h3),
+  .inhalt :global(h4),
+  .inhalt :global(h5),
+  .inhalt :global(h6) {
+    margin-top: 1.6em;
+  }
+  .inhalt :global(h5),
+  .inhalt :global(h6) {
+    font-size: 1.1rem;
   }
   .inhalt :global(p) {
     margin-bottom: 1rem;
-    line-height: 1.7;
+  }
+  .inhalt :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  .inhalt :global(ul),
+  .inhalt :global(ol) {
+    margin-bottom: 1rem;
+    padding-left: 1.4em;
   }
   .inhalt :global(ul) {
     list-style: disc;
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
+  }
+  .inhalt :global(ol) {
+    list-style: decimal;
   }
   .inhalt :global(li) {
     margin-bottom: 0.25rem;
   }
   .inhalt :global(blockquote) {
-    border-left: 3px solid var(--rl-linie);
-    padding-left: 1rem;
-    font-style: italic;
-    margin-bottom: 1rem;
+    border-left: 3px solid var(--relilab);
+    margin: 1.4em 0;
+    padding: 0.4em 0 0.4em 1.2em;
+    color: var(--rl-text-leise);
+  }
+  .inhalt :global(code) {
+    background: var(--rl-flaeche);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  .inhalt :global(pre) {
+    background: var(--rl-flaeche);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.4em 0;
+  }
+  .inhalt :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+  .inhalt :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.4em 0;
+  }
+  .inhalt :global(td),
+  .inhalt :global(th) {
+    border: 1px solid var(--rl-linie);
+    padding: 8px 12px;
+    text-align: left;
   }
   .inhalt :global(img) {
     max-width: 100%;
     height: auto;
+    border-radius: 8px;
+    margin: 1.4em 0;
   }
 </style>

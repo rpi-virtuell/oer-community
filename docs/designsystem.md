@@ -5,8 +5,9 @@ v2 (Februar 2026) —
 [Farbkarte](https://rpi-virtuell.github.io/FOERBICO_und_rpi-virtuell/farbkarte-komplementaer.html).
 Es ordnet relilab als Tochtermarke von rpi-virtuell ein.
 
-**Stand:** 01.09.2026 · Umsetzung: `mockup/index.html` · Begründung:
-Spec, Entscheidung 4
+**Stand:** 04.09.2026 · Umsetzung: `src/app.css` (Tokens, Grundschrift,
+Bausteine), Gestaltungsstand `mockup/index.html` · Begründung: Spec,
+Entscheidung 4 · Kontrastentscheidungen: ADR-0018
 
 **Die Werte werden kopiert, nicht verlinkt.** Weder das WordPress-Stylesheet
 noch die Farbkarte werden zur Laufzeit geladen — sonst wäre WordPress nicht
@@ -99,9 +100,12 @@ in Versalien oder mit Sperrung.
 
 Überschriften: `font-weight: 700`, `line-height: 1.15`, Farbe `--rl-dunkel`.
 
-**Schriften werden lokal ausgeliefert** (`static/`), nicht von Google Fonts
-geladen. Das Mockup nutzt das CDN, der Client nicht — Schulnetze und
-Datenschutz.
+**Schriften werden lokal ausgeliefert** (`static/schriften/`), nicht von
+Google Fonts geladen. Das Mockup nutzt das CDN, der Client nicht —
+Schulnetze und Datenschutz. Acht WOFF2-Subsets (latin, latin-ext) als
+variable Fonts, eine Datei deckt 400 bis 700; Lizenzen daneben in
+`LIZENZ.md`. Dass keine Schrift von Google kommt und jede `url()` auf
+eine vorhandene Datei zeigt, prüft `src/lib/architektur.test.js`.
 
 ---
 
@@ -189,10 +193,11 @@ Punkte.
 
 ---
 
-## Offene Punkte
+## Die drei Kontrastpunkte — entschieden (ADR-0018)
 
-Drei Stellen, an denen die Umsetzung im Mockup die Kontrastanforderung noch
-nicht erfüllt. Vor dem Bau der Komponenten zu entscheiden:
+Drei Stellen, an denen das Mockup die Kontrastanforderung nicht erfüllt.
+Am 04.09.2026 entschieden, die Werte rechnet `test/kontrast.test.js` aus
+den Tokens in `app.css` nach. Erst die Analyse, dann die Entscheidung:
 
 **1. Linkfarbe.** `--relilab-tief` erreicht auf Weiß **3,57:1** — für
 Fließtext-Links zu wenig. `--rpi #0072aa` aus derselben Farbkarte schafft
@@ -215,8 +220,23 @@ Mittel: Verlauf im Aufmacher dunkler anlegen (Richtung `--fusion`/`--fau`),
 oder eine abdunkelnde Auflage unter den Text legen. Die Augenbraue in jedem
 Fall auf volle Deckkraft.
 
-Diese drei Punkte sind **nicht** im Mockup korrigiert — das Mockup zeigt den
-Gestaltungsstand, nicht den Endstand.
+**Entschieden** — die Empfehlungen gelten, als Tokens in `src/app.css`:
+
+```css
+--marker-amber-text: #96550a;   /* Punkt 2: 5,12:1 auf 16 % Amber */
+--aufmacher-start:   #1a5699;   /* Punkt 3: = --fusion, Weiß 7,41:1 */
+--aufmacher-ende:    #8d0fa8;   /*          Weiß 7,59:1 */
+--verlauf-aufmacher: linear-gradient(135deg, var(--aufmacher-start) 0%, var(--aufmacher-ende) 100%);
+--fuss-text:         #a8bccf;   /* Fußzeile auf --fau: 6,51:1 */
+```
+
+Punkt 1 ist umgesetzt (`a { color: var(--rpi) }`). Zwei Festlegungen kamen
+dazu: Die **Augenbraue auf Weiß** steht in `--rl-text-leise` — bei `.82rem`
+ist das kleiner Text, `--relilab-tief` reicht dort nicht. Und der
+**Fußzeilentext** aus dem Mockup (`#a8bccf`) besteht auf `--fau`.
+
+Das Mockup ist **nicht** korrigiert — es zeigt den Gestaltungsstand, der
+Client den Endstand.
 
 ---
 

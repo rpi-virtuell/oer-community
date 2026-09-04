@@ -7,21 +7,33 @@
 </script>
 
 {#if lizenz.ok}
-  <figure class="my-6">
-    <img
-      src={lizenz.nachweis.url}
-      alt={lizenz.nachweis.titel ?? titel}
-      class="w-full rounded"
-    />
-    <figcaption class="mt-2 text-sm" style="color: var(--rl-text-leise)">
+  <!-- Redaktionelle Bilder liegen auf Blossom in voller Größe (ADR-0010):
+       volle Breite ist richtig. Die 150px-Thumbnails des relilab-Altbestands
+       wären ein anderer Fall — der ist hier noch nicht in Betrieb. -->
+  <figure class="bild">
+    <img src={lizenz.nachweis.url} alt={lizenz.nachweis.titel ?? titel} />
+    <figcaption class="metazeile">
       <Lizenzzeile nachweis={lizenz.nachweis} />
     </figcaption>
   </figure>
 {:else if lizenz.grund !== 'kein-bild'}
-  <p
-    class="my-6 rounded border p-3 text-sm"
-    style="border-color: var(--rl-linie); background: var(--rl-flaeche); color: var(--rl-text-leise)"
-  >
-    <strong>Bild nicht angezeigt.</strong> {GRUND_TEXT[lizenz.grund]}
+  <p class="hinweis">
+    <strong>Bild nicht angezeigt.</strong>
+    {GRUND_TEXT[lizenz.grund]}
   </p>
 {/if}
+
+<style>
+  .bild {
+    margin: 0 0 32px;
+  }
+  .bild img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .bild figcaption {
+    margin-top: 10px;
+    display: block;
+  }
+</style>
