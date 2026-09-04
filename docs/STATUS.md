@@ -9,6 +9,66 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-04 (spät) — Redaktionsregeln, md2blossom, Entwurfs-ADR
+
+**Passiert:** `docs/redaktion-longform.md` angelegt — Regeln für
+Beitragsbild, Fließtextbilder, Fließtext und den Workflow Git ↔ edufeed.
+Grundlage ist die Lektüre der edufeed-app am 04.09.: Lizenz hängt als
+`kind:1063` am SHA-256, Cover trägt `x` am Artikel, Fließtextbilder
+werden über den Hash **in der Blossom-URL** nachgeschlagen
+(`BodyImageLicense.svelte` → `getSha256FromURL`), der Editor schreibt
+beim Einfügen eine TULLU-Zeile in den Markdown. Der Longform-Editor
+(`/create/article`) existiert samt Edit über `naddr` — kein eigener
+Editor nötig (bestätigt ADR-0010).
+
+**Henne-Ei aufgelöst:** Blossom-URLs sind deterministisch
+(`<server>/<sha256>.<ext>`), der Hash ist lokal berechenbar. Deshalb
+`Website/scripts/md2blossom.mjs` im FOERBICO-Repo: hasht Bilder im
+Post-Verzeichnis, ersetzt relative Pfade durch Blossom-URLs + TULLU,
+schreibt unsignierte `30023`/`1063`-Vorlagen und ein AMB-JSON für
+`amb-convert`. Lizenzdaten je Bild kommen aus `bilder.yaml` im
+Post-Verzeichnis; fehlt ein Eintrag → `TODO:LICENSE`, Exit 2, keine
+Erfindung. Gegen den OERcamp-Post getestet (mit Dummy-Bildern).
+
+**ADR-0020 (offen):** Entwürfe als `kind:30024` in der edufeed-app.
+Befund: die App hat **keine** Artikel-Entwürfe, nur localStorage für
+Wizard und Umfragen. PR-Skizze steht in der ADR; blockiert durch die
+Frage an Steffen, ob die Relays 30024 annehmen.
+
+**Korrektur am selben Abend — der Publikationsweg existiert schon.**
+`FOERBICO_und_rpi-virtuell/.github/workflows/nostr-sync.yml` ruft bei Push
+auf `main` `edufeed-org/mdparser/sync` auf: 30023 + 30142, gleicher `d`,
+`a`-Cross-Refs (`amb-metadata`/`content`), Bunker per NIP-46. Damit ist
+die 30142↔30023-Frage längst entschieden (`a`, nicht `r`) und die 86
+Artikel stammen von dort. Was `sync` **nicht** macht: Blossom, `x`,
+`1063`, Umschreibung der Fließtextbilder — das ist die Quelle der 85
+Artikel ohne `x`. `md2blossom` ist damit Vorstufe, nicht Werkzeug.
+`redaktion-longform.md` entsprechend umgeschrieben (Abschnitt 2 Ist-Stand,
+Abschnitt 8 Migration vs. Betrieb mit Cut-over-Bedingungen). Spec für den
+Bilderschritt in `sync publish` und für `sync pull` (Relay → Git):
+`mdparser/docs/superpowers/specs/2026-09-04-bilder-und-pull.md`.
+
+**Regel bis Cut-over:** edufeed-Editor für FOERBICO-Posts tabu — ohne
+`pull` bügelt der nächste Push die Web-Änderung weg.
+
+**Nächster Schritt:** Teil A der Spec (Bilder in `publish`), dann
+`bilder.yaml` × 86 als Redaktionsarbeit, dann `--force-all`. Zwei Fragen
+an Steffen: nimmt `relay.edufeed.org` 1063 an, ist der FOERBICO-Key für
+`PUT /upload` auf Blossom freigeschaltet.
+
+**Nachtrag — ADR-0021, Redaktion nur in Nostr.** Git-Review ist im
+Betrieb kein Gate mehr, also wird es keins: Entwürfe sind gewöhnliche
+30023 unter **Redaktions-Keys** (im Hub unsichtbar, ADR-0012 filtert den
+Autor), Freigabe per NIP-32-Label auf die Event-ID, der **FOERBICO-Key
+wird nur noch durch `sync adopt` beschrieben** (gleicher `d`, `p author`,
+Blobs per BUD-04 gespiegelt, 1063 bleibt — Lookup geht über den Hash).
+ADR-0020 (30024) damit zurückgezogen. Lizenz-Relay ist `relay-rpi`. Spec
+um Teil C (`label`/`adopt`) ergänzt, Regeln 6–9 neu.
+
+**Nächster Schritt:** unverändert Teil A (Bilder in `publish`) für die
+Migration; dann Teil C am Referenzfall. An Steffen: `PUT /mirror` auf
+Blossom, Bunker-Modell für Redaktions-Keys.
+
 ## 2026-09-04 — Detailansicht trägt das Designsystem
 
 **Passiert:** Die vorhandenen Ansichten — Artikelseite, Fußzeile,
