@@ -9,7 +9,8 @@
 
 <header class="kopf">
   <div class="innen">
-    <a href="/" class="marke" aria-label="relilab — zur Startseite">reli<span>lab</span></a>
+    <!-- Wortmarke vorläufig, bis es ein Branding gibt (ADR-0019). -->
+    <a href="/" class="marke" aria-label="Community-Hub — zur Startseite">Community-<span>Hub</span></a>
   </div>
 </header>
 

@@ -15,8 +15,11 @@ Farben, Schriften, Abstände: `docs/designsystem.md`.
 
 **Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
-ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Marke,
-Domain und Farbtoken; umbenannt wurde nur der Projektname.
+ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Domain
+und Farbtoken; umbenannt wurde nur der Projektname. Die **Wortmarke** in
+Kopf- und Fußzeile ist vorläufig „Community-Hub" (ADR-0019) — für den
+Community-Hub gibt es noch kein Branding, und relilab ist die Herkunft
+der Inhalte, nicht das Vorhaben.
 
 **Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
 (Logbuch, neuester Eintrag oben). Diese Datei hier beschreibt teils den

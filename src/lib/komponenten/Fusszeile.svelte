@@ -20,10 +20,11 @@
 
 <footer class="fuss">
   <div class="innen">
-    <p class="marke">reli<span>lab</span></p>
+    <!-- Wortmarke vorläufig, bis es ein Branding gibt (ADR-0019). -->
+    <p class="marke">Community-<span>Hub</span></p>
     <p class="text">
-      Schaufenster für die Inhalte des relilab im Nostr-Netz. Jeder Beitrag ist
-      ein signiertes Event unter einer stabilen <code>naddr</code>-Adresse.
+      Schaufenster für Beiträge im Nostr-Netz. Jeder Beitrag ist ein signiertes
+      Event unter einer stabilen <code>naddr</code>-Adresse.
     </p>
     <div class="werkzeug">
       <label class="schalter">

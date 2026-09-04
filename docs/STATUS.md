@@ -49,6 +49,31 @@ mit Augenbraue und Meldung. Kein Google-Fonts-Verweis im ausgelieferten
 HTML. Der Referenzartikel trägt keine `t`-Tags — Marker sind deshalb
 nur im Test zu sehen, nicht am Referenzfall.
 
+**Nachtrag am selben Tag — Wortmarke und ein geänderter Event.**
+Die Wortmarke heißt vorläufig **„Community-Hub"**, nicht „relilab"
+(ADR-0019): relilab ist die Herkunft der Inhalte, rpi-virtuell die alte
+Plattform, FOERBICO will daraus den Community-Hub machen — und dafür
+gibt es noch kein Branding. CLAUDE.md ist korrigiert („Marke" aus der
+relilab-Aufzählung gestrichen).
+
+Der Referenz-Event wurde redaktionell erweitert: sechs `t`-Tags
+(`nostr`, `community`, `prozessqualität`, `gemeinschaft`, `edufeed`,
+`schrein`) — die Marker sind jetzt am echten Fall sichtbar — und der
+Blossom-Link des Aufmacherbilds steht zusätzlich im Fließtext. **Dort
+wird er nach ADR-0015 entfernt**, wie jeder Bildverweis im Text. Dabei
+fiel auf, dass der Hinweis „Relative Pfade, die nur auf der alten
+Website auflösen" behauptete — für eine Blossom-URL falsch. Er nennt
+jetzt den wirklichen Grund: kein Lizenznachweis für Bilder im Fließtext.
+Die Fixture bleibt der Stand vom 03.09.; die Tests brauchen den neuen
+Event nicht.
+
+**Beobachtung, nicht entschieden:** Bei einer Blossom-URL *ist* der
+Dateiname der SHA-256 — hier derselbe Hash wie im `x`-Tag, also
+attestiert. ADR-0015 begründet das Entfernen mit „kein Hash, keine
+Frage"; für Blossom-Verweise trägt diese Begründung nicht. Ob das eine
+Ausnahme rechtfertigt (Fließtextbild zeigen, wenn Hash = attestiertes
+`x`-Tag), ist eine eigene Entscheidung — dann als ADR.
+
 **Offen:** `pnpm lint` und `pnpm test:e2e` aus der Merge-Checkliste in
 CLAUDE.md existieren als Skripte nicht — Zielzustand, nicht Ist.
 Startseite nach Mockup und Übersicht mit Themenfilter stehen weiter

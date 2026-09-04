@@ -211,5 +211,6 @@ a:hover { color: var(--relilab-tief); }
   padding: 16px 20px;
   font-size: 0.92rem;
   margin: 32px 0;
+  overflow-wrap: anywhere; /* lange Blossom-URLs im Hinweis */
 }
 .hinweis strong { color: var(--rl-dunkel); }

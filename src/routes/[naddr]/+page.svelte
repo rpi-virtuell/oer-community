@@ -51,8 +51,8 @@
         {data.entfernteBilder.length} Bildverweis{data.entfernteBilder.length === 1 ? '' : 'e'}
         im Text nicht angezeigt.
       </strong>
-      Relative Pfade, die nur auf der alten Website auflösen:
-      {data.entfernteBilder.join(', ')}
+      Bilder im Fließtext tragen keinen Lizenznachweis und werden deshalb nicht
+      ausgeliefert (ADR-0015): {data.entfernteBilder.join(', ')}
     </p>
   {/if}
 

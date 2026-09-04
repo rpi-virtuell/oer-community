@@ -46,8 +46,7 @@ describe('Kopfzeile', () => {
 
   it('trägt die Wortmarke und führt zur Startseite', () => {
     expect(body).toMatch(/<a[^>]+href="\/"/);
-    expect(body).toContain('reli');
-    expect(body).toContain('lab');
+    expect(body).toMatch(/Community-<span[^>]*>Hub/);
   });
 
   it('bietet keine Navigation an — es gibt nichts, wohin (CLAUDE.md)', () => {
@@ -59,7 +58,7 @@ describe('Fußzeile', () => {
   const { body } = render(Fusszeile);
 
   it('trägt die Wortmarke und den Debug-Schalter', () => {
-    expect(body).toContain('reli');
+    expect(body).toMatch(/Community-<span[^>]*>Hub/);
     expect(body).toMatch(/type="checkbox"/);
   });
 
@@ -86,6 +85,10 @@ describe('Artikelseite', () => {
     const { body } = render(Artikelseite, { props: { data: seitendaten() } });
     expect(body).toContain(GRUND_TEXT['kein-nachweis']);
     expect(body).toContain('nosTr-schrein.jpg');
+    // Der Grund ist ADR-0015 (kein Nachweis), nicht der Pfad: absolute
+    // Blossom-Verweise werden genauso entfernt wie relative.
+    expect(body).toContain('keinen Lizenznachweis');
+    expect(body).not.toContain('alten Website');
   });
 
   it('zeigt bei kein-bild keinen Hinweis — kein Bild ist kein Fehler', () => {
