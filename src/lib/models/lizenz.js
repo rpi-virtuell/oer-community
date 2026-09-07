@@ -1,8 +1,11 @@
 /**
- * Lizenznachweis nach ADR-0013.
+ * Lizenznachweis nach ADR-0013, geändert durch ADR-0022.
  *
- * license und credit sind edufeed-Konvention, nicht NIP-94 — hier aber
- * Pflicht. Ohne beide gilt ein Nachweis als nicht vorhanden.
+ * license und credit sind edufeed-Konvention, nicht NIP-94. **Pflicht ist
+ * allein `license`** (ADR-0022, Punkt 1) — wie in der edufeed-app, die beim
+ * Lesen ebenfalls nur darauf besteht und `credit` anzeigt, wenn es da ist.
+ * Beim Schreiben verlangen edufeed-app und foerbico-editor weiterhin beides;
+ * der Hub ist lesend und entscheidet nicht, was publiziert wird.
  *
  * @typedef {import('../services/relay.js').Event} Event
  */
@@ -14,7 +17,12 @@
  * @property {string} url
  * @property {string|null} titel
  * @property {string} license
- * @property {string} credit
+ * @property {string|null} credit
+ * @property {string|null} beschreibung  content des Events, Titelquelle nach dem title-Tag
+ * @property {string|null} quelle        source-Tag: Fundort des Originals
+ * @property {string|null} alt           alt-Tag: Screenreader-Beschreibung — nicht der Titel
+ * @property {string|null} urheberUrl    authorUrl — Zusatz-Tag außerhalb NIP-94 (bildattribution.md)
+ * @property {string|null} bearbeitung   modification — Zusatz-Tag (bildattribution.md)
  * @property {string|null} mime
  */
 
@@ -35,9 +43,36 @@ export const GRUND_TEXT = {
     'Der Bildverweis ist relativ und ließe sich nur gegen WordPress auflösen.',
   'kein-x-tag': 'Am Artikel fehlt das x-Tag — ohne Hash ist kein Nachweis auffindbar.',
   'kein-nachweis': 'Zu diesem Bild wurde auf keinem Relay ein kind:1063 gefunden.',
-  'pflichtfeld-fehlt': 'Der Nachweis ist unvollständig oder gehört zu einem anderen Bild.',
+  'pflichtfeld-fehlt':
+    'Dem Nachweis fehlt die Lizenzangabe, oder er gehört zu einem anderen Bild.',
   'hash-widerspruch': 'Der Hash des ausgelieferten Bildes passt nicht zum Nachweis.'
 };
+
+/** Hash-URL (Blossom, BUD-01): letztes Pfadsegment ist der SHA-256, Endung optional. */
+const HASH_IM_PFAD = /\/([0-9a-f]{64})(?:\.[a-z0-9]+)?$/i;
+
+/**
+ * SHA-256 aus einer Hash-URL — oder null, wenn der Pfad keinen trägt.
+ *
+ * Dieselbe Regel wie redaktion-longform.md (Z. 26), edufeeds
+ * `getSha256FromURL` und `mdparser/events/article.ts`: Eine Bild-URL ohne
+ * Hash im Pfad ist kein Zeiger auf einen Nachweis (ADR-0023). Relative oder
+ * kaputte URLs ergeben null, keinen Fehler.
+ *
+ * @param {string|null|undefined} url
+ * @returns {string|null}
+ */
+export function hashAusUrl(url) {
+  if (!url) return null;
+  let pfad;
+  try {
+    pfad = new URL(url).pathname;
+  } catch {
+    return null;
+  }
+  const treffer = pfad.match(HASH_IM_PFAD);
+  return treffer ? treffer[1].toLowerCase() : null;
+}
 
 /**
  * @param {string[][]} tags
@@ -64,11 +99,12 @@ export function nachweisAusEvents(events) {
   for (const e of events ?? []) {
     const tags = e.tags ?? [];
     const license = tagWert(tags, 'license');
-    const credit = tagWert(tags, 'credit');
     const hash = tagWert(tags, 'x');
     const url = tagWert(tags, 'url');
-    // license und credit sind Pflicht (ADR-0013, Punkt 3).
-    if (!license || !credit || !hash || !url) continue;
+    // Pflicht ist allein license (ADR-0022, Punkt 1); credit ist optional.
+    if (!license || !hash || !url) continue;
+
+    const beschreibung = (e.content ?? '').trim();
 
     gueltige.push({
       created_at: e.created_at ?? 0,
@@ -78,7 +114,13 @@ export function nachweisAusEvents(events) {
         url,
         titel: tagWert(tags, 'title'),
         license,
-        credit,
+        credit: tagWert(tags, 'credit'),
+        beschreibung: beschreibung || null,
+        quelle: tagWert(tags, 'source'),
+        alt: tagWert(tags, 'alt'),
+        // Zusatz-Tags, wie der foerbico-editor sie schreibt (bildattribution.md).
+        urheberUrl: tagWert(tags, 'authorUrl'),
+        bearbeitung: tagWert(tags, 'modification'),
         mime: tagWert(tags, 'm')
       }
     });

@@ -1,0 +1,48 @@
+[
+  {
+    "content": "",
+    "created_at": 1788408536,
+    "id": "60cbe15e83ce9b7b5935daab10440bff71bf35b7fe2b6227f12f9a8fa0f77118",
+    "kind": 1063,
+    "pubkey": "4fa5d1c413e2b45e10d40bf3562ab701a5331206e359c90baae0e99bfd6c6e41",
+    "sig": "1ae5688269004ea8f444a45864dde97438b5bffa014f61f3573d06504a4bd59d3d8783f26ad967131262e1210db1bd4d48c4976252e0a91e8628f34dadeb8094",
+    "tags": [
+      [
+        "url",
+        "https://blossom.edufeed.org/5b8a701b9e91d746bc39027b042e5d4d8dda76ec5ed92cd4cfc141f85b80f471.jpeg"
+      ],
+      [
+        "x",
+        "5b8a701b9e91d746bc39027b042e5d4d8dda76ec5ed92cd4cfc141f85b80f471"
+      ],
+      [
+        "m",
+        "image/jpeg"
+      ],
+      [
+        "size",
+        "282320"
+      ],
+      [
+        "title",
+        "Vorschaubild Caesar-Scheibe"
+      ],
+      [
+        "license",
+        "https://creativecommons.org/publicdomain/zero/1.0/"
+      ],
+      [
+        "credit",
+        "Jörg Lohrer"
+      ],
+      [
+        "p",
+        "4fa5d1c413e2b45e10d40bf3562ab701a5331206e359c90baae0e99bfd6c6e41"
+      ],
+      [
+        "client",
+        "Edufeed"
+      ]
+    ]
+  }
+]

@@ -80,7 +80,7 @@ const KETTE = [
   { nr: 1, frage: 'Ist ein Bild angegeben und absolut adressiert?', gruende: ['kein-bild', 'relativ'] },
   { nr: 2, frage: 'Trägt der Artikel ein x-Tag mit dem Hash?', gruende: ['kein-x-tag'] },
   { nr: 3, frage: 'Wurde auf einem Relay ein kind:1063 gefunden?', gruende: ['kein-nachweis'] },
-  { nr: 4, frage: 'Hat der Nachweis license und credit und gehört er zu diesem Bild?', gruende: ['pflichtfeld-fehlt'] },
+  { nr: 4, frage: 'Hat der Nachweis eine Lizenzangabe und gehört er zu diesem Bild?', gruende: ['pflichtfeld-fehlt'] },
   { nr: 5, frage: 'Stimmt der Hash des ausgelieferten Bildes?', gruende: ['hash-widerspruch'] }
 ];
 
@@ -284,7 +284,11 @@ export function befundErstellen({
     1: bildUrl,
     2: bildHash,
     3: nachweisEvent ? `kind:1063 ${nachweisEvent.id}` : null,
-    4: nachweis ? `${nachweis.license} · ${nachweis.credit}` : null,
+    // credit ist seit ADR-0022 optional — fehlt es, bleibt es weg, statt
+    // als "null" in der Diagnose zu stehen.
+    4: nachweis
+      ? [nachweis.license, nachweis.credit].filter(Boolean).join(' · ')
+      : null,
     5: bildHashAusEtag
   };
 

@@ -27,7 +27,7 @@ export async function load({ params }) {
     error(ergebnis.status, ergebnis.meldung);
   }
 
-  const { artikel, lizenz, html, entfernteBilder } = ergebnis;
+  const { artikel, lizenz, teile, fliesstext, entfernteBilder } = ergebnis;
 
   // Der Befund wird immer mitgeliefert, nicht erst auf Knopfdruck: Der
   // Debug-Schalter liegt im Browser (localStorage), der Server weiss also
@@ -53,7 +53,8 @@ export async function load({ params }) {
       bildUrl: artikel.bildUrl
     },
     lizenz,
-    html,
+    teile,
+    fliesstext,
     entfernteBilder,
     befund,
     // Für den Verweis auf die Entwickleransicht — der naddr, wie er in der

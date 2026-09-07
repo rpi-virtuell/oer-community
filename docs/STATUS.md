@@ -9,6 +9,89 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-07 — Bildlizenz wie edufeed, Attribution nach Konvention, Vorfall Referenzpost
+
+**Passiert:** Die edufeed-app am Quelltext geprüft (`helpers/image-license.js`,
+`stores/image-license.svelte.js`, `components/shared/ImageLicenseOverlay.svelte`,
+`helpers/tullu-caption.js`) und den Hub in vier Punkten angeglichen —
+**ADR-0022**, ersetzt ADR-0013 in den Punkten 2 und 3.
+
+1. `credit` ist nicht mehr Pflicht, allein `license` zählt.
+2. Das Bild wird **immer** ausgeliefert, der Lizenzstand steht daran
+   („Lizenz ungeklärt." mit Grund). Rücknahme der urheberrechtlich
+   begründeten Strenge — bewusst, siehe ADR.
+3. Lizenz-Label lesbar: `CC0 (Public Domain)` statt „Lizenz" (`src/lib/lizenzlabel.js`,
+   aus edufeeds `formatLicenseUrl` kopiert, nicht verlinkt).
+4. Bildunterschrift nach `bildattribution.md` (`src/lib/attribution.js`):
+   `[title](sourceUrl), [author](authorUrl), [licence](licenceUrl),
+   modification` — **nicht** edufeeds TULLU-Zeile. Alt-Text aus dem
+   `alt`-Tag des Nachweises statt aus `title`. Beides war am Vormittag
+   zunächst falsch gebaut (edufeed-Form, `title` als alt) und wurde am
+   Nachmittag gegen die Konvention korrigiert.
+
+**Zwei frühere Befunde korrigiert.** `relay-rpi.edufeed.org` ist **nicht**
+ausgefallen — es antwortete während der Messung vorübergehend nicht und
+liefert seither wieder. Entsprechend liegt auch der Caesar-Nachweis dort
+(2 Treffer), nicht nur auf fremden Relays. Die Fixture-README ist berichtigt.
+
+**Neue Fixtures:** `lizenz-1063-caesar-scheibe.json` und
+`amb-30142-caesar-scheibe.json` — zweiter vollständiger Kettendurchlauf mit
+fremdem Autor; das 30142 am selben `#x` ist das neuere Event und belegt,
+dass nicht nur nach `created_at` sortiert wird.
+
+**Stand:** 173 Tests grün, `pnpm check` ohne Befund. Attributionszeile und
+Alt-Text sind über `svelte/server` geprüft — derselbe Pfad wie SSR (ADR-0003).
+
+**16:11 Uhr — Durchstich Git → Event → Hub geschlossen.** Referenzpost auf
+`feat/md2blossom` umgestellt (`image`/`cover` auf die attestierte Blossom-URL,
+`relative: false`, neuer `# bilder`-Block, Fließtextbild als Blossom-URL mit
+Konventionszeile). `mdparser` liest den Block, leitet `x` aus der URL ab und
+schreibt je Fließtextbild ein weiteres `x` — zunächst als `imeta` gebaut, nach
+edufeeds Antwort am Nachmittag („die Hashes der Bilder mit einem x-Tag
+kennzeichnen") auf wiederholte `x` umgestellt (57 Tests grün; `publish-single`
+nutzt jetzt `validatePost` — vorher lehnte es 74 von 93 Posts wegen `keywords`
+ab). Live
+publiziert: `30023` `688aa602…` auf `relay-rpi`, `relay.edufeed.org`, `primal`;
+`30142` `032ccb05…`. Der Hub zeigt das Cover mit „nosTr-schrein,
+Comenius-Institut, CC0 (Public Domain)", Prüfkette 1–5 ✓, alle drei Hashes
+gleich. Das 1063 kommt weiterhin **nur** von `relay-rpi`. Aus dem `# bilder`-Block
+abgeleitetes 1063 stimmt in allen sieben gemeinsamen Feldern mit dem bestehenden
+überein — die Abbildungstabelle der Spec trägt.
+
+**ADR-0023 — Fließtextbilder mit Hash-URL werden aufgelöst.** Der erste
+Blossom-Beitrag zeigte die Lücke von ADR-0015 sofort: Bild entfernt,
+Konventionszeile darunter als verwaister Absatz. Jetzt: `inhaltAufbereiten`
+liefert Teile statt HTML (Segmente + Bild-Teile mit `hash`, `alt`,
+`unterschrift`); ein Lookup für alle Hashes eines Beitrags (`lizenzenLaden`,
+nach `x` gruppiert), Cover-Hash wiederverwendet; die Seite baut aus
+Bild-Teilen dieselbe Figur wie beim Cover. Alt-Text aus dem Markdown hat
+Vorrang. Die Konventionszeile ist Rückfall: ersetzt, wenn der Nachweis da ist,
+sichtbar mit „Lizenz ungeklärt", wenn nicht. Hashlose Bilder weiter entfernt
+(ADR-0015 bleibt dafür). `imeta` wird nicht gelesen — Entscheidung nach
+Rückmeldung von edufeed. Fixture `…-2026-09-07.json` aus dem Live-Event; die
+JSON-Route meldet `anzeige.fliesstextbilder`. **188 Tests grün, `svelte-check`
+ohne Befund.** Live: zwei Figuren auf der Referenzseite, keine Dublette.
+
+**Vorfall 11:36 Uhr — der Referenzbeitrag wurde zurückgesetzt.** Ein
+`sync publish`-Lauf hat `die-kraft-der-gemeinschaft` neu geschrieben: `image`
+zeigt wieder auf `oer.community/…/nosTr-schrein.jpg`, das `x`-Tag fehlt. Der
+Hub zeigt „Lizenz ungeklärt — kein x-Tag". Ursache ist kein Fehler im Hub:
+Das Frontmatter in Git steht seit 20. Mai auf dem alten Stand, `sync` kann
+kein `x` erzeugen (`events/article.ts` kennt nur `image`), und die gute
+Fassung vom 03.09. war außerhalb von Git entstanden. Auf `relay-rpi` liegt
+sie noch — das Relay war zur Publikationszeit down (Platte voll, seither
+behoben). Der `kind:1063` existiert unverändert; er ist nur nicht mehr
+adressierbar. Konsequenz: Spec
+`mdparser/docs/superpowers/specs/2026-09-07-regression-waechter-und-blossom-in-git.md`
+— Regression-Wächter in `publish`, `x` aus der Blossom-URL, Blossom-URLs in
+Git (ersetzt Teil A der Spec vom 04.09.). Entwurf, noch zu lesen.
+
+**Nächster Schritt:** Spec lesen, dann Plan für Wächter + `x`-Ableitung in
+`mdparser`. Danach den Referenzpost in Git auf die bekannte Blossom-URL
+setzen und publizieren — erst dann zeigt der Hub das Bild wieder, jetzt mit
+der neuen Attributionszeile. Die Übersicht fehlt weiterhin; Cache für den
+Lizenz-Lookup und Prüfwerkzeug für die Redaktion bleiben offen.
+
 ## 2026-09-04 (spät) — Redaktionsregeln, md2blossom, Entwurfs-ADR
 
 **Passiert:** `docs/redaktion-longform.md` angelegt — Regeln für

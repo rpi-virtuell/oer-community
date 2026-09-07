@@ -1,49 +1,122 @@
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
+import { hashAusUrl } from './models/lizenz.js';
 
-/** Bild-Syntax in Markdown: ![alt](quelle) */
+/** Bild-Syntax in Markdown: ![alt](quelle) — irgendwo im Text. */
 const BILD = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 
 /**
- * Säubert Markdown und rendert es zu HTML.
+ * Ein Bild, das allein auf seiner Zeile steht — mit optionaler Unterschrift
+ * auf der Folgezeile. `bildattribution.md`: „Die Caption-Zeile steht auf der
+ * Zeile direkt nach dem Bild (Zeilenumbruch, kein Leerzeichen dazwischen)."
+ * Eine Leerzeile oder ein weiteres Bild beendet den Absatz — dann gibt es
+ * keine Unterschrift. Gruppen: 1 alt, 2 quelle, 3 Unterschrift.
+ */
+const BILD_MIT_UNTERSCHRIFT =
+  /^[ \t]*!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)[ \t]*(?:\n(?![ \t]*\n)(?![ \t]*!\[)([^\n]+))?/gm;
+
+/** Wo ein Bild-Teil im gerenderten HTML steht. marked setzt den Platzhalter in ein <p>. */
+const PLATZHALTER = /(?:<p>)?\s*@@BILD:(\d+)@@\s*(?:<\/p>)?/g;
+
+/**
+ * @typedef {{ art: 'html', html: string }} HtmlTeil
+ * @typedef {{ art: 'bild', url: string, hash: string, alt: string, unterschrift: string|null }} BildTeil
+ * @typedef {HtmlTeil|BildTeil} Teil
+ */
+
+/**
+ * Säubert Markdown und zerlegt es in Teile: gerendertes HTML und Bilder.
  *
- * **Bilder im Fließtext werden ausnahmslos entfernt** — auch absolute.
- * Der Lizenznachweis wird über den SHA-256 aus dem `x`-Tag des Artikels
- * gefunden (ADR-0013), und das gibt es nur für das Aufmacherbild. Zu
- * einem Bild im Markdown existiert kein Hash und damit keine Möglichkeit,
- * einen Nachweis zu finden — es dürfte also nie ausgeliefert werden.
+ * **Bilder mit Hash-URL werden zu Bild-Teilen** (ADR-0023). Der Hash im
+ * Blossom-Pfad ist der Zeiger auf den `kind:1063`; die Seite baut daraus
+ * dieselbe Figur wie beim Cover und löst den Nachweis auf. Die Zeile direkt
+ * unter dem Bild ist nach `bildattribution.md` die Unterschrift — sie wird
+ * dem Bild-Teil zugeordnet, nicht dem Text, sonst stünde sie doppelt.
  *
- * Zwei Sorten, ein Verhalten:
- * - *relativ* (`nosTr-schrein.jpg`) löst nur gegen WordPress auf; das
- *   aufzulösen hieße WordPress voraussetzen statt ablösen.
- * - *absolut* (`https://cdn.midjourney.com/…`) ist erreichbar, aber
- *   unattestiert. Im FOERBICO-Bestand sind das 25 Bilder in 10 Artikeln,
- *   von Hosts wie midjourney und Wikimedia — Lizenzlage ungeklärt.
+ * **Bilder ohne Hash werden entfernt** (ADR-0015) — relative wie absolute.
+ * Zu ihnen gibt es keinen Hash und damit keinen auffindbaren Nachweis. Sie
+ * werden gezählt; die Zahl ist die Redaktions-Aufgabenliste.
  *
- * Die entfernten Verweise werden gezählt und zurückgegeben; die Zahl ist
- * die Redaktions-Aufgabenliste.
+ * Diese Datei rendert keine Figur: Die Datenschicht kennt die Oberfläche
+ * nicht (CLAUDE.md). Sie liefert, was die Seite braucht.
  *
- * Blockquotes bleiben stehen — bei FOERBICO sind es echte Zitate, keine
- * Autorenzeilen wie beim relilab-Bot (ADR-0012).
+ * Blockquotes bleiben stehen — bei FOERBICO sind es echte Zitate (ADR-0012).
  *
  * @param {string} markdown
- * @returns {{ html: string, entfernteBilder: string[] }}
+ * @returns {{ teile: Teil[], entfernteBilder: string[] }}
  */
 export function inhaltAufbereiten(markdown) {
   const roh = markdown ?? '';
-  if (roh.trim() === '') return { html: '', entfernteBilder: [] };
+  if (roh.trim() === '') return { teile: [], entfernteBilder: [] };
 
   /** @type {string[]} */
   const entfernteBilder = [];
+  /** @type {BildTeil[]} */
+  const bilder = [];
 
-  const gesaeubert = roh.replace(BILD, (_treffer, _alt, quelle) => {
-    entfernteBilder.push(quelle);
-    return '';
+  /**
+   * Merkt ein Bild vor — als Bild-Teil (Hash) oder als entfernt (kein Hash).
+   * @param {string} alt
+   * @param {string} quelle
+   * @param {string|null} unterschrift  Markdown der Zeile unter dem Bild
+   * @returns {string|null}  Platzhalter für den Text, null wenn entfernt
+   */
+  const merken = (alt, quelle, unterschrift) => {
+    const hash = hashAusUrl(quelle);
+    if (!hash) {
+      entfernteBilder.push(quelle);
+      return null;
+    }
+    bilder.push({
+      art: 'bild',
+      url: quelle,
+      hash,
+      alt,
+      unterschrift: unterschrift ? inlineEntschaerfen(unterschrift) : null
+    });
+    return `\n\n@@BILD:${bilder.length - 1}@@\n\n`;
+  };
+
+  // Durchgang 1: Bilder, die allein auf ihrer Zeile stehen — mit Unterschrift.
+  let text = roh.replace(BILD_MIT_UNTERSCHRIFT, (_treffer, alt, quelle, unterschrift) => {
+    const platzhalter = merken(alt, quelle, unterschrift ?? null);
+    if (platzhalter) return platzhalter;
+    // Hashlos: das Bild fällt weg, die Zeile der Autor:in bleibt als Text.
+    return unterschrift ?? '';
   });
 
-  const gerendert = marked.parse(gesaeubert, { async: false, gfm: true });
+  // Durchgang 2: Bilder mitten im Text — ohne Unterschrift.
+  text = text.replace(BILD, (_treffer, alt, quelle) => merken(alt, quelle, null) ?? '');
+
+  const gerendert = marked.parse(text, { async: false, gfm: true });
   const html = typeof gerendert === 'string' ? entschaerfen(gerendert) : '';
-  return { html, entfernteBilder };
+
+  // Durchgang 3: am Platzhalter in Teile schneiden.
+  /** @type {Teil[]} */
+  const teile = [];
+  let bisher = 0;
+  for (const treffer of html.matchAll(PLATZHALTER)) {
+    const davor = html.slice(bisher, treffer.index);
+    if (davor.trim() !== '') teile.push({ art: 'html', html: davor });
+    const bild = bilder[Number(treffer[1])];
+    if (bild) teile.push(bild);
+    bisher = (treffer.index ?? 0) + treffer[0].length;
+  }
+  const rest = html.slice(bisher);
+  if (rest.trim() !== '') teile.push({ art: 'html', html: rest });
+
+  return { teile, entfernteBilder };
+}
+
+/**
+ * Rendert eine Markdown-Zeile ohne Absatz und entschärft sie — für die
+ * Bildunterschrift, die Links wie `[CC0](https://…)` enthalten darf.
+ * @param {string} markdown
+ * @returns {string}
+ */
+function inlineEntschaerfen(markdown) {
+  const gerendert = marked.parseInline(markdown, { async: false, gfm: true });
+  return typeof gerendert === 'string' ? entschaerfen(gerendert) : '';
 }
 
 /**
@@ -55,8 +128,9 @@ export function inhaltAufbereiten(markdown) {
  * ändern (ADR-0016). Eine erprobte Bibliothek statt eigener Filter: bei
  * Sanitizern sind Eigenbauten regelmäßig lückenhaft.
  *
- * `img` steht bewusst **nicht** auf der Liste — Bilder im Fließtext sind
- * schon vorher entfernt (ADR-0015).
+ * `img` steht bewusst **nicht** auf der Liste: Bilder mit Hash sind vorher zu
+ * Bild-Teilen geworden (ADR-0023), hashlose entfernt (ADR-0015). Ein `<img>`
+ * im Roh-HTML des Events käme an beiden vorbei — also raus.
  *
  * @param {string} html
  * @returns {string}

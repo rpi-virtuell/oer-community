@@ -135,26 +135,38 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   Normalisierungstabelle in `src/lib/themen.js` ist Redaktionsarbeit und muss
   ohne Entwickler änderbar bleiben. Nicht filterbare Themen bleiben am
   Artikel sichtbar.
-- **Bilder erscheinen nur mit Nachweis** (ADR-0013). Redaktionell
-  eingestellte Bilder liegen auf Blossom, in voller Größe, mit
-  Lizenznachweis — im FOERBICO-Bestand ist das derzeit **eines von 86**.
-  Für relilab-Altbestand gilt: 150×150-Thumbnails, zentriert darstellen,
-  nicht auf Kartenbreite ziehen.
+- **Bilder erscheinen mit ihrem Lizenzstand** (ADR-0022, ersetzt ADR-0013
+  Punkt 2). Ein absolut adressiertes Bild wird ausgeliefert; ist der
+  Nachweis aufgelöst, steht die Attributionszeile nach `bildattribution.md`
+  darunter — `[title](sourceUrl), [author](authorUrl), [licence](licenceUrl),
+  modification`, nur Kommas —, sonst „Lizenz ungeklärt" mit Grund. Der
+  Alt-Text kommt aus dem `alt`-Tag des Nachweises, nicht aus `title`. Redaktionell eingestellte Bilder liegen auf Blossom,
+  in voller Größe, mit Lizenznachweis — im FOERBICO-Bestand ist das derzeit
+  **eines von 86**. Für relilab-Altbestand gilt: 150×150-Thumbnails,
+  zentriert darstellen, nicht auf Kartenbreite ziehen.
 - **Relative Bildpfade im Markdown werden nicht aufgelöst** (ADR-0013).
   `![](nosTr-schrein.jpg)` löst nur gegen WordPress auf — das wäre
   WordPress als Voraussetzung. Entfernen und zählen; die Zahl ist die
   Redaktions-Aufgabenliste. Betrifft 166 von 269 Bildverweisen.
+  **Bilder mit Hash-URL im Text werden dagegen aufgelöst und gezeigt wie das
+  Cover** (ADR-0023): Der Hash im Blossom-Pfad ist der Zeiger auf den
+  `kind:1063`, ein Lookup für alle Hashes des Beitrags, die Konventionszeile
+  unter dem Bild (`bildattribution.md`) ist der Rückfall, wenn kein Nachweis
+  kommt. `inhaltAufbereiten` liefert deshalb Teile, keinen HTML-String.
 - **Zu jedem Bild den Lizenznachweis auflösen und ausweisen.**
   `kind:1063` über den SHA-256-Hash: `{ kinds: [1063], "#x": [hash] }`,
   **über alle konfigurierten Relays** — der Nachweis liegt oft nicht dort,
   wo der Artikel liegt. Bei mehreren Treffern gewinnt das neueste
-  `created_at`, Gleichstand nach `id`. Pflichtangaben sind `license` (URL)
-  **und** `credit` (Urhebernennung); fehlt eines, gilt der Nachweis als
-  nicht aufgelöst.
-  **Ohne auflösbaren Nachweis wird das Bild nicht ausgeliefert** (ADR-0013,
-  strenger als ADR-0010): Der Artikel erscheint vollständig, nur ohne Bild.
-  Ein kenntlich gemachtes Bild ist urheberrechtlich trotzdem veröffentlicht.
-  Urheberrecht ist keine Kür.
+  `created_at`, Gleichstand nach `id`. **Pflicht ist allein `license`**
+  (URL); `credit` wird angezeigt, wenn vorhanden — wie in der edufeed-app,
+  die beim Lesen ebenfalls nur auf `license` besteht (ADR-0022, ersetzt
+  ADR-0013 Punkt 3). Beim **Schreiben** verlangen edufeed-app und
+  `foerbico-editor` weiterhin beides; der Hub ist lesend.
+  **Ohne auflösbaren Nachweis wird das Bild trotzdem ausgeliefert**, der
+  Stand daran ausgewiesen (ADR-0022, kehrt zu ADR-0010 zurück). Die
+  urheberrechtliche Begründung von ADR-0013 bleibt richtig und wurde
+  bewusst zurückgestellt, damit Hub und edufeed-app dieselben Events nicht
+  verschieden beurteilen — nachzulesen in ADR-0022.
 - **Ohne `x`-Tag am Artikel gibt es keinen Lookup.** Kein Hash, keine
   Frage — das ist kein fehlender Nachweis, sondern eine fehlende Angabe.
   Betrifft 85 von 86 FOERBICO-Artikeln.
@@ -256,7 +268,10 @@ DOM-Nachbau: dieselbe Darstellung, die der Server ausliefert (ADR-0003).
 
 Als Fixture-Grundlage dient der FOERBICO-Bestand (ADR-0012), insbesondere
 der Referenzfall `die-kraft-der-gemeinschaft` mit seinem Lizenznachweis —
-er ist der einzige Fall, der die ganze Kette aus ADR-0013 durchläuft.
+er ist der einzige Fall **im FOERBICO-Bestand**, der die ganze Kette
+durchläuft. Als zweiter, autorenfremder Durchlauf dient die
+Caesar-Scheibe (`test/fixtures/*-caesar-scheibe.json`, Personen-Key,
+`credit` eine natürliche Person, mit `kind:30142` am selben Hash).
 
 ## Umgebungen
 

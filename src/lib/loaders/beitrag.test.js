@@ -164,3 +164,80 @@ describe('beitragLaden liefert den Referenzfall vollstaendig', () => {
     );
   });
 });
+
+describe('beitragLaden löst Fließtextbilder mit Hash-URL auf (ADR-0023)', () => {
+  const ARTIKEL_NEU = fixture('artikel-30023-die-kraft-der-gemeinschaft-2026-09-07.json')[0];
+  const COVER_HASH = NACHWEIS.tags.find((/** @type {string[]} */ t) => t[0] === 'x')[1];
+
+  /**
+   * Wie relaysWieEcht, aber mit dem Artikel vom 07.09. (Blossom-Bild im Text)
+   * und einem Zähler für die 1063-Abfragen samt ihrer #x-Werte.
+   * @param {string[][]} abfragen
+   * @param {typeof ARTIKEL_NEU} [artikel]
+   */
+  function relaysNeu(abfragen, artikel = ARTIKEL_NEU) {
+    /** @type {typeof import('../services/relay.js').eventsHolen} */
+    return async (url, filter) => {
+      const f = /** @type {Record<string, unknown>} */ (filter);
+      const kinds = /** @type {number[]} */ (f.kinds);
+      if (kinds.includes(30023)) {
+        return { events: url === KONFIG.relays[0] ? [artikel] : [], erreicht: true };
+      }
+      abfragen.push(/** @type {string[]} */ (f['#x']));
+      return { events: url === KONFIG.relays[1] ? [NACHWEIS] : [], erreicht: true };
+    };
+  }
+
+  it('liefert Teile statt HTML — mit einem Bild-Teil für das Blossom-Bild im Text', async () => {
+    const ergebnis = await beitragLaden({
+      adresse: ADRESSE,
+      konfig: KONFIG,
+      holen: relaysNeu([]),
+      etagHolen: async () => `"${COVER_HASH}"`
+    });
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+
+    const bilder = ergebnis.teile.filter((t) => t.art === 'bild');
+    expect(bilder).toHaveLength(1);
+    expect(bilder[0].art === 'bild' && bilder[0].hash).toBe(COVER_HASH);
+    expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
+  });
+
+  it('fragt den Nachweis für Cover und dasselbe Bild im Text nur einmal ab', async () => {
+    /** @type {string[][]} */
+    const abfragen = [];
+    const ergebnis = await beitragLaden({
+      adresse: ADRESSE,
+      konfig: KONFIG,
+      holen: relaysNeu(abfragen),
+      etagHolen: async () => `"${COVER_HASH}"`
+    });
+    expect(ergebnis.ok).toBe(true);
+    // Eine 1063-Abfrage je Relay — nicht zwei, obwohl das Bild zweimal vorkommt.
+    expect(abfragen).toHaveLength(KONFIG.relays.length);
+  });
+
+  it('holt einen zweiten Hash in einer weiteren Abfrage und meldet den fehlenden Nachweis', async () => {
+    const HASH2 = 'c'.repeat(64);
+    const mitZweitem = {
+      ...ARTIKEL_NEU,
+      content: `${ARTIKEL_NEU.content}\n\n![Zweites](https://blossom.edufeed.org/${HASH2}.png)\n`
+    };
+    /** @type {string[][]} */
+    const abfragen = [];
+    const ergebnis = await beitragLaden({
+      adresse: ADRESSE,
+      konfig: KONFIG,
+      holen: relaysNeu(abfragen, mitZweitem),
+      etagHolen: async (url) => (url.includes(COVER_HASH) ? `"${COVER_HASH}"` : `"${HASH2}"`)
+    });
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+
+    expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
+    // Der fremde Nachweis (Cover-Hash) darf dem zweiten Bild nicht zugeschlagen werden.
+    expect(ergebnis.fliesstext[HASH2]).toEqual({ ok: false, grund: 'kein-nachweis' });
+    expect(abfragen.some((x) => x.includes(HASH2))).toBe(true);
+  });
+});

@@ -12,7 +12,8 @@ import { readFileSync } from 'node:fs';
  * @property {{ titel: string, zusammenfassung: string, veroeffentlicht: string,
  *   themen: string[], bildUrl: string|null }} artikel
  * @property {import('../src/lib/models/lizenz.js').Ergebnis} lizenz
- * @property {string} html
+ * @property {import('../src/lib/inhalt.js').Teil[]} teile
+ * @property {Record<string, import('../src/lib/models/lizenz.js').Ergebnis>} fliesstext
  * @property {string[]} entfernteBilder
  */
 
@@ -108,7 +109,9 @@ describe('Detailansicht laedt den Artikel serverseitig', () => {
     expect(daten.artikel.veroeffentlicht).toBe(
       new Date(1788433547 * 1000).toISOString()
     );
-    expect(daten.html).toContain('<p>');
+    // Seit ADR-0023 kommt der Inhalt als Teile: HTML-Segmente und Bilder.
+    expect(daten.teile.some((t) => t.art === 'html' && t.html.includes('<p>'))).toBe(true);
+    expect(typeof daten.fliesstext).toBe('object');
     expect(daten.lizenz.ok).toBe(true);
     if (daten.lizenz.ok) {
       expect(daten.lizenz.nachweis.credit).toBe('Comenius-Institut');

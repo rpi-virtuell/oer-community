@@ -109,7 +109,8 @@ describe('DebugBereich, aufgeklappt', () => {
       'Ist ein Bild angegeben',
       'x-Tag mit dem Hash',
       'kind:1063 gefunden',
-      'license und credit',
+      // Seit ADR-0022 ist credit optional; Schritt 4 fragt nur nach der Lizenz.
+      'eine Lizenzangabe',
       'Hash des ausgelieferten Bildes'
     ]) {
       expect(body).toContain(frage);

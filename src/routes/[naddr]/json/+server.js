@@ -75,7 +75,9 @@ export async function GET({ params }) {
       // Was die Anzeige aus dem Befund macht.
       anzeige: {
         bildWirdAusgeliefert: ergebnis.lizenz.ok,
-        entfernteBilderImText: ergebnis.entfernteBilder
+        entfernteBilderImText: ergebnis.entfernteBilder,
+        // Bilder im Text mit Hash-URL, je Hash das Ergebnis der Kette (ADR-0023).
+        fliesstextbilder: ergebnis.fliesstext
       }
     },
     {

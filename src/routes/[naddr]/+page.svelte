@@ -36,14 +36,35 @@
     </div>
   </header>
 
-  <Bildbereich lizenz={data.lizenz} titel={data.artikel.titel} />
+  <Bildbereich
+    lizenz={data.lizenz}
+    titel={data.artikel.titel}
+    bildUrl={data.artikel.bildUrl}
+  />
 
   {#if data.artikel.zusammenfassung}
     <p class="vorspann">{data.artikel.zusammenfassung}</p>
   {/if}
 
-  <!-- Markdown aus dem Event; in inhalt.js gesäubert. -->
-  <div class="inhalt">{@html data.html}</div>
+  <!-- Markdown aus dem Event, in inhalt.js gesäubert und in Teile zerlegt:
+       HTML-Segmente und Bilder mit Hash-URL (ADR-0023). Die Figur ist dieselbe
+       wie beim Cover; der Alt-Text kommt aus dem Markdown, die Unterschrift
+       aus dem Nachweis — oder, wenn der fehlt, aus der Zeile der Autor:in. -->
+  <div class="inhalt">
+    {#each data.teile as teil}
+      {#if teil.art === 'html'}
+        {@html teil.html}
+      {:else}
+        <Bildbereich
+          lizenz={data.fliesstext[teil.hash] ?? { ok: false, grund: 'kein-nachweis' }}
+          titel={data.artikel.titel}
+          bildUrl={teil.url}
+          altVorrang={teil.alt}
+          unterschrift={teil.unterschrift}
+        />
+      {/if}
+    {/each}
+  </div>
 
   {#if data.entfernteBilder.length > 0}
     <p class="hinweis">

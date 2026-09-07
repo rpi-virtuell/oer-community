@@ -70,3 +70,41 @@ export async function etagHolen(bildUrl) {
     return undefined;
   }
 }
+
+/**
+ * Lädt die Nachweise zu **mehreren** Hashes in einer Abfrage (ADR-0023) —
+ * für die Bilder im Fließtext, deren Zahl je Beitrag schwankt.
+ *
+ * Das Ergebnis wird nach `x` gruppiert, bevor `nachweisAusEvents` wählt:
+ * Ein Nachweis zu Hash A darf nie Hash B zugeschlagen werden, nur weil er
+ * in derselben Antwort kam. Ein Hash ohne Kandidaten bekommt `nachweis: null`
+ * — das ist „kein Nachweis", nicht „nicht gefragt".
+ *
+ * @param {object} eingabe
+ * @param {string[]} eingabe.hashes
+ * @param {string[]} eingabe.relays
+ * @param {typeof eventsHolen} [eingabe.holen]  nur zum Prüfen austauschbar
+ * @returns {Promise<{
+ *   nachHash: Record<string, { nachweis: Nachweis|null, events: Event[] }>,
+ *   gefragteRelays: string[], fehler: string[], ohneTreffer: string[],
+ *   quellen: Record<string, string[]>, grund: Abfragegrund }>}
+ */
+export async function lizenzenLaden({ hashes, relays, holen = eventsHolen }) {
+  const gesucht = [...new Set(hashes)];
+  const { events, gefragt, fehler, ohneTreffer, quellen, grund } = await eventsVonAllen(
+    relays,
+    { kinds: [1063], '#x': gesucht },
+    { holen }
+  );
+
+  /** @type {Record<string, { nachweis: Nachweis|null, events: Event[] }>} */
+  const nachHash = {};
+  for (const hash of gesucht) {
+    const eigene = events.filter((e) =>
+      (e.tags ?? []).some((t) => t[0] === 'x' && t[1] === hash)
+    );
+    nachHash[hash] = { nachweis: nachweisAusEvents(eigene), events: eigene };
+  }
+
+  return { nachHash, gefragteRelays: gefragt, fehler, ohneTreffer, quellen, grund };
+}

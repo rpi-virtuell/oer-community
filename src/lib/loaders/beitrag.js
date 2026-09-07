@@ -17,7 +17,7 @@ import { ABLEHNUNG_TEXT, adressePruefen } from '../models/adresse.js';
 import { lizenzPruefen } from '../models/lizenz.js';
 import { eventsHolen } from '../services/relay.js';
 import { artikelLaden } from './artikel.js';
-import { etagHolen as etagHolenEcht, lizenzLaden } from './lizenz.js';
+import { etagHolen as etagHolenEcht, lizenzLaden, lizenzenLaden } from './lizenz.js';
 
 /**
  * @typedef {import('../naddr.js').Adresse} Adresse
@@ -39,7 +39,8 @@ import { etagHolen as etagHolenEcht, lizenzLaden } from './lizenz.js';
  * @property {Nachweis|null} nachweis
  * @property {string|undefined} etag
  * @property {import('../models/lizenz.js').Ergebnis} lizenz
- * @property {string} html
+ * @property {import('../inhalt.js').Teil[]} teile
+ * @property {Record<string, import('../models/lizenz.js').Ergebnis>} fliesstext  je Hash eines Textbildes
  * @property {string[]} entfernteBilder
  */
 
@@ -144,7 +145,44 @@ export async function beitragLaden({
     etag
   });
 
-  const { html, entfernteBilder } = inhaltAufbereiten(artikel.inhalt);
+  const { teile, entfernteBilder } = inhaltAufbereiten(artikel.inhalt);
+
+  // Bilder im Fließtext mit Hash-URL (ADR-0023): je Hash einmal auflösen.
+  // Zeigt der Text das Cover noch einmal — der Referenzfall —, ist das
+  // derselbe Hash und derselbe Nachweis; keine zweite Abfrage.
+  /** @type {Map<string, string>} Hash → erste URL, unter der er im Text steht */
+  const urlJeHash = new Map();
+  for (const teil of teile) {
+    if (teil.art === 'bild' && !urlJeHash.has(teil.hash)) urlJeHash.set(teil.hash, teil.url);
+  }
+
+  /** @type {Record<string, import('../models/lizenz.js').Ergebnis>} */
+  const fliesstext = {};
+
+  if (artikel.bildHash && urlJeHash.has(artikel.bildHash)) {
+    const url = urlJeHash.get(artikel.bildHash) ?? '';
+    fliesstext[artikel.bildHash] = lizenzPruefen({
+      bildUrl: url,
+      bildHash: artikel.bildHash,
+      nachweis,
+      etag: url === artikel.bildUrl ? etag : await etagHolen(url)
+    });
+    urlJeHash.delete(artikel.bildHash);
+  }
+
+  const offen = [...urlJeHash.keys()];
+  if (offen.length > 0) {
+    const geladen = await lizenzenLaden({ hashes: offen, relays: konfig.relays, holen });
+    for (const hash of offen) {
+      const url = urlJeHash.get(hash) ?? '';
+      fliesstext[hash] = lizenzPruefen({
+        bildUrl: url,
+        bildHash: hash,
+        nachweis: geladen.nachHash[hash]?.nachweis ?? null,
+        etag: await etagHolen(url)
+      });
+    }
+  }
 
   return {
     ok: true,
@@ -156,7 +194,8 @@ export async function beitragLaden({
     nachweis,
     etag,
     lizenz,
-    html,
+    teile,
+    fliesstext,
     entfernteBilder
   };
 }
