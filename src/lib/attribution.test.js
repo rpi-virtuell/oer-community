@@ -24,6 +24,7 @@ function nachweis(felder = {}) {
     alt: null,
     urheberUrl: null,
     bearbeitung: null,
+    ki: null,
     mime: 'image/jpeg',
     ...felder
   };
@@ -60,6 +61,21 @@ describe('attributionsGlieder — bildattribution.md', () => {
       { art: 'lizenz', text: 'CC BY-SA 4.0', href: 'https://creativecommons.org/licenses/by-sa/4.0/' },
       { art: 'bearbeitung', text: 'beschnitten', href: null }
     ]);
+  });
+
+  it('setzt die KI-Kennzeichnung als Marke direkt hinter die Lizenz, vor die Bearbeitung (ADR-0025)', () => {
+    const g = attributionsGlieder(
+      nachweis({
+        credit: 'FOERBICO',
+        license: 'https://creativecommons.org/licenses/by/4.0/',
+        ki: 'generated',
+        bearbeitung: 'beschnitten'
+      })
+    );
+    expect(g?.map((x) => x.art)).toEqual(['urheber', 'lizenz', 'ki', 'bearbeitung']);
+    expect(g?.[2]).toEqual({ art: 'ki', text: 'KI-generiert', href: null });
+    expect(attributionsGlieder(nachweis({ ki: 'modified' }))?.at(-1)?.text).toBe('KI-verändert');
+    expect(attributionsGlieder(nachweis({ ki: null }))?.some((x) => x.art === 'ki')).toBe(false);
   });
 
   it('haelt die normative Reihenfolge auch bei Luecken', () => {

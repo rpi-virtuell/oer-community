@@ -18,7 +18,7 @@ Drei Schichten, die man auseinanderhalten muss:
 | Schicht | Was | Wo |
 |---|---|---|
 | Blob | das Bild, adressiert über SHA-256 | `blossom.edufeed.org/<sha256>.<ext>` |
-| Nachweis | `kind:1063` mit `x` = SHA-256, `license`, `credit`, `title`, `source`, `alt`, optional `p` | `relay-rpi.edufeed.org` |
+| Nachweis | `kind:1063` mit `x` = SHA-256, `license`, `credit`, `title`, `source`, `alt`, optional `p` und `ai` (`generated` \| `modified`, ADR-0025) | `relay-rpi.edufeed.org` |
 | Beitrag | `kind:30023`; Beitragsbild als `image` **und** `x`-Tag; Fließtextbilder nur als URL im Markdown | `relay.edufeed.org`, `relay-rpi.edufeed.org` |
 
 Der Lookup ist ein Relay-Filter: `{ kinds:[1063], "#x":[hash] }` über alle

@@ -287,7 +287,9 @@ export function befundErstellen({
     // credit ist seit ADR-0022 optional — fehlt es, bleibt es weg, statt
     // als "null" in der Diagnose zu stehen.
     4: nachweis
-      ? [nachweis.license, nachweis.credit].filter(Boolean).join(' · ')
+      ? [nachweis.license, nachweis.credit, nachweis.ki ? `ai=${nachweis.ki}` : null]
+          .filter(Boolean)
+          .join(' · ')
       : null,
     5: bildHashAusEtag
   };

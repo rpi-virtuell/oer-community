@@ -23,8 +23,29 @@
  * @property {string|null} alt           alt-Tag: Screenreader-Beschreibung — nicht der Titel
  * @property {string|null} urheberUrl    authorUrl — Zusatz-Tag außerhalb NIP-94 (bildattribution.md)
  * @property {string|null} bearbeitung   modification — Zusatz-Tag (bildattribution.md)
+ * @property {KiWert|null} ki            ai-Tag: KI-Beteiligung (ADR-0025); fremde Werte → null
  * @property {string|null} mime
  */
+
+/**
+ * KI-Beteiligung nach edufeed-Wiki „license-events-nope" (2026-09-10), die
+ * Werte folgen den EU-AI-Office-Icons: `generated` = vollständig KI-generiert,
+ * `modified` = bestehendes Werk mit KI teilweise verändert. Nur diese zwei
+ * Werte bedeuten etwas; jeder andere gilt als „nicht deklariert" (ADR-0025).
+ *
+ * @typedef {'generated'|'modified'} KiWert
+ */
+
+/** @type {readonly KiWert[]} */
+export const KI_WERTE = ['generated', 'modified'];
+
+/**
+ * @param {string|null} wert
+ * @returns {KiWert|null}
+ */
+export function kiWert(wert) {
+  return wert === 'generated' || wert === 'modified' ? wert : null;
+}
 
 /**
  * @typedef {{ ok: true, nachweis: Nachweis }
@@ -121,6 +142,7 @@ export function nachweisAusEvents(events) {
         // Zusatz-Tags, wie der foerbico-editor sie schreibt (bildattribution.md).
         urheberUrl: tagWert(tags, 'authorUrl'),
         bearbeitung: tagWert(tags, 'modification'),
+        ki: kiWert(tagWert(tags, 'ai')),
         mime: tagWert(tags, 'm')
       }
     });

@@ -38,6 +38,15 @@ describe('nachweisAusEvents', () => {
     expect(n?.credit).toBe(null);
   });
 
+  it('liest das ai-Tag, laesst nur generated und modified gelten (ADR-0025)', () => {
+    const mit = (wert) =>
+      nachweisAusEvents([event([['x', HASH], ['url', BILD], ['license', 'L'], ['ai', wert]])]);
+    expect(mit('generated')?.ki).toBe('generated');
+    expect(mit('modified')?.ki).toBe('modified');
+    expect(mit('ja')?.ki).toBe(null);
+    expect(nachweisAusEvents([event([['x', HASH], ['url', BILD], ['license', 'L']])])?.ki).toBe(null);
+  });
+
   it('verwirft einen Nachweis ohne license', () => {
     expect(
       nachweisAusEvents([event([['x', HASH], ['url', BILD], ['credit', 'Wer']])])

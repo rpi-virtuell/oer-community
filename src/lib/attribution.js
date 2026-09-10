@@ -2,9 +2,10 @@
  * Bildattribution nach `bildattribution.md` (Wissensgrundlagen FOERBICO),
  * ADR-0022 Punkt 4.
  *
- *   [title](sourceUrl), [author](authorUrl), [licence](licenceUrl), modification
+ *   [title](sourceUrl), [author](authorUrl), [licence](licenceUrl), KI-Kennzeichnung, modification
  *
- * Reihenfolge normativ, Trenner `, `, keine Wörter wie „von" oder „Quelle".
+ * Die KI-Kennzeichnung (ADR-0025) steht direkt hinter der Lizenz — das Wiki
+ * verlangt die KI-Marke „neben dem Lizenz-Badge". Reihenfolge normativ, Trenner `, `, keine Wörter wie „von" oder „Quelle".
  * Mindestform ist der Lizenz-Link allein. Inhaltlich ist das TULLU (Titel,
  * Urheber, Lizenz, Link, Ursprung) — die Form ist die eigene, nicht edufeeds
  * `buildTulluCaption`, damit Hub, foerbico-editor und md2blossom dasselbe
@@ -19,8 +20,15 @@
 import { lizenzLabel } from './lizenzlabel.js';
 
 /**
+ * Lesbarer Text zum ai-Tag — dieselben Wörter schreiben foerbico-editor
+ * (bilder.js) und md2blossom in die Caption.
+ * @type {Record<import('./models/lizenz.js').KiWert, string>}
+ */
+export const KI_TEXT = { generated: 'KI-generiert', modified: 'KI-verändert' };
+
+/**
  * @typedef {object} Glied
- * @property {'titel'|'urheber'|'lizenz'|'bearbeitung'} art
+ * @property {'titel'|'urheber'|'lizenz'|'ki'|'bearbeitung'} art
  * @property {string} text
  * @property {string|null} href
  */
@@ -48,6 +56,10 @@ export function attributionsGlieder(nachweis) {
     text: lizenzLabel(nachweis.license) || nachweis.license,
     href: nachweis.license
   });
+
+  if (nachweis.ki && KI_TEXT[nachweis.ki]) {
+    glieder.push({ art: 'ki', text: KI_TEXT[nachweis.ki], href: null });
+  }
 
   const bearbeitung = nachweis.bearbeitung?.trim();
   if (bearbeitung) glieder.push({ art: 'bearbeitung', text: bearbeitung, href: null });

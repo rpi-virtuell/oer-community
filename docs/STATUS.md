@@ -9,6 +9,37 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-10 — KI-Kennzeichnung aus dem `ai`-Tag (edufeed-Wiki vom 10.09.)
+
+**Passiert:** edufeed hat das Wiki `license-events-nope` um ein `ai`-Tag
+erweitert (`generated` | `modified`, Werte nach den EU-AI-Office-Icons,
+andere Werte ignorieren, kein Tag = nicht deklariert). **ADR-0025** übernimmt
+das: `nachweisAusEvents` liest das Tag als `ki`, `attributionsGlieder` setzt
+ein Glied `ki` („KI-generiert" / „KI-verändert") direkt hinter den
+Lizenz-Link, `Lizenzzeile.svelte` rendert es als Marke, die Entwickleransicht
+nennt `ai=…` in Schritt 4. Redaktionsseite ist das Feld `ai` im
+`# bilder`-Block — mdparser/sync, md2blossom und foerbico-editor sind am
+selben Tag nachgezogen, `bildattribution.md` und `felder.yaml` erweitert.
+
+**Nebenbefund:** Ginas händisch eingetragener `# bilder`-Block brach den
+Hugo-Build (Doppelpunkt mit Leerzeichen in einem unquotierten `alt`).
+`bildattribution.md` hat jetzt einen Abschnitt „Stolpersteine beim händischen
+Bearbeiten".
+
+**Wo steht das Projekt:** Lesen der Nachweise vollständig nach Wiki-Stand
+10.09.; 190 Tests grün. Kein Nachweis im Bestand trägt bisher ein `ai`-Tag —
+der erste wird der Canva-Beitrag (Cover KI-generiert), sobald er auf Blossom
+migriert ist.
+
+Die edufeed-app hat das Tag am selben Tag umgesetzt; Wortlaut („KI-generiert",
+„KI-verändert") und das EU-AI-Office-Icon sind von dort kopiert. Sie stellt
+die Marke im Badge vor das Lizenzkürzel, wir hinter den Lizenz-Link (Konvention).
+
+**Nächster Schritt:** ADR-0024 umsetzen (Vorrang eigener Key), weiterhin
+offen.
+
+---
+
 ## 2026-09-07 — Bildlizenz wie edufeed, Attribution nach Konvention, Vorfall Referenzpost
 
 **Passiert:** Die edufeed-app am Quelltext geprüft (`helpers/image-license.js`,
