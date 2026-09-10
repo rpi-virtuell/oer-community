@@ -1,0 +1,33 @@
+when:
+  branch: main
+  event: push
+
+steps:
+  - name: install
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+
+  - name: check-and-test
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm run check
+      - pnpm run test
+
+  - name: build
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm run build
+
+  - name: deploy
+    image: appleboy/drone-ssh:1.7.3
+    settings:
+      host: community-hub.rpi-virtuell.net
+      username: svc-cha
+      key:
+        from_secret: deploy_ssh_key
+      script:
+        - ~/ServerSetup/scripts/deploy-app.sh community-hub
