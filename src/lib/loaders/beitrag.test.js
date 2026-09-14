@@ -206,4 +206,66 @@ describe('beitragLaden löst Fließtextbilder mit Hash-URL auf (ADR-0023)', () =
     expect(Object.keys(ergebnis.fliesstext)).toContain(COVER_HASH);
     expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
   });
+
+  const HASH2 = 'c'.repeat(64);
+
+  /** Artikel vom 07.09. mit einem zweiten, synthetischen Bild-Hash im Text. */
+  function artikelMitZweitemHash() {
+    return {
+      ...ARTIKEL_NEU,
+      content: `${ARTIKEL_NEU.content}\n\n![Zweites](https://blossom.edufeed.org/${HASH2}.png)\n`
+    };
+  }
+
+  it('löst einen zweiten Hash unabhängig vom Cover auf — ohne eigenen Nachweis bleibt er kein-nachweis', async () => {
+    const inhalt = { ...inhaltMitFliesstextbild(), artikel: [artikelMitZweitemHash()] };
+
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt });
+
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+
+    expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
+    // Der Nachweis des Covers darf dem zweiten, fremden Hash nicht
+    // zugeschlagen werden — ohne eigenen Nachweis bleibt er kein-nachweis.
+    expect(ergebnis.fliesstext[HASH2]).toEqual({ ok: false, grund: 'kein-nachweis' });
+  });
+
+  it('löst einen zweiten Hash mit eigenem Nachweis unabhängig vom Cover auf', async () => {
+    const NACHWEIS2 = {
+      ...NACHWEIS,
+      id: 'd'.repeat(64),
+      content: '',
+      tags: [
+        ['url', `https://blossom.edufeed.org/${HASH2}.png`],
+        ['x', HASH2],
+        ['license', 'https://creativecommons.org/publicdomain/zero/1.0/'],
+        ['credit', 'Zweite Quelle']
+      ]
+    };
+    const inhalt = {
+      ...inhaltMitFliesstextbild(),
+      artikel: [artikelMitZweitemHash()],
+      nachweise: [NACHWEIS, NACHWEIS2],
+      quellen: {
+        ...inhaltMitFliesstextbild().quellen,
+        [NACHWEIS2.id]: [KONFIG.relays[1]]
+      }
+    };
+
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt });
+
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+
+    expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
+    expect(ergebnis.fliesstext[HASH2]?.ok).toBe(true);
+    if (ergebnis.fliesstext[HASH2]?.ok) {
+      expect(ergebnis.fliesstext[HASH2].nachweis.hash).toBe(HASH2);
+      // Die Zuordnung ist je Hash geprüft: Der Cover-Nachweis wird dem
+      // zweiten Bild nicht untergeschoben, obwohl beide im selben Lauf
+      // aufgelöst werden.
+      expect(ergebnis.fliesstext[HASH2].nachweis.hash).not.toBe(COVER_HASH);
+    }
+  });
 });
