@@ -27,15 +27,22 @@ Contract `event-tag-mapping.md` im oer-orchestrator ergänzt. **FOERBICO-Repo**
 GitHub-Action hat alle sieben Seiten publiziert; sie liegen mit Label auf
 `relay.edufeed.org` und `relay-rpi.edufeed.org`.
 
-**Wo steht das Projekt:** Der Hub zeigt die Seiten unter ihren Pfaden und `/`
-als Startseite, sobald der Spiegel sie geladen hat. Menü und Fußzeile fehlen
-noch: Die beiden `kind:30004` brauchen eine Signatur mit dem FOERBICO-Key
-(`deno task navigation` mit `AUTHOR_SECRET_HEX` oder Bunker), ebenso die
-Redaktionsliste. Der Fußtext im Profil-`about` ist weiterhin leer.
-Beschreibungen und Daten der Seiten sind abgeleitet, nicht redigiert.
+**Wo steht das Projekt:** Live zeigt der Hub `/` als Startseite (Titel und
+Überschrift „FOERBICO"), die Seiten unter ihren Pfaden, keine Seite im Blog.
+Über den Bunker (Jörg in Amber) sind publiziert: Redaktionsliste `kind:30000`
+(`2f6b72a1…`), `kind:30004` `navigation` (`1c04c042…`) und `fusszeile`
+(`5bf5b13f…`), je 3 von 4 Relays (`theforest.nostr1.com` lehnt ab). Damit
+erscheinen Menü (Tagungen, OER und OEP, Qualität, Unser Team, Blog, Themen)
+und Fußzeilenlinks beim nächsten Spiegel-Lauf. Offen: der Fußtext im
+Profil-`about`; Beschreibungen und `datePublished` der Seiten sind abgeleitet,
+nicht redigiert; die Startseite trägt im Text ein zweites `# FOERBICO`, das
+neben der Seitenüberschrift doppelt wirkt (Redaktion: Zeile im Markdown
+streichen); die vier Startseiten-Logos sind relative Pfade und erscheinen
+nicht, bis sie auf Blossom liegen (`bildmigration.md`).
 
-**Nächster Schritt:** `deno task redaktion` und `deno task navigation`
-ausführen; Profil-`about` setzen. Dann Stufe 3 (Gestaltung, ADR-0031).
+**Nächster Schritt:** Profil-`about` setzen (edufeed-app, FOERBICO-Key);
+Redaktion prüft Beschreibungen. Dann Stufe 3 (Gestaltung, ADR-0031) und
+Stufe 4 (Feed, Sitemap, kanonische URLs).
 
 ## 2026-09-14 (spät) — Stufe 2: Struktur aus Nostr
 
