@@ -50,6 +50,24 @@ function importquelle(text) {
   return treffer ? treffer[1] : null;
 }
 
+/**
+ * Importquelle nur aus echten Modulanweisungen (keine JSDoc-Typimporte in Kommentaren).
+ * Prüft nur Zeilen, deren getrimmter Text mit `import ` oder `export ` beginnt
+ * (oder `import{`/`export{`), und greift dann die Quelle in `from '…'`.
+ *
+ * JSDoc-Typimporte der Form `@typedef {import(…).X} Y` werden ignoriert,
+ * da sie nur zur Compile-Zeit ausgewertet werden — kein Laufzeitzugriff auf Relays.
+ * @param {string} text
+ */
+function anweisungsquelle(text) {
+  const getrimmter = text.trim();
+  // Nur echte Modulanweisungen, nicht JSDoc-Kommentare
+  if (!/^(import|export)\s*[\s({]/.test(getrimmter)) {
+    return null;
+  }
+  return importquelle(text);
+}
+
 describe('Architekturregeln (ADR-0014)', () => {
   it('src/lib/ importiert nichts aus routes/ oder components/ (CLAUDE.md)', () => {
     const dateien = quelldateien(join(wurzel, 'src/lib'), (p) =>
@@ -131,6 +149,20 @@ describe('Architekturregeln (ADR-0014)', () => {
         'ist eine Fehlerbehebung von März 2026, keine Architekturwahl:\n' +
         verstoesse.join('\n')
     ).toEqual([]);
+  });
+
+  it('nur services/spiegel.js importiert services/relay.js (ADR-0028)', () => {
+    const dateien = quelldateien(join(wurzel, 'src'), (p) => (p.endsWith('.js') || p.endsWith('.svelte')) && !p.endsWith('.test.js'));
+    /** @type {string[]} */
+    const verstoesse = [];
+    for (const datei of dateien) {
+      if (datei.endsWith('services/spiegel.js') || datei.endsWith('services/relay.js')) continue;
+      for (const { nr, text } of zeilen(datei)) {
+        const quelle = anweisungsquelle(text);
+        if (quelle && /services\/relay(\.js)?$/.test(quelle)) verstoesse.push(`${datei}:${nr} importiert '${quelle}'`);
+      }
+    }
+    expect(verstoesse, 'Jede Anfrage rendert aus dem Spiegel, nie direkt vom Relay (ADR-0028):\n' + verstoesse.join('\n')).toEqual([]);
   });
 });
 
