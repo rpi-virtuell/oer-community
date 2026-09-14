@@ -99,6 +99,11 @@ bisherigen Designsystem übernommen, weil es nicht markenspezifisch ist
 ## Einsatzregeln
 
 - **Primär** (`--fb-primaer`) für Links, Marke, aktive Zustände.
+- **Fokusring** (`:focus-visible`) ist `3px` Akzent mit `2px` Abstand, dazu
+  ein `1px`-Saum aus `--fb-ueberschrift` (`box-shadow`): Orange allein liegt
+  auf Weiß bei 2,0:1 und damit unter den 3:1, die WCAG 2.1 für
+  Bedienelemente verlangt. Der Saum hebt den Kontrast, ohne die Akzentfarbe
+  des Rings zu ändern (ADR-0031).
 - **Akzent** (`--fb-akzent`) nur als Rahmen, Hervorhebung oder Fokusring —
   **nie** als Grund für weißen Text. Orange trägt kein Weiß: 2,0:1, weit
   unter der Grenze. Steht Text auf `--fb-akzent`, ist die Textfarbe
@@ -151,8 +156,17 @@ Wiederkehrende Klassen aus `src/app.css`:
   abgerundet nur rechts.
 - **Karte** (`Karte.svelte`) — Übersichtskachel: Rahmen `--fb-rahmen` (1px),
   `--radius`, weißer Grund, Cover oben, Text darunter.
-- **Bildrahmen** — jedes ausgelieferte Bild trägt `1px solid --fb-akzent`
-  und `--radius`, wie PaperMods `.post-content img`/`.post-entry img`.
+- **Bildrahmen** — den orangen Rahmen (`1px solid --fb-akzent`, `--radius`)
+  trägt allein der `Bildbereich` (Cover und aufgelöste Bilder im Fließtext),
+  wie PaperMods `.post-content img`. Die **Karte** rahmt als Ganzes
+  (`1px solid --fb-rahmen`, `--radius`), nicht ihr Cover einzeln. Bilder, die
+  aus dem Fließtext-HTML kommen und keinen Nachweis haben (`.inhalt img`),
+  bekommen nur `--radius` — sonst behauptete der Akzentrahmen einen
+  geprüften Stand, den es nicht gibt.
+- **Keine kursive Schnittdatei.** Unter `static/schriften/` liegt je Familie
+  nur der aufrechte variable Schnitt (400–700, `font-style: normal`). `<em>`
+  wird deshalb vom Browser synthetisiert — bewusst: eine zweite Datei je
+  Familie kostet mehr Ladezeit, als die echte Kursive im Fließtext einbringt.
 
 ---
 

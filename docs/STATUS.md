@@ -19,8 +19,8 @@ ADR-0029). Stufe 3: `src/app.css` trägt die FOERBICO-Token (`--fb-primaer
 eine Schrift, Roboto Condensed (Roboto und Yanone Kaffeesatz samt Dateien
 entfernt); Fokusring in Akzent, Kopfzeile hellblau mit orangem Strich,
 Fußzeile hell mit orangem Strich, Bilder mit orangem Rahmen und `--radius`
-5px. `test/kontrast.test.js` prüft acht Farbpaare und mechanisch „kein Weiß
-auf Akzent"; `test/oberflaeche.test.js` prüft „kein Alt-Token, kein Hex in
+5px. `test/kontrast.test.js` prüft die acht Paare der Doku-Tabelle
+(15 Einzelprüfungen) und mechanisch „kein Weiß auf Akzent"; `test/oberflaeche.test.js` prüft „kein Alt-Token, kein Hex in
 Komponenten"; `docs/designsystem.md` ist neu. Stufe 4: `basisUrl` kommt aus
 `kind:0 website` (Rückfall Origin), `<link rel="canonical">` steht auf
 allen Seiten, die Kopfzeile trägt einen Feed-Hinweis, `trailingSlash =

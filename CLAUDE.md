@@ -18,9 +18,10 @@ Farben, Schriften, Abstände: `docs/designsystem.md` (FOERBICO, ADR-0031).
 
 **Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
-ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Domain
-und Farbtoken; umbenannt wurde nur der Projektname. Die **Wortmarke** in
-Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
+ADRs werden nicht umgeschrieben. **relilab bleibt** als dokumentierte,
+nicht betriebene Quelle (ADR-0012); die Farbtoken sind seit ADR-0031
+FOERBICO, nicht mehr relilab. Umbenannt wurde nur der Projektname.
+Die **Wortmarke** in Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
 `display_name`); fehlt beides, steht „Community-Hub" (ADR-0027, ersetzt
 ADR-0019).
 
