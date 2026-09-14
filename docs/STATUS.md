@@ -31,15 +31,24 @@ aus dem Spiegel gebaut, mit 503 bei Leerstand und
 `Cache-Control: public, max-age=600`. `feed.xml` und `sitemap.xml` stehen
 in `FESTE_SEGMENTE` (`src/lib/routen/feste-segmente.test.js` bestätigt es).
 
-**Wo steht das Projekt:** 329 Tests, `pnpm check` ohne Befund, `pnpm build`
-läuft durch. Rauchtest im gebauten Server: `/feed.xml` liefert RSS mit 20
-Items, `/sitemap.xml` liefert `application/xml` mit 96 URLs (94 Beiträge —
-das Live-Profil trägt inzwischen die sieben Seiten aus dem Produzenten-Eintrag
-oben, Stand 14.09. abends — plus `/blog` und `/themen`), `/blog` trägt
-`rel="canonical"` auf `https://oer.community/blog` (aus `kind:0 website`),
-`/canva/` mit Schrägstrich liefert 200 (`trailingSlash: 'ignore'`). Die
-Kopfzeile zeigt sich im neuen FOERBICO-Look. Damit sind alle vier Stufen
-der Spec vom 14.09. umgesetzt.
+**Wo steht das Projekt:** 332 Tests, `pnpm check` ohne Befund, `pnpm build`
+läuft durch. Nachträglich behoben: Die acht Seitenkomponenten importierten
+`kanonisch` aus `$lib/routen/struktur.js`, das über `strukturLaden` bis
+`services/spiegel.js` (`node:fs/promises`) reicht — der Client-Bundle-Build
+brach damit ab (`pnpm dev` tolerierte es, `pnpm build` nicht). `kanonisch`
+und `basisUrlBestimmen` liegen jetzt als reine Funktionen in
+`src/lib/kanonisch.js` ohne Server-Abhängigkeiten (ADR-0029),
+`routen/struktur.js` reicht sie nur noch weiter; eine neue Architekturregel
+in `src/lib/architektur.test.js` verbietet Laufzeitimporte aus
+`lib/routen`, `lib/loaders` oder `lib/services` in `*.svelte`-Dateien.
+Rauchtest im gebauten Produktionsserver (`node build/index.js`, diese
+Sitzung, nicht mehr nur der Dev-Server): `/feed.xml` liefert RSS,
+`/sitemap.xml` liefert `application/xml`, `/blog` trägt
+`rel="canonical"` auf `https://oer.community/blog` (aus `kind:0 website`)
+und den Feed-Link `application/rss+xml`, `/canva/` mit Schrägstrich liefert
+200 (`trailingSlash: 'ignore'`). Die Kopfzeile zeigt sich im neuen
+FOERBICO-Look. Damit sind alle vier Stufen der Spec vom 14.09. umgesetzt
+und der Produktionsbuild ist wieder tragfähig.
 
 **Nächster Schritt:** Bewusst offen gelassen: Dunkelmodus, Logo ohne
 `width`/`height`, `pnpm lint` und `pnpm test:e2e` existieren noch nicht,
