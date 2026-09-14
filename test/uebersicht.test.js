@@ -3,6 +3,8 @@ import { render } from 'svelte/server';
 import Karte from '../src/lib/komponenten/Karte.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import ThemenSeite from '../src/routes/themen/+page.svelte';
+import { strukturFuerLayout } from '../src/lib/routen/struktur.js';
+import { inhaltDerTestquelle } from './fixtures/testquelle/laden.js';
 
 const NACHWEIS = /** @type {any} */ ({ id: 'n', hash: 'h', url: 'https://blossom.edufeed.org/h.jpg', titel: 'Schrein', license: 'https://creativecommons.org/publicdomain/zero/1.0/', credit: 'Comenius-Institut', beschreibung: null, quelle: null, alt: 'Ein Schrein', urheberUrl: null, bearbeitung: null, ki: null, mime: 'image/jpeg' });
 const karte = (/** @type {Partial<any>} */ ab = {}) => ({
@@ -53,6 +55,7 @@ describe('/themen', () => {
       props: {
         data: {
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          struktur: strukturFuerLayout(inhaltDerTestquelle()),
           themen: [{ name: 'Lizenzen', slug: 'lizenzen', anzahl: 5 }]
         }
       }
