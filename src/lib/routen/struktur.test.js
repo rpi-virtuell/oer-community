@@ -22,6 +22,24 @@ describe('strukturFuerLayout', () => {
     expect(s.fusstextHtml).toBeNull();
     expect(s.befund.navigation).toBe('fehlt');
   });
+  it('liefert keine zwei Men\u00fceintr\u00e4ge mit gleichem Pfad \u2014 auch nicht gegen HUB_ANSICHTEN', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const vorlage = inhalt.artikel.find((e) => e.tags.some((t) => t[0] === 'd' && t[1] === 'unser-team'));
+    if (vorlage) {
+      for (const d of ['blog', 'themen']) {
+        inhalt.artikel.push({
+          ...vorlage,
+          id: d.padEnd(64, '0'),
+          tags: [...vorlage.tags.filter((t) => t[0] !== 'd' && t[0] !== 'title'), ['d', d], ['title', d]]
+        });
+      }
+    }
+    const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
+    if (nav) nav.tags.push(['a', `30023:${konfig.autor}:blog`], ['a', `30023:${konfig.autor}:themen`], ['a', `30023:${konfig.autor}:unser-team`]);
+    const pfade = strukturFuerLayout({ inhalt, konfig }).menue.map((e) => e.pfad);
+    expect(new Set(pfade).size).toBe(pfade.length);
+  });
+
   it('ein Bild im about-Text wird nicht gerendert, der Rest schon', () => {
     const { inhalt, konfig } = inhaltDerTestquelle();
     if (inhalt.profil) inhalt.profil = { ...inhalt.profil, content: JSON.stringify({ name: 'X', about: 'Text ![b](https://blossom.example/abc.png) Ende' }) };

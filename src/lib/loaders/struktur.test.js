@@ -27,6 +27,37 @@ describe('strukturLaden', () => {
     if (nav) nav.tags.push(['a', `30023:${konfig.autor}:our-team`]);
     expect(strukturLaden(inhalt, konfig).menue.at(-1)).toEqual({ titel: 'Our team', pfad: '/en/our-team', d: 'our-team' });
   });
+  it('ein Ziel, das schon in der Liste steht, kommt nur einmal vor', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
+    if (nav) nav.tags.push(['a', `30023:${konfig.autor}:unser-team`]);
+    const s = strukturLaden(inhalt, konfig);
+    expect(s.menue.filter((e) => e.d === 'unser-team')).toHaveLength(1);
+    expect(s.befund.uebersprungen).toContain('navigation: \u201eunser-team\u201c steht schon in der Liste');
+  });
+  it('ein Ziel, dessen d ein fester Pfad des Hubs ist, wird \u00fcbersprungen', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const vorlage = inhalt.artikel.find((e) => e.tags.some((t) => t[0] === 'd' && t[1] === 'unser-team'));
+    if (vorlage) {
+      inhalt.artikel.push({
+        ...vorlage,
+        id: 'f'.repeat(64),
+        tags: [...vorlage.tags.filter((t) => t[0] !== 'd' && t[0] !== 'title'), ['d', 'blog'], ['title', 'Blog']]
+      });
+    }
+    const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
+    if (nav) nav.tags.push(['a', `30023:${konfig.autor}:blog`]);
+    const s = strukturLaden(inhalt, konfig);
+    expect(s.menue.some((e) => e.d === 'blog')).toBe(false);
+    expect(s.befund.uebersprungen).toContain('navigation: \u201eblog\u201c ist ein fester Pfad des Hubs');
+  });
+  it('ein Profil ohne Namen gilt als fehlend \u2014 die Wortmarke ist der R\u00fcckfall', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    if (inhalt.profil) inhalt.profil = { ...inhalt.profil, content: '{}' };
+    const s = strukturLaden(inhalt, konfig);
+    expect(s.befund.profil).toBe('fehlt');
+    expect(s.befund.erwartet.profil).toContain('name');
+  });
   it('fehlende Events: leere Listen, Befund „fehlt“ mit dem erwarteten Event', () => {
     const { inhalt, konfig } = inhaltDerTestquelle({ ohne: [{ kind: 30004 }, { kind: 0 }, { kind: 30023, d: 'startseite' }] });
     const s = strukturLaden(inhalt, konfig);

@@ -96,7 +96,9 @@
         </ul>
         {#if befund.uebersprungen.length > 0}
           <p>Übersprungene Listenziele:</p>
-          <ul>{#each befund.uebersprungen as z (z)}<li>{z}</li>{/each}</ul>
+          <!-- Nach Index geschlüsselt: zweimal dasselbe übersprungene Ziel ist möglich,
+               ein doppelter Schlüssel bräche die Hydration (each_key_duplicate). -->
+          <ul>{#each befund.uebersprungen as z, i (i)}<li>{z}</li>{/each}</ul>
         {/if}
       </section>
     {/if}

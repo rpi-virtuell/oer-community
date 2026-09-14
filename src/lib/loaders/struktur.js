@@ -5,6 +5,7 @@
  * keine Links; „Blog" und „Themen" hängt die Routen-Schicht an.
  */
 import { beitragsPfad } from '../models/artikel.js';
+import { FESTE_SEGMENTE } from '../models/feste-segmente.js';
 import { listeFinden } from '../models/liste.js';
 import { profilAusEvent } from '../models/profil.js';
 import { artikelAusSpiegel } from './artikel.js';
@@ -37,9 +38,22 @@ function eintraegeAufloesen(inhalt, konfig, listenD, uebersprungen) {
   if (!liste) return { eintraege: [], vorhanden: 'fehlt' };
   /** @type {Eintrag[]} */
   const eintraege = [];
+  /** Schon aufgenommene d dieser Liste — ein Ziel zweimal wäre ein doppelter Link. */
+  const gesehen = new Set();
   for (const ziel of liste.ziele) {
     if (ziel.kind !== 30023 || ziel.pubkey !== konfig.autor) {
       uebersprungen.push(`${listenD}: ${ziel.roh} gehört nicht zur Quelle`);
+      continue;
+    }
+    // Doppelte Ziele und Ziele auf festen Pfaden ergäben zwei Einträge mit
+    // demselben Pfad. Svelte keyt die Menüschleife auf den Pfad und bricht
+    // die Hydration mit `each_key_duplicate` ab — auch im Produktionsbau.
+    if (gesehen.has(ziel.d)) {
+      uebersprungen.push(`${listenD}: „${ziel.d}“ steht schon in der Liste`);
+      continue;
+    }
+    if (FESTE_SEGMENTE.includes(ziel.d)) {
+      uebersprungen.push(`${listenD}: „${ziel.d}“ ist ein fester Pfad des Hubs`);
       continue;
     }
     if (ziel.d === konfig.startseiteD) {
@@ -51,6 +65,7 @@ function eintraegeAufloesen(inhalt, konfig, listenD, uebersprungen) {
       uebersprungen.push(`${listenD}: „${ziel.d}“ liegt nicht im Spiegel`);
       continue;
     }
+    gesehen.add(ziel.d);
     eintraege.push({ titel: artikel.titel, pfad: beitragsPfad(artikel), d: artikel.d });
   }
   return { eintraege, vorhanden: 'ok' };
@@ -71,12 +86,12 @@ export function strukturLaden(inhalt, konfig) {
     fusszeile: fusszeile.eintraege,
     startseite: start.artikel && start.event ? { artikel: start.artikel, event: start.event } : null,
     befund: {
-      profil: profil ? 'ok' : 'fehlt',
+      profil: profil?.name ? 'ok' : 'fehlt',
       navigation: menue.vorhanden,
       fusszeile: fusszeile.vorhanden,
       startseite: start.artikel ? 'ok' : 'fehlt',
       erwartet: {
-        profil: `kind:0 ${wer}`,
+        profil: `kind:0 mit name oder display_name ${wer}`,
         navigation: `kind:30004 mit d = "${konfig.navigationD}" ${wer}`,
         fusszeile: `kind:30004 mit d = "${konfig.fusszeileD}" ${wer}`,
         startseite: `kind:30023 mit d = "${konfig.startseiteD}" ${wer}`
