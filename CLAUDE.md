@@ -1,13 +1,16 @@
 # community-hub
 
-Lesendes Schaufenster für die nach Nostr konvertierten relilab-Inhalte —
-Artikel und Termine, in der Optik von relilab.org. Erster Schritt, WordPress
-abzulösen.
+Lesender Client, der oer.community vollständig aus Nostr-Events rendert
+(ADR-0026). Begonnen als relilab-Schaufenster; relilab ist dokumentierte,
+nicht betriebene Quelle.
 
 **Warum eine Regel gilt, steht in `docs/entscheidungen/` (ADR)** — eine
 Entscheidung, eine Datei, mit Status. Die Spec
 `docs/superpowers/specs/2026-08-31-community-hub-schaufenster-design.md`
-bleibt das Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004. Hier stehen
+bleibt das Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004.
+Die Spec vom 14.09.
+(`docs/superpowers/specs/2026-09-14-oer-community-aus-nostr-design.md`)
+ändert den Zuschnitt: ADR-0026 bis ADR-0031. Hier stehen
 nur die Regeln. Widerspricht diese Datei einer ADR, gilt die ADR — und diese
 Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
 (Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
@@ -17,9 +20,9 @@ Farben, Schriften, Abstände: `docs/designsystem.md`.
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
 ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Domain
 und Farbtoken; umbenannt wurde nur der Projektname. Die **Wortmarke** in
-Kopf- und Fußzeile ist vorläufig „Community-Hub" (ADR-0019) — für den
-Community-Hub gibt es noch kein Branding, und relilab ist die Herkunft
-der Inhalte, nicht das Vorhaben.
+Kopf- und Fußzeile ist vorläufig „Community-Hub" — ADR-0019 ist durch
+ADR-0026 ersetzt: die Wortmarke kommt ab Stufe 2 aus `kind:0` (ADR-0027),
+bis dahin steht „Community-Hub".
 
 **Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
 (Logbuch, neuester Eintrag oben). Diese Datei hier beschreibt teils den
@@ -28,7 +31,8 @@ beginnt dort und endet mit einem Eintrag dort.
 
 ## Zuschnitt
 
-Nur Lesen: Artikel, Termine, Detailansicht, Themenfilter.
+Nur Lesen: Artikel, Seiten, Detailansicht, Themenfilter. Termine sind
+nicht im Zuschnitt (ADR-0026).
 
 **Nicht Teil dieses Vorhabens:** Anmeldung, Autorenwerkzeuge, Communities,
 Wiki, Nachrichten, Verwaltung. **Was es nicht gibt, wird auch nicht
@@ -62,6 +66,15 @@ Relay-Kommunikation (fehlerhafte Serialisierung in `SimplePool`).
 befragen** statt aus dem Gedächtnis zu programmieren:
 `https://mcp.applesauce.build/mcp` für die Applesauce-API, **nostrbook.dev**
 für Kind- und NIP-Details (ADR-0009).
+
+## Der Spiegel
+
+Jede Anfrage liest aus `src/lib/services/spiegel.js`, nie direkt vom Relay;
+nur er importiert `services/relay.js`, geprüft vom Architekturtest
+(ADR-0014, ADR-0028). Der Stand liegt als Datei unter `SPIEGEL_PFAD` und
+wird alle `SPIEGEL_INTERVALL_S` Sekunden neu aufgebaut; scheitert der
+letzte Lauf, nennt die Fußzeile das Alter des angezeigten Stands
+(ADR-0028).
 
 ## Serverseitig rendern, nicht clientseitig
 
@@ -107,9 +120,6 @@ dokumentiert, aber **nicht in Betrieb**:
 Kinds: `30023` Artikel (NIP-23) · `31923` Termine zeitgebunden · `31922`
 ganztägig · `1063` Lizenznachweis zu Bildern (NIP-94, wird über `#x`
 nachgeschlagen, nicht über die Hauptabfrage).
-
-**FOERBICO hat derzeit keine Termine** (0 Events `31922`/`31923`). Die
-Termin-Ansicht wird gebaut und muss ihren Leerzustand erklären.
 
 **Der Lizenznachweis liegt auf einem anderen Relay als der Artikel.**
 Der Artikel steht auf `relay.edufeed.org`, sein `kind:1063` nur auf
@@ -174,22 +184,26 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   prüft `sig` gegen `id`; ein Event mit verändertem `content` und
   unberührter `id`/`sig` kommt durch. Immer zusätzlich `getEventHash`
   gegen die `id` vergleichen (ADR-0017).
+- **Bilder von abgelösten Hosts** (`ABGELOESTE_HOSTS`, Standard
+  `oer.community`) gelten wie relative Pfade (ADR-0030).
+- **Ein Beitrag ist eine Seite**, wenn er `["l","seite","foerbico/typ"]`
+  trägt (ADR-0027); Seiten erscheinen nicht im Blog.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
 
 ### Sortierung
 
-Artikel `published_at` absteigend · Termine kommend `start` aufsteigend ·
-Termine vergangen `start` absteigend.
+Artikel `published_at` absteigend.
 
 ## Warum ein Bild fehlt: die Entwickleransicht
 
 Ein aufklappbarer Bereich am Beitragsende zeigt die Rohdaten —
 `kind:30023` und `kind:1063` nebeneinander, mit Relay-Herkunft, der
 Prüfkette aus ADR-0013 und dem Signaturbefund (ADR-0017). Dieselben Daten
-liegen unter `/[naddr]/json`. **Der Nachweis steht nicht im Artikel**;
+liegen unter `/[d]/json`. **Der Nachweis steht nicht im Artikel**;
 ohne diese Ansicht ist ein ausbleibendes Bild nicht diagnostizierbar.
+`/[naddr]` leitet auf `/[d]` weiter (ADR-0029).
 
 **Geschaltet wird in der Fußzeile**, gemerkt in `localStorage` unter
 `community-hub-einstellungen` — Muster von edufeeds `appSettings.debugMode`
@@ -255,8 +269,10 @@ benannt `YYYY-MM-DD-<thema>`.
 **Vor jedem Merge:**
 
 ```
-pnpm check && pnpm lint && pnpm test && pnpm test:e2e
+pnpm check && pnpm test
 ```
+
+(`lint` und `test:e2e` gibt es noch nicht; offener Punkt der Spec vom 14.09.)
 
 Tests laufen gegen ein Mock-Relay mit echten Events aus `test/fixtures/` —
 ohne Netz und ohne Abhängigkeit von der Publikationstätigkeit anderer.
@@ -280,6 +296,9 @@ Caesar-Scheibe (`test/fixtures/*-caesar-scheibe.json`, Personen-Key,
 | lokal (`pnpm dev`) | Arbeitskopie | `relay.edufeed.org` |
 | `dev.relilab.org` | `dev` | `relay.edufeed.org` |
 | `int.relilab.org` | `main` | `relay.edufeed.org` |
+
+Ziel ist oer.community; Zwischenstände laufen auf dem Hetzner-Server aus
+`docs/betrieb.md`.
 
 Kein eigenes Relay — die Edufeed-Relays werden genutzt und bei Bedarf
 gespiegelt (ADR-0008). Bilder liegen auf `https://blossom.edufeed.org/`

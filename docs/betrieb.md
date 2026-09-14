@@ -93,10 +93,10 @@ Fünf Dinge, die die Anwendung nicht kann:
   Links brechen.
 - **Node steht nicht im Netz.** Der Proxy hält unvollständige Anfragen,
   langsame Verbindungen und Überlastungsmuster ab.
-- **Ratenbegrenzung.** Jeder Seitenaufruf löst zwei Relay-Abfragen aus,
-  weil es (bewusst) keinen Cache gibt. Wer die Seite in einer Schleife
-  aufruft, erzeugt Last auf **fremder** Infrastruktur
-  (`relay.edufeed.org`). Die Anwendung kann das nicht begrenzen.
+- **Ratenbegrenzung.** Der Spiegel fragt die Relays nur alle
+  `SPIEGEL_INTERVALL_S` Sekunden ab, nicht je Seitenaufruf (ADR-0028) —
+  trotzdem ist Node selbst nicht dafür gebaut, hohe Anfragelast
+  abzufangen. Die Anwendung begrenzt das nicht.
 - **Sicherheitsheader zentral** — HSTS, CSP, `X-Content-Type-Options`.
 
 **Caddy statt Traefik:** CLAUDE.md nennt Traefik, das lohnt bei mehreren
@@ -126,6 +126,30 @@ ssh -i ~/.ssh/id_cihacker joerg@46.225.82.96 \
 Ein **fehlendes Bild** steht nicht im Log: Die Lizenz-Kette schreibt
 ihren Grund als Hinweis auf die Seite (ADR-0013).
 
+## Spiegel
+
+Der Dienst hält seinen Datenstand in `~/community-hub/daten/spiegel.json`
+(ADR-0028). Das Verzeichnis `daten/` muss für den Dienstbenutzer
+beschreibbar sein; die Datei wird vom Dienst selbst geschrieben (erst
+`spiegel.json.tmp`, dann umbenannt), nicht von `ausliefern.sh`.
+
+`daten/spiegel.json` und `daten/spiegel.json.tmp` stehen in `.gitignore`
+und sind damit **nicht** Teil von `git archive HEAD` — `ausliefern.sh`
+überträgt sie nicht und überschreibt einen vorhandenen Stand auf dem
+Server folglich nicht. Ein Neustart nach dem Ausliefern lädt die
+bestehende Datei zuerst und holt sich danach einen neuen Stand
+(`SPIEGEL_STARTWARTEZEIT_S`, Standard 20 Sekunden).
+
+Neue Werte in `.env` (siehe `.env.example`):
+
+- `SPIEGEL_PFAD` — Pfad der Standdatei, Standard `daten/spiegel.json`.
+- `SPIEGEL_INTERVALL_S` — Abstand zwischen zwei Läufen, Standard 600.
+- `SPIEGEL_STARTWARTEZEIT_S` — wie lange der Start auf den ersten Lauf
+  wartet, bevor der Dienst mit dem bestehenden Stand (oder leer) ans Netz
+  geht, Standard 20.
+- `ABGELOESTE_HOSTS` — Hosts, deren Bilder wie relative Pfade behandelt
+  werden (ADR-0030), Standard `oer.community`.
+
 ## Konfiguration
 
 `.env` liegt auf dem Server unter `~/community-hub/.env`, Rechte `600`,
@@ -139,9 +163,9 @@ ssh … 'systemctl --user restart community-hub'
 Fehlt ein Pflichtwert, startet der Dienst nicht und sagt im Journal,
 welcher — statt später leere Seiten zu liefern (CLAUDE.md).
 
-## Kein Cache
+## Kein Cache (überholt)
 
-Dieser Durchstich fragt die Relays bei **jeder** Anfrage direkt ab
-(Spec vom 03.09.2026, „Abweichung von CLAUDE.md"). Die Seite ist damit
-so schnell wie die Relays und hat **keinen** letzten gültigen Stand,
-wenn keines antwortet. Befristet bis zur ersten Listenansicht.
+Bis zur ersten Listenansicht fragte dieser Durchstich die Relays bei
+**jeder** Anfrage direkt ab (Spec vom 03.09.2026, „Abweichung von
+CLAUDE.md"). Seit dem Spiegel (ADR-0028, siehe oben) gilt das nicht mehr:
+jede Anfrage liest aus `daten/spiegel.json`.
