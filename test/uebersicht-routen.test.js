@@ -64,7 +64,7 @@ async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOE
   });
 
   const { load } = await import(modulpfad);
-  return load(/** @type {any} */ ({ params }));
+  return load(/** @type {any} */ ({ params, url: new URL('https://hub.example/') }));
 }
 
 describe('/blog', () => {
@@ -163,6 +163,17 @@ describe('+layout.server.js', () => {
   it('wirft nie: bei leerem Spiegel Rückfall-Wortmarke, die Seiten melden den Leerstand', async () => {
     const daten = await lade('../src/routes/+layout.server.js', {}, leererInhalt());
     expect(daten.struktur.wortmarke).toBe('Community-Hub');
+  });
+
+  it('basisUrl: die website aus dem kind:0 der Testquelle', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+layout.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.struktur.basisUrl).toBe('https://test.example');
+  });
+
+  it('basisUrl: der Origin der Anfrage, wenn kein Profil da ist', async () => {
+    const daten = await lade('../src/routes/+layout.server.js', {}, leererInhalt());
+    expect(daten.struktur.basisUrl).toBe('https://hub.example');
   });
 });
 

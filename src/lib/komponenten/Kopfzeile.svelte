@@ -13,6 +13,13 @@
   const aktuell = (pfad) => aktuellerPfad === pfad || aktuellerPfad.startsWith(`${pfad}/`);
 </script>
 
+<!-- Feed-Hinweis (ADR-0029): steht hier statt in +layout.svelte, weil das
+     Layout mit seinem children-Snippet nicht über svelte/server zu testen
+     ist — Kopfzeile ist auf jeder Seite eingebunden und deshalb gleichwertig. -->
+<svelte:head>
+  <link rel="alternate" type="application/rss+xml" title="{wortmarke} — Blog" href="/feed.xml" />
+</svelte:head>
+
 <header class="kopf">
   <div class="innen">
     <a href="/" class="marke" aria-label="{wortmarke} — zur Startseite">

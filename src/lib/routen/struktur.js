@@ -8,7 +8,7 @@ import { strukturLaden } from '../loaders/struktur.js';
 
 /** @typedef {import('../loaders/struktur.js').Eintrag} Eintrag */
 /** @typedef {import('../loaders/struktur.js').Struktur} Struktur */
-/** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'] }} Layoutstruktur */
+/** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'], basisUrl: string }} Layoutstruktur */
 
 /** Ansichten des Hubs, keine Seiten — deshalb ohne d. @type {Eintrag[]} */
 export const HUB_ANSICHTEN = [
@@ -30,8 +30,23 @@ export function fusstextHtml(markdown) {
   return html === '' ? null : html;
 }
 
-/** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt }} e @returns {Layoutstruktur} */
-export function strukturFuerLayout({ konfig, inhalt }) {
+/**
+ * Basis für kanonische URLs, Feed und Sitemap: die Domain des Herausgebers
+ * (kind:0 website), sonst der Origin der Anfrage.
+ * @param {import('../models/profil.js').Profil|null} profil @param {string} origin
+ */
+export function basisUrlBestimmen(profil, origin) {
+  const w = profil?.website?.replace(/\/+$/, '');
+  return w && w !== '' ? w : origin.replace(/\/+$/, '');
+}
+
+/** basisUrl + pfad; '/' bleibt ein Schrägstrich. @param {string} basisUrl @param {string} pfad */
+export function kanonisch(basisUrl, pfad) {
+  return pfad === '/' ? `${basisUrl}/` : `${basisUrl}${pfad}`;
+}
+
+/** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt, origin: string }} e @returns {Layoutstruktur} */
+export function strukturFuerLayout({ konfig, inhalt, origin }) {
   const s = strukturLaden(inhalt, konfig);
   return {
     wortmarke: s.profil?.name ?? WORTMARKE_RUECKFALL,
@@ -39,6 +54,7 @@ export function strukturFuerLayout({ konfig, inhalt }) {
     menue: [...s.menue, ...HUB_ANSICHTEN],
     fusszeilenLinks: s.fusszeile,
     fusstextHtml: fusstextHtml(s.profil?.fusstext ?? null),
-    befund: s.befund
+    befund: s.befund,
+    basisUrl: basisUrlBestimmen(s.profil, origin)
   };
 }

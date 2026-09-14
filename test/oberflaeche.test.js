@@ -55,6 +55,17 @@ const MENUE = [
 ];
 
 describe('Kopfzeile', () => {
+  // Feed-Hinweis im <head>: das Layout selbst lässt sich mit svelte/server
+  // nicht rendern (children-Snippet), deshalb steht der Hinweis hier (ADR-0029).
+  it('setzt den Feed-Hinweis im <head>', () => {
+    const { head } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', menue: HUB_ANSICHTEN }
+    });
+    expect(head).toContain('<link rel="alternate" type="application/rss+xml"');
+    expect(head).toContain('href="/feed.xml"');
+    expect(head).toContain('title="Community-Hub — Blog"');
+  });
+
   it('Kopfzeile: Logo und Wortmarke verlinken auf /, Menü aus der Struktur, aktueller Eintrag markiert', () => {
     const { body } = render(Kopfzeile, {
       props: {
@@ -183,6 +194,17 @@ describe('Fußzeile', () => {
 });
 
 describe('Artikelseite', () => {
+  it('setzt <link rel="canonical"> aus der kanonischenUrl', () => {
+    const { head } = render(Artikelseite, {
+      props: {
+        data: seitendaten(),
+        wortmarke: 'T',
+        kanonischeUrl: 'https://oer.community/die-kraft-der-gemeinschaft'
+      }
+    });
+    expect(head).toContain('<link rel="canonical" href="https://oer.community/die-kraft-der-gemeinschaft"');
+  });
+
   // Eine leere description ist schlechter als keine: Suchmaschinen und
   // Vorschauen lesen sie als ausdr\u00fcckliche Leerangabe.
   it('setzt <meta name="description"> nur, wenn eine Zusammenfassung da ist', () => {

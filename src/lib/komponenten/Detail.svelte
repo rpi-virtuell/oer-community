@@ -20,10 +20,11 @@
    *     stand: { zeitpunkt: string, nichtErreichbar: string[] }|null
    *   },
    *   wortmarke: string,
-   *   nurWortmarke?: boolean
+   *   nurWortmarke?: boolean,
+   *   kanonischeUrl?: string|null
    * }}
    */
-  let { data, wortmarke, nurWortmarke = false } = $props();
+  let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null } = $props();
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
   const datum = $derived(
@@ -36,6 +37,9 @@
 </script>
 
 <svelte:head>
+  {#if kanonischeUrl}
+    <link rel="canonical" href={kanonischeUrl} />
+  {/if}
   <title>{nurWortmarke ? wortmarke : `${data.artikel.titel} · ${wortmarke}`}</title>
   {#if data.artikel.zusammenfassung}
     <meta name="description" content={data.artikel.zusammenfassung} />
