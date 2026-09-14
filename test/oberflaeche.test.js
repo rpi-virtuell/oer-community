@@ -10,6 +10,7 @@ import { render } from 'svelte/server';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Artikelseite from '../src/routes/[naddr]/+page.svelte';
+import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 
 /** @type {any} */
@@ -300,5 +301,13 @@ describe('Artikelseite', () => {
     });
     expect(body).toContain('Bild nicht angezeigt');
     expect(body).not.toMatch(/<img[^>]+src="nosTr-schrein\.jpg"/);
+  });
+
+  it('zeigt für ein Bild von einem abgelösten Host kein <img>, sondern den Hinweis', () => {
+    const { body } = render(Bildbereich, {
+      props: { lizenz: { ok: false, grund: 'abgeloester-host' }, titel: 'T', bildUrl: 'https://oer.community/b.jpg' }
+    });
+    expect(body).not.toContain('<img');
+    expect(body).toContain(GRUND_TEXT['abgeloester-host']);
   });
 });

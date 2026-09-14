@@ -284,6 +284,23 @@ describe('befundErstellen weist die Signaturen aus', () => {
   });
 });
 
+describe('befundErstellen zeigt abgelöste Hosts in der Kette (ADR-0030)', () => {
+  it('Schritt 1 scheitert bei abgelöstem Host, alles danach ungeprüft', () => {
+    const b = befundErstellen({
+      artikelEvent: ARTIKEL,
+      artikelAbfrage: ARTIKEL_ABFRAGE,
+      bildUrl: 'https://oer.community/b.jpg',
+      bildHash: null,
+      lizenzEvents: [],
+      lizenzAbfrage: LIZENZ_ABFRAGE,
+      nachweis: null,
+      abgeloesteHosts: ['oer.community']
+    });
+    expect(b.kette.grund).toBe('abgeloester-host');
+    expect(b.kette.schritte.map((s) => s.ok)).toEqual([false, null, null, null, null]);
+  });
+});
+
 describe('befundErstellen bleibt bei fehlenden Daten aussagefaehig', () => {
   it('erklaert einen fehlenden Nachweis mit dem Abfragegrund, statt zu schweigen', () => {
     const befund = referenzfall({

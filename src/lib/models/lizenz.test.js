@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { GRUND_TEXT, hashAusUrl, lizenzPruefen, nachweisAusEvents } from './lizenz.js';
+import { GRUND_TEXT, hashAusUrl, hostAbgeloest, lizenzPruefen, nachweisAusEvents } from './lizenz.js';
 
 const HASH = 'a2a54ea54f386ba0abceb4d28498c4c5c0b66da153bdec04c36bf40a6c32bf5b';
 const BILD = `https://blossom.edufeed.org/${HASH}.jpeg`;
@@ -123,11 +123,12 @@ describe('lizenzPruefen', () => {
 });
 
 describe('GRUND_TEXT', () => {
-  it('nennt zu jedem der sechs Gruende einen Text', () => {
+  it('nennt zu jedem der sieben Gruende einen Text', () => {
     /** @type {import('./lizenz.js').Grund[]} */
     const gruende = [
       'kein-bild',
       'relativ',
+      'abgeloester-host',
       'kein-x-tag',
       'kein-nachweis',
       'pflichtfeld-fehlt',
@@ -223,5 +224,32 @@ describe('hashAusUrl — der Zeiger im Blossom-Pfad (ADR-0023)', () => {
 
   it('normalisiert auf Kleinbuchstaben', () => {
     expect(hashAusUrl(`https://b.example/${HASH.toUpperCase()}.jpg`)).toBe(HASH);
+  });
+});
+
+describe('abgelöste Hosts (ADR-0030)', () => {
+  it('erkennt den Host samt Subdomains, aber nicht Teilstrings', () => {
+    expect(hostAbgeloest('https://oer.community/x.jpg', ['oer.community'])).toBe(true);
+    expect(hostAbgeloest('https://www.oer.community/x.jpg', ['oer.community'])).toBe(true);
+    expect(hostAbgeloest('https://OER.COMMUNITY/x.jpg', ['oer.community'])).toBe(true);
+    expect(hostAbgeloest('https://notoer.community/x.jpg', ['oer.community'])).toBe(false);
+    expect(hostAbgeloest('https://blossom.edufeed.org/x.jpg', ['oer.community'])).toBe(false);
+    expect(hostAbgeloest('kaputt', ['oer.community'])).toBe(false);
+  });
+
+  it('lizenzPruefen meldet abgeloester-host vor dem x-Tag', () => {
+    const e = lizenzPruefen({
+      bildUrl: 'https://oer.community/bild.jpg',
+      bildHash: null,
+      nachweis: null,
+      abgeloesteHosts: ['oer.community']
+    });
+    expect(e.ok).toBe(false);
+    if (!e.ok) expect(e.grund).toBe('abgeloester-host');
+  });
+
+  it('ohne Hostliste bleibt alles wie bisher', () => {
+    const e = lizenzPruefen({ bildUrl: 'https://oer.community/bild.jpg', bildHash: null, nachweis: null });
+    if (!e.ok) expect(e.grund).toBe('kein-x-tag');
   });
 });
