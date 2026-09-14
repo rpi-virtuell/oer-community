@@ -43,3 +43,33 @@ describe('konfigLesen', () => {
     ).toThrow(/RELAYS/);
   });
 });
+
+describe('konfigLesen: Spiegel und abgelöste Hosts (Spec 14.09.)', () => {
+  const GUELTIG = {
+    QUELLE_AUTOR: 'a'.repeat(64),
+    RELAYS: 'wss://relay.edufeed.org/',
+    BLOSSOM_URL: 'https://blossom.edufeed.org/'
+  };
+
+  it('nimmt Standardwerte, wenn nichts gesetzt ist', () => {
+    const k = konfigLesen(GUELTIG);
+    expect(k.abgeloesteHosts).toEqual(['oer.community']);
+    expect(k.spiegelPfad).toBe('daten/spiegel.json');
+    expect(k.spiegelIntervallS).toBe(600);
+    expect(k.spiegelStartwartezeitS).toBe(20);
+  });
+
+  it('liest mehrere Hosts, klein und ohne Leerzeichen', () => {
+    const k = konfigLesen({ ...GUELTIG, ABGELOESTE_HOSTS: ' OER.community , alt.example ' });
+    expect(k.abgeloesteHosts).toEqual(['oer.community', 'alt.example']);
+  });
+
+  it('leere ABGELOESTE_HOSTS heißt: keiner', () => {
+    expect(konfigLesen({ ...GUELTIG, ABGELOESTE_HOSTS: '' }).abgeloesteHosts).toEqual([]);
+  });
+
+  it('bricht ab, wenn ein Intervall keine positive Ganzzahl ist', () => {
+    expect(() => konfigLesen({ ...GUELTIG, SPIEGEL_INTERVALL_S: 'zehn' })).toThrow(/SPIEGEL_INTERVALL_S/);
+    expect(() => konfigLesen({ ...GUELTIG, SPIEGEL_STARTWARTEZEIT_S: '0' })).toThrow(/SPIEGEL_STARTWARTEZEIT_S/);
+  });
+});

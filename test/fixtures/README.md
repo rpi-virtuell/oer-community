@@ -94,3 +94,15 @@ Ein neuer Abruf ersetzt diese Dateien nicht stillschweigend — der Bestand
 wächst mit der redaktionellen Überarbeitung, und Tests, die sich daran
 festmachen, würden dann unbemerkt etwas anderes prüfen. Beim Aktualisieren
 das Datum hier oben mitziehen.
+
+## Auch Grundlage für den Spiegel
+
+Seit ADR-0028 speisen dieselben Dateien nicht mehr nur die Loader- und
+Komponententests, sondern auch den Spiegel selbst:
+`src/lib/services/spiegel.test.js` (Zusammenführen der Bestände,
+gültige/ungültige Läufe, Datei unter `SPIEGEL_PFAD`),
+`src/lib/loaders/uebersicht.test.js` (Blog, Themen, Seitenzahlen aus dem
+Spiegel) und `test/uebersicht-routen.test.js` (die Routen `/blog`,
+`/themen` gegen denselben Mock-Stand). Ein Mock-Relay mit diesen Fixtures
+ersetzt dort das echte Relay vollständig — ohne Netz und ohne Abhängigkeit
+von der Publikationstätigkeit anderer (CLAUDE.md).

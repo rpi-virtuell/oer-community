@@ -23,12 +23,12 @@
   // Nachweis, sonst vom Artikel — dann gibt es keinen geprüften url-Tag.
   const quelle = $derived(lizenz.ok ? lizenz.nachweis.url : bildUrl);
 
-  // 'kein-bild' und 'relativ' liefern nichts Anzeigbares: Im einen Fall gibt
-  // es keine Adresse, im anderen nur eine, die gegen WordPress auflösen
-  // würde (ADR-0013, Punkt 5 — unverändert gültig).
-  const zeigbar = $derived(
-    Boolean(quelle) && (lizenz.ok || (lizenz.grund !== 'kein-bild' && lizenz.grund !== 'relativ'))
-  );
+  // 'kein-bild', 'relativ' und 'abgeloester-host' liefern nichts Anzeigbares:
+  // Im einen Fall gibt es keine Adresse, im zweiten nur eine, die gegen
+  // WordPress auflösen würde (ADR-0013, Punkt 5), im dritten liegt das Bild
+  // auf einem Host, den dieser Hub ablöst (ADR-0030).
+  const NICHT_ZEIGBAR = ['kein-bild', 'relativ', 'abgeloester-host'];
+  const zeigbar = $derived(Boolean(quelle) && (lizenz.ok || !NICHT_ZEIGBAR.includes(lizenz.grund)));
 
   // Alt-Text: die Angabe an dieser Verwendung zuerst — sie beschreibt, was
   // das Bild *hier* zeigt —, dann das alt-Tag des Nachweises, dann dessen
@@ -62,7 +62,7 @@
       {/if}
     </figcaption>
   </figure>
-{:else if lizenz.ok === false && lizenz.grund === 'relativ'}
+{:else if lizenz.ok === false && (lizenz.grund === 'relativ' || lizenz.grund === 'abgeloester-host')}
   <p class="hinweis">
     <strong>Bild nicht angezeigt.</strong>
     {GRUND_TEXT[lizenz.grund]}

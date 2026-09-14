@@ -4,14 +4,15 @@
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
 
-  let { children } = $props();
+  /** @type {{ children: import('svelte').Snippet, data: import('./$types').LayoutData }} */
+  let { children, data } = $props();
 </script>
 
 <Kopfzeile />
 <main class="schmal">
   {@render children()}
 </main>
-<Fusszeile />
+<Fusszeile spiegelstand={data.spiegelstand} />
 
 <style>
   /* Textbreite „schmal" aus dem Designsystem: 820px. */

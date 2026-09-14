@@ -1,9 +1,24 @@
 <script>
-  import Bildbereich from '$lib/komponenten/Bildbereich.svelte';
-  import DebugBereich from '$lib/komponenten/DebugBereich.svelte';
-  import { einstellungen } from '$lib/einstellungen.svelte.js';
+  import Bildbereich from './Bildbereich.svelte';
+  import DebugBereich from './DebugBereich.svelte';
+  import { einstellungen } from '../einstellungen.svelte.js';
 
-  /** @type {{ data: import('./$types').PageData }} */
+  /**
+   * Die Seitendaten aus `routen/detail.js` (`seite`) — hier lokal typisiert,
+   * damit diese Komponente keinen Typ aus routes/ importiert (CLAUDE.md).
+   *
+   * @type {{ data: {
+   *   artikel: { titel: string, zusammenfassung: string, veroeffentlicht: string,
+   *     themen: string[], bildUrl: string|null, sprache: 'de'|'en', istSeite: boolean },
+   *   lizenz: import('../models/lizenz.js').Ergebnis,
+   *   teile: import('../inhalt.js').Teil[],
+   *   fliesstext: Record<string, import('../models/lizenz.js').Ergebnis>,
+   *   entfernteBilder: string[],
+   *   befund: import('../models/entwickleransicht.js').Befund,
+   *   pfad: string,
+   *   stand: { zeitpunkt: string, nichtErreichbar: string[] }|null
+   * } }}
+   */
   let { data } = $props();
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
@@ -79,7 +94,7 @@
 
   <!-- Nur im Debug-Modus, umschaltbar in der Fusszeile (ADR-0017). -->
   {#if einstellungen.debugModus}
-    <DebugBereich befund={data.befund} naddr={data.naddr} />
+    <DebugBereich befund={data.befund} pfad={data.pfad} stand={data.stand} />
   {/if}
 </article>
 

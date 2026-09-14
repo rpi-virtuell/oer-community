@@ -28,6 +28,24 @@
  */
 
 /**
+ * Liegt die URL auf einem Host, den der Hub ersetzt? Subdomains zählen mit
+ * (`www.oer.community`), Teilstrings nicht (`notoer.community`).
+ * @param {string} url
+ * @param {string[]} hosts
+ * @returns {boolean}
+ */
+export function hostAbgeloest(url, hosts) {
+  if (!hosts || hosts.length === 0) return false;
+  let hostname;
+  try {
+    hostname = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return hosts.some((h) => hostname === h || hostname.endsWith(`.${h}`));
+}
+
+/**
  * KI-Beteiligung nach edufeed-Wiki „license-events-nope" (2026-09-10), die
  * Werte folgen den EU-AI-Office-Icons: `generated` = vollständig KI-generiert,
  * `modified` = bestehendes Werk mit KI teilweise verändert. Nur diese zwei
@@ -53,7 +71,7 @@ export function kiWert(wert) {
  */
 
 /**
- * @typedef {'kein-bild'|'relativ'|'kein-x-tag'|'kein-nachweis'
+ * @typedef {'kein-bild'|'relativ'|'abgeloester-host'|'kein-x-tag'|'kein-nachweis'
  *   |'pflichtfeld-fehlt'|'hash-widerspruch'} Grund
  */
 
@@ -62,6 +80,9 @@ export const GRUND_TEXT = {
   'kein-bild': 'Kein Bild angegeben.',
   relativ:
     'Der Bildverweis ist relativ und ließe sich nur gegen WordPress auflösen.',
+  'abgeloester-host':
+    'Das Bild liegt auf einem Host, den dieser Hub ablöst — dort gibt es das Bild bald nicht mehr. ' +
+    'Es gehört auf Blossom, mit Lizenznachweis (ADR-0030).',
   'kein-x-tag': 'Am Artikel fehlt das x-Tag — ohne Hash ist kein Nachweis auffindbar.',
   'kein-nachweis': 'Zu diesem Bild wurde auf keinem Relay ein kind:1063 gefunden.',
   'pflichtfeld-fehlt':
@@ -159,7 +180,7 @@ export function nachweisAusEvents(events) {
 }
 
 /**
- * Die Auflösungskette aus ADR-0013.
+ * Die Auflösungskette aus ADR-0013, erweitert durch ADR-0030.
  *
  * Nur ok:true liefert ein Bild aus. Jeder andere Fall nennt seinen Grund,
  * damit die Redaktion weiß, was fehlt.
@@ -169,13 +190,19 @@ export function nachweisAusEvents(events) {
  * @param {string|null} eingabe.bildHash
  * @param {Nachweis|null} eingabe.nachweis
  * @param {string} [eingabe.etag]  Blossom liefert den Hash als etag
+ * @param {string[]} [eingabe.abgeloesteHosts]  Hosts, die dieser Hub ablöst (ADR-0030)
  * @returns {Ergebnis}
  */
-export function lizenzPruefen({ bildUrl, bildHash, nachweis, etag }) {
+export function lizenzPruefen({ bildUrl, bildHash, nachweis, etag, abgeloesteHosts = [] }) {
   if (!bildUrl) return { ok: false, grund: 'kein-bild' };
 
   // Schritt 1: absolut?
   if (!/^https?:\/\//.test(bildUrl)) return { ok: false, grund: 'relativ' };
+
+  // Schritt 1b: Host, den der Hub ersetzt? Dann ist das Bild so tot wie ein
+  // relativer Pfad (ADR-0030) — geprüft vor dem x-Tag, weil die Frage nach
+  // dem Nachweis sich für dieses Bild nicht mehr stellt.
+  if (hostAbgeloest(bildUrl, abgeloesteHosts)) return { ok: false, grund: 'abgeloester-host' };
 
   // Schritt 2: Hash am Artikel?
   if (!bildHash) return { ok: false, grund: 'kein-x-tag' };

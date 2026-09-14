@@ -20,7 +20,7 @@
 
 import { getEventHash, verifyEvent } from 'nostr-tools/pure';
 
-import { ABFRAGEGRUND_TEXT } from '../services/relay.js';
+import { ABFRAGEGRUND_TEXT } from '../services/spiegel.js';
 import { GRUND_TEXT, lizenzPruefen } from './lizenz.js';
 
 /**
@@ -67,17 +67,18 @@ import { GRUND_TEXT, lizenzPruefen } from './lizenz.js';
  */
 
 /**
- * Die fünf Schritte aus ADR-0013 in ihrer Reihenfolge, jeder mit dem
- * `grund`, den `lizenzPruefen` meldet, wenn genau er scheitert.
+ * Die fünf Schritte aus ADR-0013, erweitert durch ADR-0030, in ihrer Reihenfolge.
+ * Jeder mit dem `grund`, den `lizenzPruefen` meldet, wenn genau er scheitert.
  *
- * Schritt 4 hat zwei Gründe: `pflichtfeld-fehlt` deckt sowohl den
- * unvollständigen Nachweis (in `nachweisAusEvents` verworfen) als auch den
- * Nachweis zu einem anderen Bild ab.
+ * Schritt 1 hat drei Gründe: absolut adressiert, nicht relativ, und nicht von
+ * einem Host, den der Hub ablöst. Schritt 4 hat zwei Gründe: `pflichtfeld-fehlt`
+ * deckt sowohl den unvollständigen Nachweis (in `nachweisAusEvents` verworfen)
+ * als auch den Nachweis zu einem anderen Bild ab.
  *
  * @type {Array<{ nr: number, frage: string, gruende: Grund[] }>}
  */
 const KETTE = [
-  { nr: 1, frage: 'Ist ein Bild angegeben und absolut adressiert?', gruende: ['kein-bild', 'relativ'] },
+  { nr: 1, frage: 'Ist ein Bild angegeben, absolut adressiert und nicht von einem abgelösten Host?', gruende: ['kein-bild', 'relativ', 'abgeloester-host'] },
   { nr: 2, frage: 'Trägt der Artikel ein x-Tag mit dem Hash?', gruende: ['kein-x-tag'] },
   { nr: 3, frage: 'Wurde auf einem Relay ein kind:1063 gefunden?', gruende: ['kein-nachweis'] },
   { nr: 4, frage: 'Hat der Nachweis eine Lizenzangabe und gehört er zu diesem Bild?', gruende: ['pflichtfeld-fehlt'] },
@@ -226,6 +227,7 @@ function auswahlgrundNennen(kandidaten, gewaehlt) {
  * @param {Abfrage} eingabe.lizenzAbfrage
  * @param {Nachweis|null} eingabe.nachweis    der gewählte, aus nachweisAusEvents
  * @param {string} [eingabe.etag]
+ * @param {string[]} [eingabe.abgeloesteHosts]  Hosts, die dieser Hub ablöst (ADR-0030)
  * @returns {Befund}
  */
 export function befundErstellen({
@@ -236,7 +238,8 @@ export function befundErstellen({
   lizenzEvents,
   lizenzAbfrage,
   nachweis,
-  etag
+  etag,
+  abgeloesteHosts = []
 }) {
   const kandidaten = lizenzEvents ?? [];
   // Das Event zum gewählten Nachweis — nicht neu auswählen, sondern das
@@ -268,7 +271,7 @@ export function befundErstellen({
     lizenzHerkunft.geliefertVon.length > 0 &&
     lizenzHerkunft.artikelRelaysOhneNachweis.length > 0;
 
-  const ergebnis = lizenzPruefen({ bildUrl, bildHash, nachweis, etag });
+  const ergebnis = lizenzPruefen({ bildUrl, bildHash, nachweis, etag, abgeloesteHosts });
   const grund = ergebnis.ok ? null : ergebnis.grund;
 
   // Der gescheiterte Schritt ist der, dessen Gründe den gemeldeten enthalten.

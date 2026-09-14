@@ -19,9 +19,14 @@ describe('adressePruefen', () => {
     expect(e).toEqual({ ok: false, grund: 'fremder-autor' });
   });
 
-  it('lässt alle drei erwarteten Kinds durch', () => {
-    for (const kind of [30023, 31922, 31923]) {
-      expect(adressePruefen(adresse({ kind }), { autor: AUTOR }).ok).toBe(true);
+  it('lässt kind 30023 durch', () => {
+    expect(adressePruefen(adresse({ kind: 30023 }), { autor: AUTOR }).ok).toBe(true);
+  });
+
+  it('weist Termine ab — nicht mehr im Zuschnitt (ADR-0026)', () => {
+    for (const kind of [31922, 31923]) {
+      const e = adressePruefen(adresse({ kind }), { autor: AUTOR });
+      expect(e).toEqual({ ok: false, grund: 'unerwartetes-kind' });
     }
   });
 

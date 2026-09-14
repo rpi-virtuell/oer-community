@@ -9,6 +9,51 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-14 — Stufe 1 aus der Spec „oer.community aus Nostr": Spiegel, `/[d]`, Blog, Themen
+
+**Passiert:** Spec vom 14.09.
+(`docs/superpowers/specs/2026-09-14-oer-community-aus-nostr-design.md`) und
+ADR-0026 bis ADR-0031 richten den Hub auf **oer.community** statt relilab
+aus; Termine entfallen aus dem Zuschnitt (ADR-0026), Adressen sind `d`
+statt `naddr` (ADR-0029). Stufe 1 der Spec ist umgesetzt: `src/lib/
+services/spiegel.js` hält Artikel, Seiten und Lizenznachweise im Speicher
+und schreibt sie nach jedem gültigen Lauf über alle konfigurierten Relays
+atomar nach `SPIEGEL_PFAD`; `hooks.server.js` startet ihn und wartet
+höchstens `SPIEGEL_STARTWARTEZEIT_S` Sekunden auf den ersten Lauf. Loader
+lesen nur noch aus dem Spiegel; der Architekturtest verbietet
+`services/relay.js` außerhalb von `services/spiegel.js` (ADR-0028). Neue
+Routen: `/`, `/blog`, `/blog/seite/[n]`, `/themen`, `/themen/[thema]`,
+`/themen/[thema]/seite/[n]`, `/[d]`, `/en/[d]`, `/[d]/json`, `/en/[d]/json`;
+`/[naddr]` leitet 301 auf `/[d]` weiter. Beiträge mit dem Selbst-Label
+`["l","seite","foerbico/typ"]` gelten als Seite und bleiben außerhalb von
+Blog und Themen (ADR-0027). Bilder von `ABGELOESTE_HOSTS` (Standard
+`oer.community`) gelten wie relative Pfade (ADR-0030). Kopfzeile verlinkt
+Blog und Themen; die Fußzeile nennt Stand und Relays, wenn der letzte
+Spiegel-Lauf scheiterte. **254 Tests grün, `pnpm check` ohne Befund.**
+Die Fix-Welle nach dem Abschluss-Review hat vier Befunde behoben:
+prozent-kodierte `d` finden jetzt ihren Beitrag (drei Live-Artikel tragen
+`%C3%A4` literal im `d`-Tag), der Themen-Slug ist die Identität eines Themas
+statt seines Namens (`Community`/`community` kollidierten), der Spiegel
+behält das **neueste** `kind:0` statt des ältesten, und das Docker-Image
+bringt `daten/themen.json` mit samt Volume und Spiegel-Variablen.
+
+**Wo steht das Projekt:** Rauchtests vom 14.09. mit den echten Relays: Der
+Spiegel lädt 87 Artikel in rund 2 Sekunden, die Standdatei ist etwa
+1,2 MB groß. `/blog` zeigt 20 Karten je Seite; ein Cover erscheint nur bei
+Artikeln mit auflösbarem Lizenznachweis: 16 Artikel tragen ein `x`-Tag,
+15 zeigen ein Cover (bei einem scheitert die Kette). `/` zeigt den Blog mit dem Hinweis auf die fehlende Startseite
+(`d = startseite`), weil die noch nicht aus Nostr kommt. `pnpm lint` und
+`pnpm test:e2e` existieren weiterhin nicht.
+
+**Nächster Schritt:** Stufe 2 der Spec planen — Seiten-Darstellung, Menü
+und Fußzeile aus `kind:30004`, Wortmarke und Logo aus `kind:0`, Startseite.
+Das braucht die mdparser-Punkte 1–4 aus der Spec vom 14.09.
+(„Voraussetzungen in Nachbar-Repos"): Selbst-Label für Seiten, `sync
+navigation`, `inLanguage` als String. Bis dahin zeigt der Hub live die in
+der Spec beschriebenen Rückfälle.
+
+---
+
 ## 2026-09-10 — KI-Kennzeichnung aus dem `ai`-Tag (edufeed-Wiki vom 10.09.)
 
 **Passiert:** edufeed hat das Wiki `license-events-nope` um ein `ai`-Tag

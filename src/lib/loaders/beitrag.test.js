@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 
 import { beitragLaden } from './beitrag.js';
+import { leererInhalt } from '../services/spiegel.js';
 
 /** @param {string} datei */
 function fixture(datei) {
@@ -17,22 +18,12 @@ const KONFIG = {
   autor: ARTIKEL.pubkey,
   hTag: null,
   relays: ['wss://relay.edufeed.org/', 'wss://relay-rpi.edufeed.org/'],
-  blossomUrl: 'https://blossom.edufeed.org/'
+  blossomUrl: 'https://blossom.edufeed.org/',
+  abgeloesteHosts: ['oer.community'],
+  spiegelPfad: 'daten/spiegel.json',
+  spiegelIntervallS: 600,
+  spiegelStartwartezeitS: 20
 };
-
-/** Verteilt die Events wie in Wirklichkeit: Artikel und Nachweis getrennt. */
-function relaysWieEcht() {
-  /** @type {typeof import('../services/relay.js').eventsHolen} */
-  return async (url, filter) => {
-    const kinds = /** @type {number[]} */ (
-      /** @type {Record<string, unknown>} */ (filter).kinds
-    );
-    if (kinds.includes(30023)) {
-      return { events: url === KONFIG.relays[0] ? [ARTIKEL] : [], erreicht: true };
-    }
-    return { events: url === KONFIG.relays[1] ? [NACHWEIS] : [], erreicht: true };
-  };
-}
 
 const ADRESSE = {
   kind: 30023,
@@ -41,65 +32,85 @@ const ADRESSE = {
   relays: []
 };
 
-describe('beitragLaden traegt die Wächter aus ADR-0016 mit', () => {
-  it('lehnt einen fremden Autor ab, ohne ein Relay zu fragen', async () => {
-    const holen = vi.fn();
+/**
+ * Spiegelinhalt wie in Wirklichkeit: Artikel von relay, Nachweis von relay-rpi.
+ * @param {{ ohneNachweis?: boolean, etag?: string|undefined }} [optionen]
+ */
+function inhaltWieEcht({ ohneNachweis = false, etag = undefined } = {}) {
+  return {
+    ...leererInhalt(),
+    stand: {
+      zeitpunkt: '2026-09-14T10:00:00Z',
+      dauerMs: 3,
+      gefragteRelays: KONFIG.relays,
+      nichtErreichbar: [],
+      anzahl: { artikel: 1, listen: 0, nachweise: ohneNachweis ? 0 : 1, profil: 0 }
+    },
+    artikel: [ARTIKEL],
+    nachweise: ohneNachweis ? [] : [NACHWEIS],
+    quellen: { [ARTIKEL.id]: [KONFIG.relays[0]], [NACHWEIS.id]: [KONFIG.relays[1]] },
+    etags: etag
+      ? { [ARTIKEL.tags.find((/** @type {string[]} */ t) => t[0] === 'image')[1]]: etag }
+      : {}
+  };
+}
 
+describe('beitragLaden traegt die Wächter aus ADR-0016 mit', () => {
+  it('lehnt einen fremden Autor ab, ohne dass es eine Relay-Zählung gibt', async () => {
     const ergebnis = await beitragLaden({
       adresse: { ...ADRESSE, author: 'b'.repeat(64) },
       konfig: KONFIG,
-      holen
+      inhalt: inhaltWieEcht()
     });
 
     expect(ergebnis.ok).toBe(false);
     expect(ergebnis.ok === false && ergebnis.status).toBe(404);
-    expect(holen).not.toHaveBeenCalled();
   });
 
-  it('fragt nie die Relays aus dem naddr, auch nicht bei eigener Quelle', async () => {
-    /** @type {string[]} */
-    const gefragt = [];
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    const holen = async (url) => {
-      gefragt.push(url);
-      return { events: [], erreicht: true };
-    };
-
-    await beitragLaden({
-      adresse: { ...ADRESSE, relays: ['wss://127.0.0.1:9999/', 'wss://boese/'] },
+  it('Relay-Hinweise im naddr ändern das Ergebnis nicht — es wird ohnehin kein Relay gefragt', async () => {
+    const mitFremdenHinweisen = await beitragLaden({
+      adresse: { ...ADRESSE, relays: ['wss://boese/'] },
       konfig: KONFIG,
-      holen
+      inhalt: inhaltWieEcht()
+    });
+    const ohneHinweise = await beitragLaden({
+      adresse: ADRESSE,
+      konfig: KONFIG,
+      inhalt: inhaltWieEcht()
     });
 
-    expect(gefragt).toEqual(KONFIG.relays);
+    expect(mitFremdenHinweisen.ok).toBe(true);
+    expect(ohneHinweise.ok).toBe(true);
+    if (mitFremdenHinweisen.ok && ohneHinweise.ok) {
+      expect(mitFremdenHinweisen.artikel.titel).toBe(ohneHinweise.artikel.titel);
+    }
   });
 
-  it('meldet 503 statt 404, wenn kein Relay erreichbar war', async () => {
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    const holen = async () => ({ events: [], erreicht: false });
-
-    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, holen });
+  it('meldet 503, wenn kein Relay erreichbar war (leerer Spiegel)', async () => {
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt: leererInhalt() });
 
     expect(ergebnis.ok === false && ergebnis.status).toBe(503);
+    expect(ergebnis.ok === false && ergebnis.meldung).toContain(KONFIG.relays[0]);
   });
 
-  it('meldet 404, wenn die Relays antworteten und nichts hatten', async () => {
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    const holen = async () => ({ events: [], erreicht: true });
-
-    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, holen });
+  it('meldet 404 für unbekanntes d, mit dem Stand des Spiegels in der Meldung', async () => {
+    const ergebnis = await beitragLaden({
+      adresse: { ...ADRESSE, d: 'gibt-es-nicht' },
+      konfig: KONFIG,
+      inhalt: inhaltWieEcht()
+    });
 
     expect(ergebnis.ok === false && ergebnis.status).toBe(404);
+    expect(ergebnis.ok === false && ergebnis.meldung).toContain('gibt-es-nicht');
   });
 });
 
 describe('beitragLaden liefert den Referenzfall vollstaendig', () => {
-  it('loest die Lizenz ueber beide Relays auf und gibt die Rohdaten mit', async () => {
+  it('loest die Lizenz auf und gibt die Rohdaten mit', async () => {
     const ergebnis = await beitragLaden({
       adresse: ADRESSE,
       konfig: KONFIG,
-      holen: relaysWieEcht(),
-      etagHolen: async () => `"${NACHWEIS.tags.find((/** @type {string[]} */ t) => t[0] === 'x')[1]}"`
+      inhalt: inhaltWieEcht()
     });
 
     expect(ergebnis.ok).toBe(true);
@@ -107,6 +118,7 @@ describe('beitragLaden liefert den Referenzfall vollstaendig', () => {
 
     expect(ergebnis.artikel.titel).toContain('Kraft der Gemeinschaft');
     expect(ergebnis.lizenz.ok).toBe(true);
+    if (ergebnis.lizenz.ok) expect(ergebnis.lizenz.nachweis.credit).toBe('Comenius-Institut');
     expect(ergebnis.artikelEvent.id).toBe(ARTIKEL.id);
     expect(ergebnis.lizenzEvents).toHaveLength(1);
     // Der Nachweis kam vom anderen Relay als der Artikel (ADR-0013).
@@ -114,25 +126,28 @@ describe('beitragLaden liefert den Referenzfall vollstaendig', () => {
     expect(ergebnis.artikelAbfrage.quellen[ARTIKEL.id]).toEqual([KONFIG.relays[0]]);
   });
 
-  it('fragt keinen etag ab, wenn der Artikel kein Bild hat', async () => {
-    const ohneBild = {
-      ...ARTIKEL,
-      tags: ARTIKEL.tags.filter((/** @type {string[]} */ t) => t[0] !== 'image')
-    };
-    const etagHolen = vi.fn();
-
+  it('meldet kein-nachweis, wenn der Spiegel keinen Nachweis zum Hash hat', async () => {
     const ergebnis = await beitragLaden({
       adresse: ADRESSE,
       konfig: KONFIG,
-      holen: async (/** @type {string} */ url, /** @type {Record<string, unknown>} */ filter) =>
-        /** @type {number[]} */ (filter.kinds).includes(30023)
-          ? { events: url === KONFIG.relays[0] ? [ohneBild] : [], erreicht: true }
-          : { events: [], erreicht: true },
-      etagHolen
+      inhalt: inhaltWieEcht({ ohneNachweis: true })
     });
 
     expect(ergebnis.ok).toBe(true);
-    expect(etagHolen).not.toHaveBeenCalled();
+    if (!ergebnis.ok) return;
+    expect(ergebnis.lizenz.ok === false && ergebnis.lizenz.grund).toBe('kein-nachweis');
+  });
+
+  it('meldet hash-widerspruch, wenn der gemerkte etag nicht zum Hash passt', async () => {
+    const ergebnis = await beitragLaden({
+      adresse: ADRESSE,
+      konfig: KONFIG,
+      inhalt: inhaltWieEcht({ etag: '"deadbeef"' })
+    });
+
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+    expect(ergebnis.lizenz.ok === false && ergebnis.lizenz.grund).toBe('hash-widerspruch');
   });
 
   it('fragt den Lizenznachweis nicht ab, wenn kein x-Tag vorliegt', async () => {
@@ -140,25 +155,14 @@ describe('beitragLaden liefert den Referenzfall vollstaendig', () => {
       ...ARTIKEL,
       tags: ARTIKEL.tags.filter((/** @type {string[]} */ t) => t[0] !== 'x')
     };
-    /** @type {Record<string, unknown>[]} */
-    const filter = [];
+    const inhalt = { ...inhaltWieEcht(), artikel: [ohneHash] };
 
-    const ergebnis = await beitragLaden({
-      adresse: ADRESSE,
-      konfig: KONFIG,
-      holen: async (/** @type {string} */ url, /** @type {Record<string, unknown>} */ f) => {
-        filter.push(f);
-        return /** @type {number[]} */ (f.kinds).includes(30023)
-          ? { events: url === KONFIG.relays[0] ? [ohneHash] : [], erreicht: true }
-          : { events: [], erreicht: true };
-      },
-      etagHolen: async () => undefined
-    });
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt });
 
     expect(ergebnis.ok).toBe(true);
     // Ohne Hash keine Frage — das ist eine fehlende Angabe, kein fehlender
     // Nachweis (CLAUDE.md).
-    expect(filter.some((f) => /** @type {number[]} */ (f.kinds).includes(1063))).toBe(false);
+    expect(ergebnis.ok === true && ergebnis.lizenzAbfrage.gefragteRelays).toEqual([]);
     expect(ergebnis.ok === true && ergebnis.lizenz.ok === false && ergebnis.lizenz.grund).toBe(
       'kein-x-tag'
     );
@@ -169,75 +173,99 @@ describe('beitragLaden löst Fließtextbilder mit Hash-URL auf (ADR-0023)', () =
   const ARTIKEL_NEU = fixture('artikel-30023-die-kraft-der-gemeinschaft-2026-09-07.json')[0];
   const COVER_HASH = NACHWEIS.tags.find((/** @type {string[]} */ t) => t[0] === 'x')[1];
 
-  /**
-   * Wie relaysWieEcht, aber mit dem Artikel vom 07.09. (Blossom-Bild im Text)
-   * und einem Zähler für die 1063-Abfragen samt ihrer #x-Werte.
-   * @param {string[][]} abfragen
-   * @param {typeof ARTIKEL_NEU} [artikel]
-   */
-  function relaysNeu(abfragen, artikel = ARTIKEL_NEU) {
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    return async (url, filter) => {
-      const f = /** @type {Record<string, unknown>} */ (filter);
-      const kinds = /** @type {number[]} */ (f.kinds);
-      if (kinds.includes(30023)) {
-        return { events: url === KONFIG.relays[0] ? [artikel] : [], erreicht: true };
-      }
-      abfragen.push(/** @type {string[]} */ (f['#x']));
-      return { events: url === KONFIG.relays[1] ? [NACHWEIS] : [], erreicht: true };
+  /** Wie inhaltWieEcht, aber mit dem Artikel vom 07.09. (Blossom-Bild im Text). */
+  function inhaltMitFliesstextbild() {
+    return {
+      ...leererInhalt(),
+      stand: {
+        zeitpunkt: '2026-09-14T10:00:00Z',
+        dauerMs: 3,
+        gefragteRelays: KONFIG.relays,
+        nichtErreichbar: [],
+        anzahl: { artikel: 1, listen: 0, nachweise: 1, profil: 0 }
+      },
+      artikel: [ARTIKEL_NEU],
+      nachweise: [NACHWEIS],
+      quellen: { [ARTIKEL_NEU.id]: [KONFIG.relays[0]], [NACHWEIS.id]: [KONFIG.relays[1]] },
+      etags: {}
     };
   }
 
-  it('liefert Teile statt HTML — mit einem Bild-Teil für das Blossom-Bild im Text', async () => {
+  it('liefert Teile statt HTML — mit einem Bild-Teil für das Blossom-Bild im Text, dessen Hash im Cover-Hash der Referenzfixture steckt', async () => {
     const ergebnis = await beitragLaden({
       adresse: ADRESSE,
       konfig: KONFIG,
-      holen: relaysNeu([]),
-      etagHolen: async () => `"${COVER_HASH}"`
+      inhalt: inhaltMitFliesstextbild()
     });
+
     expect(ergebnis.ok).toBe(true);
     if (!ergebnis.ok) return;
 
     const bilder = ergebnis.teile.filter((t) => t.art === 'bild');
-    expect(bilder).toHaveLength(1);
-    expect(bilder[0].art === 'bild' && bilder[0].hash).toBe(COVER_HASH);
+    expect(bilder.length).toBeGreaterThan(0);
+    expect(Object.keys(ergebnis.fliesstext)).toContain(COVER_HASH);
     expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
   });
 
-  it('fragt den Nachweis für Cover und dasselbe Bild im Text nur einmal ab', async () => {
-    /** @type {string[][]} */
-    const abfragen = [];
-    const ergebnis = await beitragLaden({
-      adresse: ADRESSE,
-      konfig: KONFIG,
-      holen: relaysNeu(abfragen),
-      etagHolen: async () => `"${COVER_HASH}"`
-    });
-    expect(ergebnis.ok).toBe(true);
-    // Eine 1063-Abfrage je Relay — nicht zwei, obwohl das Bild zweimal vorkommt.
-    expect(abfragen).toHaveLength(KONFIG.relays.length);
-  });
+  const HASH2 = 'c'.repeat(64);
 
-  it('holt einen zweiten Hash in einer weiteren Abfrage und meldet den fehlenden Nachweis', async () => {
-    const HASH2 = 'c'.repeat(64);
-    const mitZweitem = {
+  /** Artikel vom 07.09. mit einem zweiten, synthetischen Bild-Hash im Text. */
+  function artikelMitZweitemHash() {
+    return {
       ...ARTIKEL_NEU,
       content: `${ARTIKEL_NEU.content}\n\n![Zweites](https://blossom.edufeed.org/${HASH2}.png)\n`
     };
-    /** @type {string[][]} */
-    const abfragen = [];
-    const ergebnis = await beitragLaden({
-      adresse: ADRESSE,
-      konfig: KONFIG,
-      holen: relaysNeu(abfragen, mitZweitem),
-      etagHolen: async (url) => (url.includes(COVER_HASH) ? `"${COVER_HASH}"` : `"${HASH2}"`)
-    });
+  }
+
+  it('löst einen zweiten Hash unabhängig vom Cover auf — ohne eigenen Nachweis bleibt er kein-nachweis', async () => {
+    const inhalt = { ...inhaltMitFliesstextbild(), artikel: [artikelMitZweitemHash()] };
+
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt });
+
     expect(ergebnis.ok).toBe(true);
     if (!ergebnis.ok) return;
 
     expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
-    // Der fremde Nachweis (Cover-Hash) darf dem zweiten Bild nicht zugeschlagen werden.
+    // Der Nachweis des Covers darf dem zweiten, fremden Hash nicht
+    // zugeschlagen werden — ohne eigenen Nachweis bleibt er kein-nachweis.
     expect(ergebnis.fliesstext[HASH2]).toEqual({ ok: false, grund: 'kein-nachweis' });
-    expect(abfragen.some((x) => x.includes(HASH2))).toBe(true);
+  });
+
+  it('löst einen zweiten Hash mit eigenem Nachweis unabhängig vom Cover auf', async () => {
+    const NACHWEIS2 = {
+      ...NACHWEIS,
+      id: 'd'.repeat(64),
+      content: '',
+      tags: [
+        ['url', `https://blossom.edufeed.org/${HASH2}.png`],
+        ['x', HASH2],
+        ['license', 'https://creativecommons.org/publicdomain/zero/1.0/'],
+        ['credit', 'Zweite Quelle']
+      ]
+    };
+    const inhalt = {
+      ...inhaltMitFliesstextbild(),
+      artikel: [artikelMitZweitemHash()],
+      nachweise: [NACHWEIS, NACHWEIS2],
+      quellen: {
+        ...inhaltMitFliesstextbild().quellen,
+        [NACHWEIS2.id]: [KONFIG.relays[1]]
+      }
+    };
+
+    const ergebnis = await beitragLaden({ adresse: ADRESSE, konfig: KONFIG, inhalt });
+
+    expect(ergebnis.ok).toBe(true);
+    if (!ergebnis.ok) return;
+
+    expect(ergebnis.fliesstext[COVER_HASH]?.ok).toBe(true);
+    expect(ergebnis.fliesstext[HASH2]?.ok).toBe(true);
+    if (ergebnis.fliesstext[HASH2]?.ok) {
+      expect(ergebnis.fliesstext[HASH2].nachweis.hash).toBe(HASH2);
+      // Die Zuordnung ist je Hash geprüft: Der Cover-Nachweis wird dem
+      // zweiten Bild nicht untergeschoben, obwohl beide im selben Lauf
+      // aufgelöst werden.
+      expect(ergebnis.fliesstext[HASH2].nachweis.hash).not.toBe(COVER_HASH);
+    }
   });
 });

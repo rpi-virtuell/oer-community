@@ -19,10 +19,10 @@
  */
 
 /**
- * Kinds, die dieses Schaufenster zeigt: Artikel (NIP-23) sowie Termine
- * zeitgebunden und ganztägig (NIP-52).
+ * Kinds, die dieses Schaufenster zeigt: nur Artikel (NIP-23) — Termine sind
+ * nicht mehr im Zuschnitt dieses Vorhabens (ADR-0026).
  */
-const ERLAUBTE_KINDS = [30023, 31922, 31923];
+const ERLAUBTE_KINDS = [30023];
 
 /** @type {Record<Ablehnungsgrund, string>} */
 export const ABLEHNUNG_TEXT = {

@@ -18,11 +18,12 @@
    *
    * @type {{
    *   befund: import('$lib/models/entwickleransicht.js').Befund,
-   *   naddr: string,
+   *   pfad: string,
+   *   stand?: { zeitpunkt: string, nichtErreichbar: string[] }|null,
    *   offenStart?: boolean
    * }}
    */
-  let { befund, naddr, offenStart = false } = $props();
+  let { befund, pfad, stand = null, offenStart = false } = $props();
 
   import DebugFeld from './DebugFeld.svelte';
   import DebugRohblock from './DebugRohblock.svelte';
@@ -73,12 +74,20 @@
 
   {#if offen}
     <div class="inhalt" style="background: var(--rl-flaeche)">
+      {#if stand}
+        <p class="stand" style="color: var(--rl-text-leise)">
+          Stand des Spiegels: {new Date(stand.zeitpunkt).toLocaleString('de-DE')}
+          {#if stand.nichtErreichbar.length > 0}
+            · nicht erreichbar: {stand.nichtErreichbar.join(', ')}
+          {/if}
+        </p>
+      {/if}
       <p class="hinweis" style="color: var(--rl-text-leise)">
         Der Lizenznachweis steht <strong>nicht</strong> im Beitrag. Der
         <code>kind:30023</code> trägt nur den Hash im <code>x</code>-Tag; der
         Nachweis ist ein eigenes <code>kind:1063</code> auf einem anderen
         Relay (ADR-0013).
-        <a href="/{naddr}/json">Alles davon auch als JSON</a>.
+        <a href="{pfad}/json">Alles davon auch als JSON</a>.
       </p>
 
       <!-- ── Beitrag ────────────────────────────────────────────────── -->
@@ -92,7 +101,7 @@
                      kurz={kurz(befund.artikel.event?.pubkey ?? null)} kopierbar />
           <DebugFeld label="Signatur" wert={befund.artikel.signatur ?? 'nicht prüfbar'} />
           <DebugFeld label="Erstellt" wert={zeit(befund.artikel.event?.created_at)} einspaltig />
-          <DebugFeld label="naddr" wert={naddr} kurz={kurz(naddr)} kopierbar einspaltig />
+          <DebugFeld label="Pfad" wert={pfad} kurz={kurz(pfad)} kopierbar einspaltig />
         </div>
       </section>
 
@@ -235,6 +244,7 @@
     padding: 1rem;
     margin-top: 0.75rem;
   }
+  .stand,
   .hinweis {
     font-size: 0.82rem;
     line-height: 1.55;

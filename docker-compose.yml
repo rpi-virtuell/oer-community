@@ -6,10 +6,20 @@ services:
     restart: unless-stopped
     ports:
       - '8080:3000'
+    volumes:
+      # Der Spiegel schreibt seinen Stand nach daten/ (ADR-0028); ohne Volume
+      # waere er nach jedem Neustart des Containers weg. daten/themen.json
+      # liegt im Image und wird davon ueberdeckt, sobald das Verzeichnis auf
+      # dem Host die Datei enthaelt — siehe docs/betrieb.md.
+      - ./daten:/app/daten
     environment:
       QUELLE_AUTOR: ${QUELLE_AUTOR}
       QUELLE_H_TAG: ${QUELLE_H_TAG:-}
       RELAYS: ${RELAYS}
       BLOSSOM_URL: ${BLOSSOM_URL}
+      ABGELOESTE_HOSTS: ${ABGELOESTE_HOSTS:-}
+      SPIEGEL_PFAD: ${SPIEGEL_PFAD:-}
+      SPIEGEL_INTERVALL_S: ${SPIEGEL_INTERVALL_S:-}
+      SPIEGEL_STARTWARTEZEIT_S: ${SPIEGEL_STARTWARTEZEIT_S:-}
       HOST: 0.0.0.0
       PORT: '3000'

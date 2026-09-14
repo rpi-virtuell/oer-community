@@ -9,7 +9,8 @@ import { render } from 'svelte/server';
 
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
-import Artikelseite from '../src/routes/[naddr]/+page.svelte';
+import Artikelseite from '../src/lib/komponenten/Detail.svelte';
+import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 
 /** @type {any} */
@@ -25,7 +26,8 @@ const VEROEFFENTLICHT = new Date(1788433547 * 1000).toISOString();
 /** @param {Partial<Record<string, unknown>>} abweichung */
 function seitendaten(abweichung = {}) {
   return /** @type {any} */ ({
-    naddr: 'naddr1beispiel',
+    pfad: '/die-kraft-der-gemeinschaft',
+    stand: { zeitpunkt: '2026-09-14T10:00:00Z', nichtErreichbar: [] },
     artikel: {
       titel: 'Die Kraft der Gemeinschaft',
       zusammenfassung: 'Wahre Stärke liegt in Prozessen.',
@@ -52,22 +54,47 @@ describe('Kopfzeile', () => {
     expect(body).toMatch(/Community-<span[^>]*>Hub/);
   });
 
-  it('bietet keine Navigation an — es gibt nichts, wohin (CLAUDE.md)', () => {
-    expect(body).not.toMatch(/<nav\b/);
+  it('verlinkt Blog und Themen — Ansichten, die es jetzt gibt', () => {
+    expect(body).toContain('href="/blog"');
+    expect(body).toContain('href="/themen"');
   });
 });
 
 describe('Fußzeile', () => {
-  const { body } = render(Fusszeile);
-
   it('trägt die Wortmarke und den Debug-Schalter', () => {
+    const { body } = render(Fusszeile);
     expect(body).toMatch(/Community-<span[^>]*>Hub/);
     expect(body).toMatch(/type="checkbox"/);
   });
 
+  // Seit ADR-0029 ist die Adresse das d, nicht das naddr — die Fußzeile darf
+  // nichts anderes behaupten.
+  it('nennt das d als Adresse und das naddr nur als Weiterleitung', () => {
+    const { body } = render(Fusszeile);
+    expect(body).toContain('unter seiner stabilen Adresse');
+    expect(body).toMatch(/leitet dorthin weiter/);
+    expect(body).not.toMatch(/stabilen <code>naddr<\/code>-Adresse/);
+  });
+
   it('nennt kein Relay — Adressen sind Konfiguration, kein Code', () => {
+    const { body } = render(Fusszeile);
     expect(body).not.toContain('wss://');
     expect(body).not.toContain('edufeed.org');
+  });
+
+  it('nennt das Alter nur, wenn der letzte Lauf scheiterte', () => {
+    const alt = render(Fusszeile, {
+      props: {
+        spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: true, relays: ['wss://r/'] }
+      }
+    }).body;
+    expect(alt).toContain('Stand:');
+    expect(alt).toContain('kein Relay erreichbar');
+
+    const frisch = render(Fusszeile, {
+      props: { spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] } }
+    }).body;
+    expect(frisch).not.toContain('Stand:');
   });
 });
 
@@ -300,5 +327,13 @@ describe('Artikelseite', () => {
     });
     expect(body).toContain('Bild nicht angezeigt');
     expect(body).not.toMatch(/<img[^>]+src="nosTr-schrein\.jpg"/);
+  });
+
+  it('zeigt für ein Bild von einem abgelösten Host kein <img>, sondern den Hinweis', () => {
+    const { body } = render(Bildbereich, {
+      props: { lizenz: { ok: false, grund: 'abgeloester-host' }, titel: 'T', bildUrl: 'https://oer.community/b.jpg' }
+    });
+    expect(body).not.toContain('<img');
+    expect(body).toContain(GRUND_TEXT['abgeloester-host']);
   });
 });
