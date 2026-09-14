@@ -29,6 +29,16 @@ describe('feedXml', () => {
   it('escapet Titel und Anriss', () => {
     expect(xmlEscape('Tom & Jerry <3 "x"')).toBe('Tom &amp; Jerry &lt;3 &quot;x&quot;');
   });
+  it('& und < im Titel stehen im XML als Entität', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const artikel = inhalt.artikel.find((e) => e.tags.some((t) => t[0] === 'd' && t[1] === 'artikel-a'));
+    if (artikel) artikel.tags = artikel.tags.map((t) => (t[0] === 'title' ? ['title', 'Tom & Jerry <3'] : t));
+    const xml = feedXml({ konfig, inhalt, basisUrl: 'https://t' });
+    expect(xml).toContain('<title>Tom &amp; Jerry &lt;3</title>');
+    expect(xml).not.toContain('Tom & Jerry');
+    expect(xml).not.toContain('<3');
+  });
+
   it('leerer Spiegel: 503 mit Meldung', () => {
     const { konfig } = inhaltDerTestquelle();
     expect(() => feedXml({ konfig, inhalt: leererInhalt(), basisUrl: 'https://t' })).toThrow();

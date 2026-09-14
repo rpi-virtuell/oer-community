@@ -4,6 +4,7 @@
  */
 import { error } from '@sveltejs/kit';
 import { artikelAusEvent, beitragsPfad } from '../models/artikel.js';
+import { FESTE_SEGMENTE } from '../models/feste-segmente.js';
 import { leerstandMeldung } from '../models/leerstand.js';
 import { kanonisch } from './struktur.js';
 import { xmlEscape } from './xml.js';
@@ -22,8 +23,11 @@ export function sitemapXml({ konfig, inhalt, basisUrl }) {
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);
   const stand = tag(new Date(inhalt.stand?.zeitpunkt ?? Date.now()));
+  // Ein Beitrag auf einem festen Segment ist unerreichbar — die Route gewinnt
+  // (ADR-0029, wie der Menü-Loader). Er käme sonst als zweites <loc> für /blog.
   const eintraege = inhalt.artikel
     .map((e) => artikelAusEvent(e))
+    .filter((a) => !FESTE_SEGMENTE.includes(a.d))
     .map((a) => ({
       loc: kanonisch(basisUrl, a.d === konfig.startseiteD ? '/' : beitragsPfad(a)),
       lastmod: tag(a.veroeffentlicht)

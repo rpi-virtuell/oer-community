@@ -17,6 +17,32 @@ describe('sitemapXml', () => {
     expect((xml.match(/<url>/g) ?? []).length).toBe(5 + 2); // 5 Beiträge der Testquelle + blog + themen
     expect(xml).toMatch(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
   });
+  it('ein Beitrag auf einem festen Segment kommt nicht zweimal vor', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const vorlage = inhalt.artikel[0];
+    inhalt.artikel.push({
+      ...vorlage,
+      id: 'blog'.padEnd(64, '0'),
+      tags: [...vorlage.tags.filter((t) => t[0] !== 'd'), ['d', 'blog']]
+    });
+    const xml = sitemapXml({ konfig, inhalt, basisUrl: 'https://t' });
+    expect((xml.match(/<loc>https:\/\/t\/blog<\/loc>/g) ?? []).length).toBe(1);
+  });
+
+  it('ein percent-kodiertes d wird nicht doppelt kodiert', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const vorlage = inhalt.artikel[0];
+    inhalt.artikel.push({
+      ...vorlage,
+      id: 'umlaut'.padEnd(64, '0'),
+      tags: [...vorlage.tags.filter((t) => t[0] !== 'd'), ['d', 'oer-visuelle-qualit%C3%A4t']]
+    });
+    const xml = sitemapXml({ konfig, inhalt, basisUrl: 'https://t' });
+    expect((xml.match(/qualit%C3%A4t/g) ?? []).length).toBe(1);
+    expect(xml).toContain('<loc>https://t/oer-visuelle-qualit%C3%A4t</loc>');
+    expect(xml).not.toContain('qualit%25C3%25A4t');
+  });
+
   it('leerer Spiegel: 503', () => {
     expect(() =>
       sitemapXml({ konfig: inhaltDerTestquelle().konfig, inhalt: leererInhalt(), basisUrl: 'https://t' })

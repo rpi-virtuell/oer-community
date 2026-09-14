@@ -80,8 +80,14 @@ h3 { font-size: 1.3rem; }
 a { color: var(--fb-primaer); }
 a:hover { color: var(--fb-ueberschrift); text-decoration: underline; }
 
-/* Fokus sichtbar, für Tastatur — der Akzent als Ring, nie als Grund für Text (ADR-0031). */
-:focus-visible { outline: 3px solid var(--fb-akzent); outline-offset: 2px; }
+/* Fokus sichtbar, für Tastatur — der Akzent als Ring, nie als Grund für Text
+   (ADR-0031). Der Akzent allein bleibt auf Weiß unter 3:1; der dunkle Saum
+   aus --fb-ueberschrift bringt den Kontrast, ohne die Farbe zu ändern. */
+:focus-visible {
+  outline: 3px solid var(--fb-akzent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px var(--fb-ueberschrift);
+}
 
 /* ── Wiederkehrende Bausteine ─────────────────────────────────────────── */
 
