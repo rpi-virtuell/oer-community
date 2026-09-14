@@ -14,7 +14,7 @@ Die Spec vom 14.09.
 nur die Regeln. Widerspricht diese Datei einer ADR, gilt die ADR — und diese
 Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
 (Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
-Farben, Schriften, Abstände: `docs/designsystem.md`.
+Farben, Schriften, Abstände: `docs/designsystem.md` (FOERBICO, ADR-0031).
 
 **Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
