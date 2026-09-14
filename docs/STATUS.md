@@ -9,6 +9,46 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-14 (spät nachts) — Stufe 3 und 4: Gestaltung, Feed, Sitemap, kanonische URLs
+
+**Passiert:** Stufe 3 und 4 der Spec vom 14.09. sind umgesetzt (ADR-0031,
+ADR-0029). Stufe 3: `src/app.css` trägt die FOERBICO-Token (`--fb-primaer
+#203a8f`, `--fb-akzent #ffa500`, `--fb-ueberschrift #002366`, `--fb-text
+#333333`, `--fb-text-leise #5a6178`, `--fb-rahmen #d3d3d3`, `--fb-flaeche
+#f0f8ff`, `--fb-flaeche-2 #e6f2ff`, `--fb-weiss`, `--fb-fehler #971b2f`) und
+eine Schrift, Roboto Condensed (Roboto und Yanone Kaffeesatz samt Dateien
+entfernt); Fokusring in Akzent, Kopfzeile hellblau mit orangem Strich,
+Fußzeile hell mit orangem Strich, Bilder mit orangem Rahmen und `--radius`
+5px. `test/kontrast.test.js` prüft acht Farbpaare und mechanisch „kein Weiß
+auf Akzent"; `test/oberflaeche.test.js` prüft „kein Alt-Token, kein Hex in
+Komponenten"; `docs/designsystem.md` ist neu. Stufe 4: `basisUrl` kommt aus
+`kind:0 website` (Rückfall Origin), `<link rel="canonical">` steht auf
+allen Seiten, die Kopfzeile trägt einen Feed-Hinweis, `trailingSlash =
+'ignore'` (`src/routes/+layout.js`). Neu: `/feed.xml` (RSS 2.0, 20 neueste
+Artikel, `application/rss+xml`) und `/sitemap.xml` (alle `30023` je einmal,
+Startseite als `/`, plus `/blog` und `/themen`; `application/xml`) — beide
+aus dem Spiegel gebaut, mit 503 bei Leerstand und
+`Cache-Control: public, max-age=600`. `feed.xml` und `sitemap.xml` stehen
+in `FESTE_SEGMENTE` (`src/lib/routen/feste-segmente.test.js` bestätigt es).
+
+**Wo steht das Projekt:** 329 Tests, `pnpm check` ohne Befund, `pnpm build`
+läuft durch. Rauchtest im gebauten Server: `/feed.xml` liefert RSS mit 20
+Items, `/sitemap.xml` liefert `application/xml` mit 96 URLs (94 Beiträge —
+das Live-Profil trägt inzwischen die sieben Seiten aus dem Produzenten-Eintrag
+oben, Stand 14.09. abends — plus `/blog` und `/themen`), `/blog` trägt
+`rel="canonical"` auf `https://oer.community/blog` (aus `kind:0 website`),
+`/canva/` mit Schrägstrich liefert 200 (`trailingSlash: 'ignore'`). Die
+Kopfzeile zeigt sich im neuen FOERBICO-Look. Damit sind alle vier Stufen
+der Spec vom 14.09. umgesetzt.
+
+**Nächster Schritt:** Bewusst offen gelassen: Dunkelmodus, Logo ohne
+`width`/`height`, `pnpm lint` und `pnpm test:e2e` existieren noch nicht,
+`robots.txt` war nicht Teil der Spec. Aus dem Produzenten-Eintrag oben
+weiter offen: Profil-`about` setzen, Redaktion prüft die
+Seitenbeschreibungen, Bildmigration (`bildmigration.md`). Der Umschalttag
+von oer.community auf den Hub ist eine Entscheidung mit Steffen und Ludger
+(DNS, Hugo abschalten).
+
 ## 2026-09-14 (nachts) — Produzentenseite: Seiten publiziert, mdparser kann Menü und Listen
 
 **Passiert:** Die Voraussetzungen 1–4 aus der Spec sind umgesetzt, direkt auf

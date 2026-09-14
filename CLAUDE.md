@@ -207,6 +207,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
+- **Komponenten kennen nur Token; kein Hex außerhalb `src/app.css`; Text
+  auf `--fb-akzent` nie weiß** (ADR-0031, geprüft in `test/kontrast.test.js`
+  und `test/oberflaeche.test.js`).
 
 ### Sortierung
 
@@ -273,6 +276,10 @@ JSDoc, `checkJs` **und** `strict` über `svelte-check` · pnpm ·
 `nostr-tools` für `naddr`-Kodierung und Signaturprüfung,
 `applesauce-common/helpers` für NIP-23/NIP-52-Felder. Die Relay-Abfrage selbst
 ist eigener, schlanker Servercode.
+
+Feed (`/feed.xml`, RSS 2.0, 20 Artikel) und Sitemap (`/sitemap.xml`) werden
+aus dem Spiegel gebaut; kanonische URLs kommen aus `kind:0 website`,
+Rückfall Origin (ADR-0029).
 
 ## Arbeitsweise
 
