@@ -38,10 +38,17 @@ export function naddrWeiterleitung(segment, konfig, inhalt) {
  * @param {import('../konfig.js').Konfig} e.konfig
  * @param {import('../services/spiegel.js').Inhalt} e.inhalt
  * @param {string} [e.anhang]  Suffix des Weiterleitungsziels, für /[d]/json
+ * @param {boolean} [e.istStartseite]  Der Aufruf kommt von / selbst — dann
+ *   entfällt die Weiterleitung der Startseite dorthin (sonst eine Schleife).
  */
-export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '' }) {
+export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', istStartseite = false }) {
   const ziel = naddrWeiterleitung(d, konfig, inhalt);
   if (ziel) redirect(301, ziel + anhang);
+
+  // Die Startseite wohnt unter / — zwei Adressen für denselben Text wären
+  // eine zu viel (bis Stufe 4 die Seitenroute bringt). Die JSON-Route bleibt
+  // erreichbar: sie ist die Entwickleransicht, keine zweite Leseadresse.
+  if (d === konfig.startseiteD && !anhang && !istStartseite) redirect(301, '/');
 
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);

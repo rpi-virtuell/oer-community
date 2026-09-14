@@ -37,7 +37,9 @@
 
 <svelte:head>
   <title>{nurWortmarke ? wortmarke : `${data.artikel.titel} · ${wortmarke}`}</title>
-  <meta name="description" content={data.artikel.zusammenfassung} />
+  {#if data.artikel.zusammenfassung}
+    <meta name="description" content={data.artikel.zusammenfassung} />
+  {/if}
 </svelte:head>
 
 <article>

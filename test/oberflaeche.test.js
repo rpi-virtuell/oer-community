@@ -12,6 +12,7 @@ import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Artikelseite from '../src/lib/komponenten/Detail.svelte';
 import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
+import { HUB_ANSICHTEN } from '../src/lib/routen/struktur.js';
 
 /** @type {any} */
 const ARTIKEL = JSON.parse(
@@ -69,6 +70,16 @@ describe('Kopfzeile', () => {
       /href="\/blog"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/blog"/
     );
     expect(body).not.toMatch(/href="\/themen"[^>]*aria-current/);
+  });
+
+  it('nur mit den Hub-Ansichten: genau zwei Men\u00fclinks', () => {
+    const { body } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', menue: HUB_ANSICHTEN }
+    });
+    const links = body.match(/<nav[\s\S]*?<\/nav>/)?.[0].match(/<a /g) ?? [];
+    expect(links).toHaveLength(2);
+    expect(body).toContain('href="/blog"');
+    expect(body).toContain('href="/themen"');
   });
 
   it('Kopfzeile ohne Logo: nur Wortmarke, kein <img>', () => {
@@ -150,6 +161,11 @@ describe('Fußzeile', () => {
     expect(body).not.toContain('Schaufenster für Beiträge');
   });
 
+  it('ohne Links rendert die Fu\u00dfzeile keine Linkliste', () => {
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub', links: [] } });
+    expect(body).not.toContain('class="links"');
+  });
+
   it('Fußzeile ohne Fußtext zeigt den Rückfallsatz; der Befund erscheint nur im Debug-Modus', () => {
     const zu = render(Fusszeile, {
       props: { wortmarke: 'Community-Hub', befund: BEFUND }
@@ -166,6 +182,21 @@ describe('Fußzeile', () => {
 });
 
 describe('Artikelseite', () => {
+  // Eine leere description ist schlechter als keine: Suchmaschinen und
+  // Vorschauen lesen sie als ausdr\u00fcckliche Leerangabe.
+  it('setzt <meta name="description"> nur, wenn eine Zusammenfassung da ist', () => {
+    const mit = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } });
+    expect(mit.head).toContain('name="description"');
+
+    const ohne = render(Artikelseite, {
+      props: {
+        data: seitendaten({ artikel: { ...seitendaten().artikel, zusammenfassung: '' } }),
+        wortmarke: 'T'
+      }
+    });
+    expect(ohne.head).not.toContain('name="description"');
+  });
+
   it('eine Seite zeigt Titel und Inhalt, aber kein Datum, keine Themen, kein Cover', () => {
     const { body, head } = render(Artikelseite, {
       props: {

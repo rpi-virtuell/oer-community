@@ -59,7 +59,7 @@ export async function startLaden({ konfig, inhalt }) {
   leerOderWeiter(konfig, inhalt);
   const { artikel } = artikelAusSpiegel(inhalt, { d: konfig.startseiteD });
   if (artikel) {
-    const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt });
+    const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt, istStartseite: true });
     return /** @type {const} */ ({ art: 'seite', seite });
   }
   const blog = blogLaden({ konfig, inhalt, seite: 1 });

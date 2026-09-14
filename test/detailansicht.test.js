@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { naddrEncode } from 'nostr-tools/nip19';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
+import { inhaltDerTestquelle, testquelle } from './fixtures/testquelle/laden.js';
 
 /**
  * Prüft die load-Funktion der Detailansicht unter /[d].
@@ -106,10 +107,15 @@ async function spiegelUnterschieben(inhalt) {
 /**
  * Lädt die Route frisch und schiebt ihr den Spiegel-Inhalt unter.
  *
- * @param {{ d?: string, inhalt?: unknown, englisch?: boolean }} [eingabe]
+ * `autor` setzt QUELLE_AUTOR in der gemockten Umgebung — nötig für Fälle mit
+ * der Testquelle, deren Events einen anderen Schlüssel tragen (Muster wie in
+ * test/uebersicht-routen.test.js).
+ *
+ * @param {{ d?: string, inhalt?: unknown, englisch?: boolean, autor?: string }} [eingabe]
  */
 async function ladeMitAttrappe(eingabe = {}) {
   await spiegelUnterschieben(eingabe.inhalt ?? inhaltNachstellen());
+  if (eingabe.autor) vi.doMock('$env/dynamic/private', () => ({ env: { ...UMGEBUNG, QUELLE_AUTOR: eingabe.autor } }));
 
   const { load } = eingabe.englisch
     ? await import('../src/routes/en/[d]/+page.server.js')
@@ -125,10 +131,11 @@ async function ladeMitAttrappe(eingabe = {}) {
 
 /**
  * Die JSON-Route unter /[d]/json frisch laden.
- * @param {{ d: string, inhalt?: unknown }} eingabe
+ * @param {{ d: string, inhalt?: unknown, autor?: string }} eingabe
  */
 async function jsonMitAttrappe(eingabe) {
   await spiegelUnterschieben(eingabe.inhalt ?? inhaltNachstellen());
+  if (eingabe.autor) vi.doMock('$env/dynamic/private', () => ({ env: { ...UMGEBUNG, QUELLE_AUTOR: eingabe.autor } }));
   const { GET } = await import('../src/routes/[d]/json/+server.js');
   return GET(/** @type {any} */ ({ params: { d: eingabe.d }, url: new URL('http://test/' + eingabe.d + '/json') }));
 }
@@ -272,5 +279,23 @@ describe('Detailansicht nennt jeden Fehlerfall', () => {
     await expect(ladeMitAttrappe({ d: 'gibt-es-nicht' })).rejects.toMatchObject({
       status: 404
     });
+  });
+});
+
+// Die Startseite hat zwei Adressen, solange /[d] sie auch ausliefert. Bis zur
+// Stufe 4 (eigene Seitenroute) gewinnt /, damit derselbe Text nicht unter zwei
+// Adressen steht; die JSON-Route bleibt erreichbar, sie ist die Entwickleransicht.
+describe('Die Startseite wohnt unter /, nicht unter /[d]', () => {
+  it('/[d] mit dem d der Startseite leitet dauerhaft auf /', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    await expect(
+      ladeMitAttrappe({ d: 'startseite', inhalt, autor: testquelle().pubkey })
+    ).rejects.toMatchObject({ status: 301, location: '/' });
+  });
+
+  it('/startseite/json bleibt erreichbar', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const antwort = await jsonMitAttrappe({ d: 'startseite', inhalt, autor: testquelle().pubkey });
+    expect(antwort.status).toBe(200);
   });
 });
