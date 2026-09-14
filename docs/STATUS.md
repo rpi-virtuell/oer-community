@@ -31,7 +31,7 @@ aus dem Spiegel gebaut, mit 503 bei Leerstand und
 `Cache-Control: public, max-age=600`. `feed.xml` und `sitemap.xml` stehen
 in `FESTE_SEGMENTE` (`src/lib/routen/feste-segmente.test.js` bestätigt es).
 
-**Wo steht das Projekt:** 332 Tests, `pnpm check` ohne Befund, `pnpm build`
+**Wo steht das Projekt:** 342 Tests, `pnpm check` ohne Befund, `pnpm build`
 läuft durch. Nachträglich behoben: Die acht Seitenkomponenten importierten
 `kanonisch` aus `$lib/routen/struktur.js`, das über `strukturLaden` bis
 `services/spiegel.js` (`node:fs/promises`) reicht — der Client-Bundle-Build
@@ -49,6 +49,25 @@ und den Feed-Link `application/rss+xml`, `/canva/` mit Schrägstrich liefert
 200 (`trailingSlash: 'ignore'`). Die Kopfzeile zeigt sich im neuen
 FOERBICO-Look. Damit sind alle vier Stufen der Spec vom 14.09. umgesetzt
 und der Produktionsbuild ist wieder tragfähig.
+
+**Fix-Welle nach dem Abschluss-Review und Auslieferung (14.09., spät):**
+Sechs Befunde behoben (`62bc7b3`, `9af0210`, `df2a328`): `/blog/seite/1`
+und `/themen/<t>/seite/1` leiten dauerhaft auf ihre Basis statt eine
+eigene kanonische URL zu tragen (`seitennummerOhneEins` in
+`src/lib/routen/uebersicht.js`); `basisUrlBestimmen` nimmt nur noch den
+Origin aus `website` (ein Pfad wie `/blog/` fällt weg, Unparsebares fällt
+auf den Anfrage-Origin zurück); die Sitemap schließt `d` aus
+`FESTE_SEGMENTE` aus; der Fokusring trägt einen dunklen Saum
+(`box-shadow` in `--fb-ueberschrift`, weil Akzent auf Weiß nur 2,0:1
+erreicht); Tests für XML-Escaping im Feed und prozent-kodiertes `d` in der
+Sitemap; Doku-Sätze in CLAUDE.md, `designsystem.md`, `betrieb.md`
+berichtigt. Re-Review ohne Befund. Gemerged als `6caa032` nach `dev` und
+`main`, Pipeline 10 grün, live geprüft auf community-hub.rpi-virtuell.net:
+Startseite mit `canonical https://oer.community/` und Feed-Hinweis,
+`/blog/seite/1` → 301 `/blog`, `/blog/seite/2` 200, `/feed.xml` 20 Einträge
+mit `atom:link self`, `/sitemap.xml` 96 `<loc>` mit `/blog` genau einmal,
+ausgeliefertes CSS trägt `--fb-primaer #203a8f` und Roboto Condensed (beide
+Schriftdateien 200), kein Alt-Token.
 
 **Nächster Schritt:** Bewusst offen gelassen: Dunkelmodus, Logo ohne
 `width`/`height`, `pnpm lint` und `pnpm test:e2e` existieren noch nicht,
