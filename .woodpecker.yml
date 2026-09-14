@@ -32,8 +32,12 @@ steps:
       script:
         # Das Server-Repo stand nach dem Merge von PR #3 noch auf dem
         # gelöschten Branch succesful-deployment; `git pull` im Deploy-Skript
-        # fand keinen Upstream mehr (Pipeline 3, 14.09.2026). Deshalb vorab
-        # auf main wechseln — idempotent, wenn es schon dort steht.
-        - git -C ~/SourceCode/community-hub fetch origin main
-        - git -C ~/SourceCode/community-hub checkout main
+        # fand keinen Upstream mehr (Pipeline 3 und 4, 14.09.2026). Deshalb
+        # vorab main hart auf origin/main setzen, samt Tracking — idempotent.
+        - cd ~/SourceCode/community-hub
+        - echo "vorher:" && git status -sb | head -3 && git config --get branch.main.merge || true
+        - git fetch origin main
+        - git checkout -B main origin/main
+        - git branch --set-upstream-to=origin/main main
+        - echo "nachher:" && git status -sb | head -1
         - ~/ServerSetup/scripts/deploy-app.sh community-hub
