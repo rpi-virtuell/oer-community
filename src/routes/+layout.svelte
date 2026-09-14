@@ -1,5 +1,6 @@
 <script>
   import '../app.css';
+  import { page } from '$app/state';
 
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
@@ -8,7 +9,12 @@
   let { children, data } = $props();
 </script>
 
-<Kopfzeile />
+<Kopfzeile
+  wortmarke={data.struktur.wortmarke}
+  logoUrl={data.struktur.logoUrl}
+  menue={data.struktur.menue}
+  aktuellerPfad={page.url.pathname}
+/>
 <main class="schmal">
   {@render children()}
 </main>

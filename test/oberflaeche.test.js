@@ -46,17 +46,37 @@ function seitendaten(abweichung = {}) {
   });
 }
 
-describe('Kopfzeile', () => {
-  const { body } = render(Kopfzeile);
+const MENUE = [
+  { titel: 'Unser Team', pfad: '/unser-team', d: 'unser-team' },
+  { titel: 'Blog', pfad: '/blog', d: '' },
+  { titel: 'Themen', pfad: '/themen', d: '' }
+];
 
-  it('trägt die Wortmarke und führt zur Startseite', () => {
-    expect(body).toMatch(/<a[^>]+href="\/"/);
-    expect(body).toMatch(/Community-<span[^>]*>Hub/);
+describe('Kopfzeile', () => {
+  it('Kopfzeile: Logo und Wortmarke verlinken auf /, Menü aus der Struktur, aktueller Eintrag markiert', () => {
+    const { body } = render(Kopfzeile, {
+      props: {
+        wortmarke: 'Testquelle',
+        logoUrl: 'https://blossom.example/logo.png',
+        menue: MENUE,
+        aktuellerPfad: '/blog/seite/2'
+      }
+    });
+    expect(body).toContain('<img src="https://blossom.example/logo.png"');
+    expect(body).toContain('Testquelle');
+    expect(body).toContain('href="/unser-team"');
+    expect(body).toMatch(
+      /href="\/blog"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/blog"/
+    );
+    expect(body).not.toMatch(/href="\/themen"[^>]*aria-current/);
   });
 
-  it('verlinkt Blog und Themen — Ansichten, die es jetzt gibt', () => {
-    expect(body).toContain('href="/blog"');
-    expect(body).toContain('href="/themen"');
+  it('Kopfzeile ohne Logo: nur Wortmarke, kein <img>', () => {
+    const { body } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', logoUrl: null, menue: MENUE }
+    });
+    expect(body).not.toContain('<img');
+    expect(body).toContain('Community-Hub');
   });
 });
 
