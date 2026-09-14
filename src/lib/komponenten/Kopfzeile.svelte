@@ -1,16 +1,20 @@
 <!--
-  Kopfzeile: nur die Wortmarke, verlinkt auf die Startseite.
+  Kopfzeile: Wortmarke und Navigation zu Ansichten, die es gibt.
 
-  Keine Navigation — es gibt noch nichts, wohin man navigieren könnte, und
-  was es nicht gibt, wird nicht angedeutet (CLAUDE.md). Nicht sticky: Auf
-  einer Leseseite frisst ein klebender Balken von 120px nur Platz; das
-  Mockup klebt wegen der Navigation, die hier fehlt.
+  Navigation nur zu Ansichten, die es gibt: Blog und Themen. Das Menü aus
+  kind:30004 folgt in Stufe 2 (ADR-0027). Nicht sticky: Auf einer Leseseite
+  frisst ein klebender Balken von 120px nur Platz; das Mockup klebt wegen der
+  Navigation, die nötig ist.
 -->
 
 <header class="kopf">
   <div class="innen">
     <!-- Wortmarke vorläufig, bis es ein Branding gibt (ADR-0019). -->
     <a href="/" class="marke" aria-label="Community-Hub — zur Startseite">Community-<span>Hub</span></a>
+    <nav aria-label="Hauptnavigation" class="nav">
+      <a href="/blog">Blog</a>
+      <a href="/themen">Themen</a>
+    </nav>
   </div>
 </header>
 
@@ -27,6 +31,20 @@
     padding: 0 24px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+  }
+  .nav {
+    display: flex;
+    gap: 20px;
+    font-family: var(--schrift-label);
+    font-weight: 500;
+  }
+  .nav a {
+    color: var(--rl-dunkel);
+    text-decoration: none;
+  }
+  .nav a:hover {
+    text-decoration: underline;
   }
   .marke {
     font-family: var(--schrift-ueber);

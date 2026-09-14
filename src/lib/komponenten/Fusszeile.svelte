@@ -13,6 +13,11 @@
 
   import { einstellungen } from '$lib/einstellungen.svelte.js';
 
+  /**
+   * @type {{ spiegelstand?: { zeitpunkt: string|null, veraltet: boolean, relays: string[] } }}
+   */
+  let { spiegelstand = { zeitpunkt: null, veraltet: false, relays: [] } } = $props();
+
   // Erst im Browser: Der Server kennt localStorage nicht, und ein
   // abweichender Startwert wäre ein Unterschied zur Serverdarstellung.
   onMount(() => einstellungen.ausSpeicherLaden());
@@ -26,6 +31,15 @@
       Schaufenster für Beiträge im Nostr-Netz. Jeder Beitrag ist ein signiertes
       Event unter einer stabilen <code>naddr</code>-Adresse.
     </p>
+    {#if spiegelstand.veraltet}
+      <p class="stand">
+        <strong>
+          Stand: {spiegelstand.zeitpunkt ? new Date(spiegelstand.zeitpunkt).toLocaleString('de-DE') : 'unbekannt'}
+        </strong>
+        — kein Relay erreichbar ({spiegelstand.relays.join(', ')}). Der Dienst zeigt den letzten gültigen
+        Stand und versucht es weiter.
+      </p>
+    {/if}
     <div class="werkzeug">
       <label class="schalter">
         <input
@@ -70,6 +84,14 @@
   .text {
     max-width: 60ch;
     margin: 0;
+  }
+  .stand {
+    max-width: 60ch;
+    margin: 12px 0 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid var(--schrift-label);
+    font-size: 0.92rem;
   }
   .werkzeug {
     display: flex;

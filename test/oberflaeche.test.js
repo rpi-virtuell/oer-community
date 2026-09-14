@@ -54,22 +54,38 @@ describe('Kopfzeile', () => {
     expect(body).toMatch(/Community-<span[^>]*>Hub/);
   });
 
-  it('bietet keine Navigation an — es gibt nichts, wohin (CLAUDE.md)', () => {
-    expect(body).not.toMatch(/<nav\b/);
+  it('verlinkt Blog und Themen — Ansichten, die es jetzt gibt', () => {
+    expect(body).toContain('href="/blog"');
+    expect(body).toContain('href="/themen"');
   });
 });
 
 describe('Fußzeile', () => {
-  const { body } = render(Fusszeile);
-
   it('trägt die Wortmarke und den Debug-Schalter', () => {
+    const { body } = render(Fusszeile);
     expect(body).toMatch(/Community-<span[^>]*>Hub/);
     expect(body).toMatch(/type="checkbox"/);
   });
 
   it('nennt kein Relay — Adressen sind Konfiguration, kein Code', () => {
+    const { body } = render(Fusszeile);
     expect(body).not.toContain('wss://');
     expect(body).not.toContain('edufeed.org');
+  });
+
+  it('nennt das Alter nur, wenn der letzte Lauf scheiterte', () => {
+    const alt = render(Fusszeile, {
+      props: {
+        spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: true, relays: ['wss://r/'] }
+      }
+    }).body;
+    expect(alt).toContain('Stand:');
+    expect(alt).toContain('kein Relay erreichbar');
+
+    const frisch = render(Fusszeile, {
+      props: { spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] } }
+    }).body;
+    expect(frisch).not.toContain('Stand:');
   });
 });
 

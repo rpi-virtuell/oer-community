@@ -12,7 +12,7 @@
 <main class="schmal">
   {@render children()}
 </main>
-<Fusszeile />
+<Fusszeile spiegelstand={data.spiegelstand} />
 
 <style>
   /* Textbreite „schmal" aus dem Designsystem: 820px. */
