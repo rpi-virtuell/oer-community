@@ -113,6 +113,12 @@ describe('/blog', () => {
 });
 
 describe('/blog/seite/[n]', () => {
+  it('Seite 1 leitet dauerhaft auf /blog — sie hätte sonst eine zweite kanonische Adresse', async () => {
+    await expect(
+      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '1' })
+    ).rejects.toMatchObject({ status: 301, location: '/blog' });
+  });
+
   it('liefert Seite 2; Unsinn ist 404', async () => {
     expect((await lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '2' })).seite).toBe(2);
     await expect(
@@ -149,13 +155,21 @@ describe('/themen/[thema]', () => {
 });
 
 describe('/themen/[thema]/seite/[n]', () => {
-  it('liefert Seite 1 eines Themas', async () => {
-    const daten = await lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', {
-      thema: 'community',
-      n: '1'
-    });
-    expect(daten.seite).toBe(1);
-    expect(daten.basis).toBe('/themen/community');
+  it('Seite 1 leitet dauerhaft auf das Thema selbst', async () => {
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '1' })
+    ).rejects.toMatchObject({ status: 301, location: '/themen/community' });
+  });
+
+  // Kein Thema des Fixture-Bestands füllt zwei Seiten (größtes: 18 Artikel),
+  // deshalb prüft Seite 2 hier den 404 jenseits des Bestands.
+  it('Seite 2 jenseits des Bestands ist 404; Unsinn ebenso', async () => {
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '2' })
+    ).rejects.toMatchObject({ status: 404 });
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: 'abc' })
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 
@@ -219,7 +233,7 @@ describe('leerer Spiegel', () => {
       lade('../src/routes/blog/+page.server.js', {}, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
-      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '1' }, leererInhalt())
+      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '2' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       lade('../src/routes/themen/+page.server.js', {}, leererInhalt())
@@ -228,7 +242,7 @@ describe('leerer Spiegel', () => {
       lade('../src/routes/themen/[thema]/+page.server.js', { thema: 'community' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
-      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '1' }, leererInhalt())
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '2' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       lade('../src/routes/+page.server.js', {}, leererInhalt())

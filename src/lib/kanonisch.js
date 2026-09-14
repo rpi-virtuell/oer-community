@@ -4,14 +4,27 @@
  * Client-Bundle zu ziehen (ADR-0029).
  */
 
+/** Origin einer Adresse, oder null, wenn sie nicht parsebar ist. @param {string} adresse */
+function origin(adresse) {
+  try {
+    return new URL(adresse).origin;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Basis für kanonische URLs, Feed und Sitemap: die Domain des Herausgebers
  * (kind:0 website), sonst der Origin der Anfrage.
- * @param {import('./models/profil.js').Profil|null} profil @param {string} origin
+ *
+ * Nur der Origin zählt: steht im Profil `https://oer.community/blog/`, wäre
+ * sonst jede kanonische URL `…/blog/blog` — ein Pfad im Profilfeld darf die
+ * Adressen des Hubs nicht verschieben.
+ * @param {import('./models/profil.js').Profil|null} profil @param {string} herkunft
  */
-export function basisUrlBestimmen(profil, origin) {
-  const w = profil?.website?.replace(/\/+$/, '');
-  return w && w !== '' ? w : origin.replace(/\/+$/, '');
+export function basisUrlBestimmen(profil, herkunft) {
+  const w = profil?.website?.trim();
+  return (w ? origin(w) : null) ?? origin(herkunft) ?? herkunft.replace(/\/+$/, '');
 }
 
 /** basisUrl + pfad; '/' bleibt ein Schrägstrich. @param {string} basisUrl @param {string} pfad */
