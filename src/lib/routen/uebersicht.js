@@ -63,9 +63,9 @@ export async function startLaden({ konfig, inhalt }) {
     return /** @type {const} */ ({ art: 'seite', seite });
   }
   const blog = blogLaden({ konfig, inhalt, seite: 1 });
-  const { seite: seitennummer, ...rest } = blog;
+  const { seite: blogSeite, ...rest } = blog;
   return /** @type {const} */ ({
-    art: 'blog', ...rest, seitennummer, ueberschrift: 'Beiträge',
+    art: 'blog', ...rest, seitennummer: blogSeite, ueberschrift: 'Beiträge',
     hinweis: `Es ist noch keine Startseite publiziert: erwartet wird ein kind:30023 mit d = "${konfig.startseiteD}" unter dem Autor dieser Quelle. Bis dahin steht hier der Blog.`
   });
 }
