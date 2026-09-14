@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { artikelAusEvent } from './artikel.js';
+import { artikelAusEvent, beitragsPfad } from './artikel.js';
 
 const referenz = JSON.parse(
   readFileSync(
@@ -70,5 +70,32 @@ describe('artikelAusEvent', () => {
 
   it('nimmt d als Titel, wenn title fehlt', () => {
     expect(artikelAusEvent(event([['d', 'ohne-titel']])).titel).toBe('ohne-titel');
+  });
+});
+
+describe('Sprache, Seite und Pfad (Spec 14.09.)', () => {
+  const basis = { id: 'x', pubkey: 'p', created_at: 1, kind: 30023, content: '', sig: 's' };
+
+  it('liest inLanguage, Standard de, en auch als en-US', () => {
+    expect(artikelAusEvent({ ...basis, tags: [['d', 'a']] }).sprache).toBe('de');
+    expect(artikelAusEvent({ ...basis, tags: [['d', 'a'], ['inLanguage', 'en']] }).sprache).toBe('en');
+    expect(artikelAusEvent({ ...basis, tags: [['d', 'a'], ['inLanguage', 'en-US']] }).sprache).toBe('en');
+    // mdparser schrieb bei 19 Artikeln "d" — das ist deutsch, kein Fehler hier.
+    expect(artikelAusEvent({ ...basis, tags: [['d', 'a'], ['inLanguage', 'd']] }).sprache).toBe('de');
+  });
+
+  it('erkennt eine Seite am Selbst-Label foerbico/typ = seite', () => {
+    const seite = artikelAusEvent({
+      ...basis, tags: [['d', 'impressum'], ['L', 'foerbico/typ'], ['l', 'seite', 'foerbico/typ']]
+    });
+    expect(seite.istSeite).toBe(true);
+    const fremd = artikelAusEvent({ ...basis, tags: [['d', 'x'], ['l', 'seite', 'anderer/raum']] });
+    expect(fremd.istSeite).toBe(false);
+  });
+
+  it('baut den Pfad aus Sprache und d', () => {
+    expect(beitragsPfad({ d: 'canva', sprache: 'de' })).toBe('/canva');
+    expect(beitragsPfad({ d: 'our-team', sprache: 'en' })).toBe('/en/our-team');
+    expect(beitragsPfad({ d: 'ä ö', sprache: 'de' })).toBe('/%C3%A4%20%C3%B6');
   });
 });
