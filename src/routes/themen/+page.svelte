@@ -1,5 +1,5 @@
 <script>
-  import { kanonisch } from '$lib/routen/struktur.js';
+  import { kanonisch } from '$lib/kanonisch.js';
   let { data } = $props();
 </script>
 <svelte:head>

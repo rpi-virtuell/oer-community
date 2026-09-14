@@ -1,6 +1,6 @@
 <script>
   import Detail from '$lib/komponenten/Detail.svelte';
-  import { kanonisch } from '$lib/routen/struktur.js';
+  import { kanonisch } from '$lib/kanonisch.js';
 
   /** @type {{ data: import('./$types').PageData }} */
   let { data } = $props();

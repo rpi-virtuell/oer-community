@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HUB_ANSICHTEN, WORTMARKE_RUECKFALL, basisUrlBestimmen, kanonisch, strukturFuerLayout } from './struktur.js';
+import { HUB_ANSICHTEN, WORTMARKE_RUECKFALL, basisUrlBestimmen, strukturFuerLayout } from './struktur.js';
 import { inhaltDerTestquelle } from '../../../test/fixtures/testquelle/laden.js';
 
 const ORIGIN = 'https://hub.example';
@@ -56,12 +56,5 @@ describe('strukturFuerLayout', () => {
     const ohne = strukturFuerLayout({ ...inhaltDerTestquelle({ ohne: [{ kind: 0 }] }), origin: 'https://hub.example' });
     expect(ohne.basisUrl).toBe('https://hub.example');
     expect(basisUrlBestimmen({ name: 'X', logoUrl: null, fusstext: null, website: 'https://oer.community/' }, 'https://o')).toBe('https://oer.community');
-  });
-});
-
-describe('kanonisch', () => {
-  it('setzt den Pfad an die Basis; / bleibt ein Schrägstrich', () => {
-    expect(kanonisch('https://oer.community', '/canva')).toBe('https://oer.community/canva');
-    expect(kanonisch('https://oer.community', '/')).toBe('https://oer.community/');
   });
 });

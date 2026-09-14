@@ -5,6 +5,9 @@
  */
 import { inhaltAufbereiten } from '../inhalt.js';
 import { strukturLaden } from '../loaders/struktur.js';
+import { basisUrlBestimmen, kanonisch } from '../kanonisch.js';
+
+export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';
 
 /** @typedef {import('../loaders/struktur.js').Eintrag} Eintrag */
 /** @typedef {import('../loaders/struktur.js').Struktur} Struktur */
@@ -28,21 +31,6 @@ export function fusstextHtml(markdown) {
   if (!markdown) return null;
   const html = inhaltAufbereiten(markdown).teile.filter((t) => t.art === 'html').map((t) => t.html).join('').trim();
   return html === '' ? null : html;
-}
-
-/**
- * Basis für kanonische URLs, Feed und Sitemap: die Domain des Herausgebers
- * (kind:0 website), sonst der Origin der Anfrage.
- * @param {import('../models/profil.js').Profil|null} profil @param {string} origin
- */
-export function basisUrlBestimmen(profil, origin) {
-  const w = profil?.website?.replace(/\/+$/, '');
-  return w && w !== '' ? w : origin.replace(/\/+$/, '');
-}
-
-/** basisUrl + pfad; '/' bleibt ein Schrägstrich. @param {string} basisUrl @param {string} pfad */
-export function kanonisch(basisUrl, pfad) {
-  return pfad === '/' ? `${basisUrl}/` : `${basisUrl}${pfad}`;
 }
 
 /** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt, origin: string }} e @returns {Layoutstruktur} */

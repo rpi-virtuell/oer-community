@@ -164,6 +164,35 @@ describe('Architekturregeln (ADR-0014)', () => {
     }
     expect(verstoesse, 'Jede Anfrage rendert aus dem Spiegel, nie direkt vom Relay (ADR-0028):\n' + verstoesse.join('\n')).toEqual([]);
   });
+
+  it('Komponenten und Seiten (*.svelte) importieren zur Laufzeit nichts aus lib/routen, lib/loaders oder lib/services', () => {
+    const dateien = quelldateien(join(wurzel, 'src'), (p) => p.endsWith('.svelte'));
+    expect(dateien.length).toBeGreaterThan(0);
+
+    /** @type {string[]} */
+    const verstoesse = [];
+    for (const datei of dateien) {
+      for (const { nr, text } of zeilen(datei)) {
+        const quelle = anweisungsquelle(text);
+        if (!quelle) continue;
+        const zeigtAufDatenschicht =
+          /(\$lib|\.\.?)\/(routen|loaders|services)\//.test(quelle) ||
+          /\/(routen|loaders|services)\/[^/]+\.js$/.test(quelle);
+        if (zeigtAufDatenschicht) {
+          verstoesse.push(`${datei}:${nr} importiert '${quelle}'`);
+        }
+      }
+    }
+
+    expect(
+      verstoesse,
+      'Seitenkomponenten dürfen nicht direkt aus lib/routen, lib/loaders oder ' +
+        'lib/services importieren — der Modulgraph zieht sonst Servercode ' +
+        '(z. B. node:fs/promises in services/spiegel.js) ins Client-Bundle und ' +
+        '`pnpm build` bricht ab (ADR-0014):\n' +
+        verstoesse.join('\n')
+    ).toEqual([]);
+  });
 });
 
 describe('Gestaltungsregeln (ADR-0004, docs/designsystem.md)', () => {
