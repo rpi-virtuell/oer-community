@@ -45,6 +45,12 @@ sudo usermod -aG docker joerg      # danach einmal neu anmelden
 cd ~/community-hub && docker compose up -d --build
 ```
 
+**Docker braucht `daten/` als Volume.** Der Spiegel schreibt seinen Stand
+dorthin (ADR-0028), und `daten/themen.json` wird zur Laufzeit gelesen —
+`docker-compose.yml` hängt deshalb `./daten` in den Container. Die Datei
+`themen.json` liegt zusätzlich im Image, damit ein Lauf ohne Volume nicht
+an ihr scheitert.
+
 ## Die Seite ist nicht öffentlich erreichbar
 
 **Eine Firewall vor dem Server lässt nur Port 22 durch.** Belegt am
@@ -149,6 +155,10 @@ Neue Werte in `.env` (siehe `.env.example`):
   geht, Standard 20.
 - `ABGELOESTE_HOSTS` — Hosts, deren Bilder wie relative Pfade behandelt
   werden (ADR-0030), Standard `oer.community`.
+
+Eine Änderung an `daten/themen.json` wirkt **erst nach einem Neustart**: die
+Normalisierungstabelle wird je Prozess einmal gelesen (`src/lib/themen.js`).
+Also `systemctl --user restart community-hub` nach dem Ausliefern.
 
 ## Konfiguration
 

@@ -67,6 +67,15 @@ describe('Fußzeile', () => {
     expect(body).toMatch(/type="checkbox"/);
   });
 
+  // Seit ADR-0029 ist die Adresse das d, nicht das naddr — die Fußzeile darf
+  // nichts anderes behaupten.
+  it('nennt das d als Adresse und das naddr nur als Weiterleitung', () => {
+    const { body } = render(Fusszeile);
+    expect(body).toContain('unter seiner stabilen Adresse');
+    expect(body).toMatch(/leitet dorthin weiter/);
+    expect(body).not.toMatch(/stabilen <code>naddr<\/code>-Adresse/);
+  });
+
   it('nennt kein Relay — Adressen sind Konfiguration, kein Code', () => {
     const { body } = render(Fusszeile);
     expect(body).not.toContain('wss://');

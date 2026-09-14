@@ -30,12 +30,18 @@ Blog und Themen (ADR-0027). Bilder von `ABGELOESTE_HOSTS` (Standard
 `oer.community`) gelten wie relative Pfade (ADR-0030). Kopfzeile verlinkt
 Blog und Themen; die Fußzeile nennt Stand und Relays, wenn der letzte
 Spiegel-Lauf scheiterte. **254 Tests grün, `pnpm check` ohne Befund.**
+Die Fix-Welle nach dem Abschluss-Review hat vier Befunde behoben:
+prozent-kodierte `d` finden jetzt ihren Beitrag (drei Live-Artikel tragen
+`%C3%A4` literal im `d`-Tag), der Themen-Slug ist die Identität eines Themas
+statt seines Namens (`Community`/`community` kollidierten), der Spiegel
+behält das **neueste** `kind:0` statt des ältesten, und das Docker-Image
+bringt `daten/themen.json` mit samt Volume und Spiegel-Variablen.
 
 **Wo steht das Projekt:** Rauchtests vom 14.09. mit den echten Relays: Der
 Spiegel lädt 87 Artikel in rund 2 Sekunden, die Standdatei ist etwa
 1,2 MB groß. `/blog` zeigt 20 Karten je Seite; ein Cover erscheint nur bei
-Artikeln mit auflösbarem Lizenznachweis — das sind 16 von 87 mit einem
-`x`-Tag. `/` zeigt den Blog mit dem Hinweis auf die fehlende Startseite
+Artikeln mit auflösbarem Lizenznachweis: 16 Artikel tragen ein `x`-Tag,
+15 zeigen ein Cover (bei einem scheitert die Kette). `/` zeigt den Blog mit dem Hinweis auf die fehlende Startseite
 (`d = startseite`), weil die noch nicht aus Nostr kommt. `pnpm lint` und
 `pnpm test:e2e` existieren weiterhin nicht.
 

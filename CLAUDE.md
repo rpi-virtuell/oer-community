@@ -142,9 +142,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **Themen normalisieren.** Bei FOERBICO 43 `t`-Tags auf nur 25 von 86
   Artikeln, mit Dubletten (`OER` neben `Open Educational Resources (OER)`,
   `OER-Community` neben `OER-Communities`); der relilab-Bot hatte 195. Die
-  Normalisierungstabelle in `src/lib/themen.js` ist Redaktionsarbeit und muss
-  ohne Entwickler änderbar bleiben. Nicht filterbare Themen bleiben am
-  Artikel sichtbar.
+  Normalisierungstabelle in `daten/themen.json` (gelesen von
+  `src/lib/themen.js`) ist Redaktionsarbeit und muss ohne Entwickler
+  änderbar bleiben. Nicht filterbare Themen bleiben am Artikel sichtbar.
 - **Bilder erscheinen mit ihrem Lizenzstand** (ADR-0022, ersetzt ADR-0013
   Punkt 2). Ein absolut adressiertes Bild wird ausgeliefert; ist der
   Nachweis aufgelöst, steht die Attributionszeile nach `bildattribution.md`
@@ -227,10 +227,10 @@ Drei Regeln dazu:
 
 ## Fehlerfälle
 
-Jede Anfrage rendert aus dem Cache, **nie direkt aus dem Relay**.
+Jede Anfrage rendert aus dem Spiegel, **nie direkt aus dem Relay**.
 
 - Kein Relay erreichbar → letzter gültiger Stand **mit Hinweis auf sein Alter**
-- Cache leer → Meldung, die das Relay nennt und sagt, was zu tun ist
+- Spiegel leer → Meldung, die das Relay nennt und sagt, was zu tun ist
 - Pflichtwert fehlt → **Start bricht ab** mit klarer Meldung, statt später
   leere Seiten zu liefern
 

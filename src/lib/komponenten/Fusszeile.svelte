@@ -29,7 +29,8 @@
     <p class="marke">Community-<span>Hub</span></p>
     <p class="text">
       Schaufenster für Beiträge im Nostr-Netz. Jeder Beitrag ist ein signiertes
-      Event unter einer stabilen <code>naddr</code>-Adresse.
+      Event unter seiner stabilen Adresse (<code>d</code>), ein
+      <code>naddr</code> leitet dorthin weiter.
     </p>
     {#if spiegelstand.veraltet}
       <p class="stand">
