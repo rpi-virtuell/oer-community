@@ -4,7 +4,8 @@
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
 
-  let { children } = $props();
+  /** @type {{ children: import('svelte').Snippet, data: import('./$types').LayoutData }} */
+  let { children, data } = $props();
 </script>
 
 <Kopfzeile />

@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { naddrEncode } from 'nostr-tools/nip19';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
 
 /**
- * Prüft die load-Funktion der Detailansicht.
+ * Prüft die load-Funktion der Detailansicht unter /[d].
  *
  * Die Relay-Ebene wird ausgetauscht, nicht das Netz benutzt: geprüft wird,
  * ob die Route lädt, prüft und im Fehlerfall den Grund NENNT — nie eine
@@ -11,15 +12,21 @@ import { leererInhalt } from '../src/lib/services/spiegel.js';
  *
  * @typedef {object} Seitendaten
  * @property {{ titel: string, zusammenfassung: string, veroeffentlicht: string,
- *   themen: string[], bildUrl: string|null }} artikel
+ *   themen: string[], bildUrl: string|null, sprache: 'de'|'en', istSeite: boolean }} artikel
  * @property {import('../src/lib/models/lizenz.js').Ergebnis} lizenz
  * @property {import('../src/lib/inhalt.js').Teil[]} teile
  * @property {Record<string, import('../src/lib/models/lizenz.js').Ergebnis>} fliesstext
  * @property {string[]} entfernteBilder
+ * @property {string} pfad
+ * @property {{ zeitpunkt: string, nichtErreichbar: string[] }|null} stand
  */
 
 const NADDR =
   'naddr1qvzqqqr4gupzqksjks0vzk6xvvs73rphr03dc37eryleeza6f2cfl3gqgk7nttklqyv8wumn8ghj7un9d3shjtn9v36kvet9vshx7un89uqp5erfv5kkkunpve6z6er9wgkkwetdv45kuumrdpskvaqntfdpj';
+
+// Ein naddr, der zu keinem Beitrag dieser Quelle gehört — mit nip19 selbst
+// kodiert statt aus einer fremden Quelle kopiert.
+const NADDR_FREMD = naddrEncode({ kind: 30023, pubkey: 'b'.repeat(64), identifier: 'x', relays: [] });
 
 /** @type {any} */
 const artikelEvent = JSON.parse(
@@ -53,9 +60,8 @@ const RPI = 'wss://relay-rpi.edufeed.org/';
 /**
  * Spiegelinhalt nachstellen: nur relay-rpi kennt den Lizenznachweis — so
  * liegt es auch in Wirklichkeit (ADR-0013). Die Fälle „unerreichbar" und
- * „ohne Artikel" werden über den Spiegel-Inhalt selbst nachgestellt, nicht
- * mehr über eine Relay-Attrappe — seit ADR-0028 liest die Route aus dem
- * Spiegel (Task 7 baut diesen Test in Task 8 vollständig um).
+ * „ohne Artikel" werden über den Spiegel-Inhalt selbst nachgestellt, seit
+ * ADR-0028 liest die Route aus dem Spiegel.
  *
  * @param {{ unerreichbar?: boolean, ohneArtikel?: boolean,
  *   ohneNachweis?: boolean, etag?: string }} [lage]
@@ -91,7 +97,7 @@ function inhaltNachstellen(lage = {}) {
 /**
  * Lädt die Route frisch und schiebt ihr den Spiegel-Inhalt unter.
  *
- * @param {{ naddr?: string, inhalt?: unknown }} [eingabe]
+ * @param {{ d?: string, inhalt?: unknown }} [eingabe]
  */
 async function ladeMitAttrappe(eingabe = {}) {
   vi.resetModules();
@@ -102,11 +108,13 @@ async function ladeMitAttrappe(eingabe = {}) {
     return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
   });
 
-  const { load } = await import('../src/routes/[naddr]/+page.server.js');
-  // load() bricht im Fehlerfall mit error() ab; TypeScript sieht dort ein
-  // moegliches void. Der Rueckgabetyp haelt fest, was im Erfolgsfall kommt.
+  const { load } = await import('../src/routes/[d]/+page.server.js');
+  const d = eingabe.d ?? 'die-kraft-der-gemeinschaft';
+  // load() bricht im Fehlerfall mit error()/redirect() ab; TypeScript sieht
+  // dort ein moegliches void. Der Rueckgabetyp haelt fest, was im
+  // Erfolgsfall kommt.
   return /** @type {Promise<Seitendaten>} */ (
-    load(/** @type {any} */ ({ params: { naddr: eingabe.naddr ?? NADDR } }))
+    load(/** @type {any} */ ({ params: { d }, url: new URL('http://test/' + d) }))
   );
 }
 
@@ -137,31 +145,45 @@ describe('Detailansicht laedt den Artikel serverseitig', () => {
     expect(daten.lizenz.ok).toBe(false);
     if (!daten.lizenz.ok) expect(daten.lizenz.grund).toBe('kein-nachweis');
   });
+
+  it('liefert pfad und den Stand des Spiegels mit', async () => {
+    const daten = await ladeMitAttrappe();
+
+    expect(daten.pfad).toBe('/die-kraft-der-gemeinschaft');
+    expect(daten.stand?.zeitpunkt).toBeTruthy();
+  });
 });
 
-describe('Detailansicht nennt jeden Fehlerfall', () => {
-  it('bricht mit 400 ab und nennt die unlesbare Adresse', async () => {
-    await expect(ladeMitAttrappe({ naddr: 'kein-naddr' })).rejects.toMatchObject({
-      status: 400,
-      body: { message: expect.stringContaining('naddr') }
+describe('Detailansicht leitet naddr-Adressen weiter (ADR-0029)', () => {
+  it('leitet ein naddr der eigenen Quelle dauerhaft auf /d weiter', async () => {
+    await expect(ladeMitAttrappe({ d: NADDR })).rejects.toMatchObject({
+      status: 301,
+      location: '/die-kraft-der-gemeinschaft'
     });
   });
 
+  it('ein naddr fremder Quelle ist 404, keine Weiterleitung', async () => {
+    await expect(ladeMitAttrappe({ d: NADDR_FREMD })).rejects.toMatchObject({ status: 404 });
+  });
+
+  it('ein Text, der wie naddr beginnt, aber nicht dekodiert, ist ein unbekanntes d → 404', async () => {
+    await expect(ladeMitAttrappe({ d: 'naddr1kaputt' })).rejects.toMatchObject({ status: 404 });
+  });
+});
+
+describe('Detailansicht nennt jeden Fehlerfall', () => {
   it('bricht mit 503 ab und nennt die Relays, wenn der Spiegel noch keinen Stand hat', async () => {
     await expect(
       ladeMitAttrappe({ inhalt: inhaltNachstellen({ unerreichbar: true }) })
     ).rejects.toMatchObject({
       status: 503,
-      body: { message: expect.stringContaining('relay.edufeed.org') }
+      body: { message: expect.stringContaining('wss://relay.edufeed.org/') }
     });
   });
 
-  it('bricht mit 404 ab und nennt d, wenn der Spiegel einen Stand ohne den Artikel hat', async () => {
-    await expect(
-      ladeMitAttrappe({ inhalt: inhaltNachstellen({ ohneArtikel: true }) })
-    ).rejects.toMatchObject({
-      status: 404,
-      body: { message: expect.stringContaining('die-kraft-der-gemeinschaft') }
+  it('bricht mit 404 ab, wenn d unbekannt ist', async () => {
+    await expect(ladeMitAttrappe({ d: 'gibt-es-nicht' })).rejects.toMatchObject({
+      status: 404
     });
   });
 });

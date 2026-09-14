@@ -23,7 +23,7 @@ const NACHWEIS = fixture('lizenz-1063-nostr-schrein.json')[0];
 const tagWert = (tags, name) => tags.find((t) => t[0] === name)?.[1] ?? null;
 
 const HASH = tagWert(ARTIKEL.tags, 'x');
-const NADDR = 'naddr1beispiel';
+const PFAD = '/die-kraft-der-gemeinschaft';
 
 const RELAY = 'wss://relay.edufeed.org/';
 const RPI = 'wss://relay-rpi.edufeed.org/';
@@ -58,10 +58,11 @@ function befund(abweichung = {}) {
 /**
  * @param {Record<string, unknown>} [abweichung]
  * @param {boolean} [offen]
+ * @param {{ zeitpunkt: string, nichtErreichbar: string[] }|null} [stand]
  */
-const html = (abweichung, offen = false) =>
+const html = (abweichung, offen = false, stand = null) =>
   render(DebugBereich, {
-    props: { befund: befund(abweichung), naddr: NADDR, offenStart: offen }
+    props: { befund: befund(abweichung), pfad: PFAD, offenStart: offen, stand }
   }).body;
 
 describe('DebugBereich, zugeklappt', () => {
@@ -125,10 +126,36 @@ describe('DebugBereich, aufgeklappt', () => {
     expect(body).toContain('am gelieferten Bild (etag)');
   });
 
-  it('verweist auf die JSON-Route mit demselben naddr', () => {
+  it('verweist auf die JSON-Route unter demselben Pfad', () => {
     const body = html(undefined, true);
 
-    expect(body).toContain(`href="/${NADDR}/json"`);
+    expect(body).toContain(`href="${PFAD}/json"`);
+  });
+
+  it('zeigt den Stand des Spiegels, wenn er übergeben wird', () => {
+    const body = html(undefined, true, {
+      zeitpunkt: '2026-09-14T10:00:00Z',
+      nichtErreichbar: []
+    });
+
+    expect(body).toContain('Stand des Spiegels');
+    expect(body).toContain(new Date('2026-09-14T10:00:00Z').toLocaleString('de-DE'));
+  });
+
+  it('nennt nicht erreichbare Relays beim Stand des Spiegels', () => {
+    const body = html(undefined, true, {
+      zeitpunkt: '2026-09-14T10:00:00Z',
+      nichtErreichbar: ['wss://relay-rpi.edufeed.org/']
+    });
+
+    expect(body).toContain('nicht erreichbar');
+    expect(body).toContain('relay-rpi.edufeed.org');
+  });
+
+  it('zeigt keine Stand-Zeile ohne Stand', () => {
+    const body = html(undefined, true, null);
+
+    expect(body).not.toContain('Stand des Spiegels');
   });
 
   it('gibt die Signatur beider Events als gueltig aus', () => {
