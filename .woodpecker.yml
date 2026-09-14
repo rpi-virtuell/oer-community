@@ -30,14 +30,8 @@ steps:
       key:
         from_secret: deploy_ssh_key
       script:
-        # Das Server-Repo stand nach dem Merge von PR #3 noch auf dem
-        # gelöschten Branch succesful-deployment; `git pull` im Deploy-Skript
-        # fand keinen Upstream mehr (Pipeline 3 und 4, 14.09.2026). Deshalb
-        # vorab main hart auf origin/main setzen, samt Tracking — idempotent.
-        - cd ~/SourceCode/community-hub
-        - echo "vorher:" && git status -sb | head -3 && git config --get branch.main.merge || true
-        - git fetch origin main
-        - git checkout -B main origin/main
-        - git branch --set-upstream-to=origin/main main
-        - echo "nachher:" && git status -sb | head -1
+        # Der Server führt für diesen Schlüssel immer nur dieses Skript aus;
+        # vorgeschaltete Befehle kommen nicht an (Pipelines 4 und 5, 14.09.2026).
+        # Das Skript zieht per `git pull` den Branch, auf dem das Server-Repo
+        # steht — derzeit `succesful-deployment`. Siehe docs/betrieb.md.
         - ~/ServerSetup/scripts/deploy-app.sh community-hub

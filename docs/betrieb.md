@@ -18,10 +18,23 @@ Status und Logs: Forgejo zeigt den Commit-Status, die Pipeline liegt unter
 `https://woody.git.rpi-virtuell.de/repos/13/`. Eingerichtet von Ludger
 (PR #3, 08.09.2026).
 
-**Stolperstein vom 14.09.2026:** Das Server-Repo stand noch auf dem nach
-dem Merge gelöschten Branch `succesful-deployment`; `git pull` fand keinen
-Upstream, der Deploy-Schritt brach nach einer Sekunde ab (Pipeline 2 und
-3). Die Pipeline wechselt seither vor dem Skript auf `main`.
+**Stolperstein vom 14.09.2026:** Das Server-Repo steht auf dem Branch
+`succesful-deployment`, der nach dem Merge von PR #3 auf dem Remote gelöscht
+war; `git pull` fand keinen Upstream, der Deploy-Schritt brach nach einer
+Sekunde ab (Pipelines 2 bis 5). Aus der Pipeline heraus lässt sich das nicht
+beheben: Der Deploy-Schlüssel darf auf dem Server nur das Skript ausführen,
+vorgeschaltete Befehle kommen nicht an. **Übergangslösung:** Der Branch
+`succesful-deployment` existiert wieder und wird bei jedem Push auf `main`
+auf denselben Stand gesetzt:
+
+```
+git push origin main:succesful-deployment
+git push origin main
+```
+
+**Dauerhafte Lösung (Ludger, Serverzugang als `svc-cha`):** in
+`~/SourceCode/community-hub` einmal `git checkout main` — danach kann der
+Hilfsbranch weg und die zwei Zeilen werden zu einer.
 
 ## Zweiter Server (Hetzner, systemd)
 
