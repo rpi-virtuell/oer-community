@@ -94,21 +94,26 @@ function inhaltNachstellen(lage = {}) {
   };
 }
 
-/**
- * Lädt die Route frisch und schiebt ihr den Spiegel-Inhalt unter.
- *
- * @param {{ d?: string, inhalt?: unknown }} [eingabe]
- */
-async function ladeMitAttrappe(eingabe = {}) {
+/** Den Spiegel der Route unterschieben. @param {unknown} inhalt */
+async function spiegelUnterschieben(inhalt) {
   vi.resetModules();
-  const inhalt = eingabe.inhalt ?? inhaltNachstellen();
-
   vi.doMock('$lib/services/spiegel.js', async () => {
     const echt = await import('../src/lib/services/spiegel.js');
     return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
   });
+}
 
-  const { load } = await import('../src/routes/[d]/+page.server.js');
+/**
+ * Lädt die Route frisch und schiebt ihr den Spiegel-Inhalt unter.
+ *
+ * @param {{ d?: string, inhalt?: unknown, englisch?: boolean }} [eingabe]
+ */
+async function ladeMitAttrappe(eingabe = {}) {
+  await spiegelUnterschieben(eingabe.inhalt ?? inhaltNachstellen());
+
+  const { load } = eingabe.englisch
+    ? await import('../src/routes/en/[d]/+page.server.js')
+    : await import('../src/routes/[d]/+page.server.js');
   const d = eingabe.d ?? 'die-kraft-der-gemeinschaft';
   // load() bricht im Fehlerfall mit error()/redirect() ab; TypeScript sieht
   // dort ein moegliches void. Der Rueckgabetyp haelt fest, was im
@@ -116,6 +121,16 @@ async function ladeMitAttrappe(eingabe = {}) {
   return /** @type {Promise<Seitendaten>} */ (
     load(/** @type {any} */ ({ params: { d }, url: new URL('http://test/' + d) }))
   );
+}
+
+/**
+ * Die JSON-Route unter /[d]/json frisch laden.
+ * @param {{ d: string, inhalt?: unknown }} eingabe
+ */
+async function jsonMitAttrappe(eingabe) {
+  await spiegelUnterschieben(eingabe.inhalt ?? inhaltNachstellen());
+  const { GET } = await import('../src/routes/[d]/json/+server.js');
+  return GET(/** @type {any} */ ({ params: { d: eingabe.d }, url: new URL('http://test/' + eingabe.d + '/json') }));
 }
 
 describe('Detailansicht laedt den Artikel serverseitig', () => {
@@ -168,6 +183,78 @@ describe('Detailansicht leitet naddr-Adressen weiter (ADR-0029)', () => {
 
   it('ein Text, der wie naddr beginnt, aber nicht dekodiert, ist ein unbekanntes d → 404', async () => {
     await expect(ladeMitAttrappe({ d: 'naddr1kaputt' })).rejects.toMatchObject({ status: 404 });
+  });
+});
+
+// Eine englische Fassung des Referenzfalls: dieselben Tags, inLanguage=en,
+// eigenes d. Damit prüft /en/[d] echte Ereignisse statt einer Erfindung.
+const englischEvent = {
+  ...artikelEvent,
+  id: 'e'.repeat(64),
+  tags: [
+    ...artikelEvent.tags.filter((/** @type {string[]} */ t) => t[0] !== 'd' && t[0] !== 'inLanguage'),
+    ['d', 'our-team'],
+    ['inLanguage', 'en']
+  ]
+};
+
+/** Spiegel mit deutschem UND englischem Beitrag. */
+function inhaltZweisprachig() {
+  const basis = inhaltNachstellen();
+  return { ...basis, artikel: [...basis.artikel, englischEvent] };
+}
+
+describe('Sprachweiterleitung zwischen /[d] und /en/[d] (ADR-0029)', () => {
+  it('ein englischer Beitrag unter /[d] leitet dauerhaft auf /en/[d]', async () => {
+    await expect(
+      ladeMitAttrappe({ d: 'our-team', inhalt: inhaltZweisprachig() })
+    ).rejects.toMatchObject({ status: 301, location: '/en/our-team' });
+  });
+
+  it('/en/[d] liefert den englischen Beitrag mit seinem Pfad', async () => {
+    const daten = await ladeMitAttrappe({ d: 'our-team', englisch: true, inhalt: inhaltZweisprachig() });
+    expect(daten.artikel.sprache).toBe('en');
+    expect(daten.pfad).toBe('/en/our-team');
+  });
+
+  it('ein deutscher Beitrag unter /en/[d] leitet dauerhaft auf /[d]', async () => {
+    await expect(
+      ladeMitAttrappe({ d: 'die-kraft-der-gemeinschaft', englisch: true, inhalt: inhaltZweisprachig() })
+    ).rejects.toMatchObject({ status: 301, location: '/die-kraft-der-gemeinschaft' });
+  });
+});
+
+describe('Prozent-kodierte d finden ihren Beitrag (ADR-0029)', () => {
+  it('der dekodierte Param trifft ein d mit literalem Prozentzeichen', async () => {
+    const kodiert = {
+      ...artikelEvent,
+      id: 'c'.repeat(64),
+      tags: [
+        ...artikelEvent.tags.filter((/** @type {string[]} */ t) => t[0] !== 'd'),
+        ['d', 'oer-visuelle-qualit%C3%A4t']
+      ]
+    };
+    const basis = inhaltNachstellen();
+    const daten = await ladeMitAttrappe({
+      d: 'oer-visuelle-qualität',
+      inhalt: { ...basis, artikel: [kodiert] }
+    });
+    expect(daten.pfad).toBe('/oer-visuelle-qualit%C3%A4t');
+  });
+});
+
+describe('Die JSON-Route leitet naddr auf ihr eigenes Ziel weiter', () => {
+  it('/naddr…/json geht nach /[d]/json, nicht nach /[d]', async () => {
+    await expect(jsonMitAttrappe({ d: NADDR })).rejects.toMatchObject({
+      status: 301,
+      location: '/die-kraft-der-gemeinschaft/json'
+    });
+  });
+
+  it('auch die Sprachweiterleitung bleibt bei JSON', async () => {
+    await expect(
+      jsonMitAttrappe({ d: 'our-team', inhalt: inhaltZweisprachig() })
+    ).rejects.toMatchObject({ status: 301, location: '/en/our-team/json' });
   });
 });
 
