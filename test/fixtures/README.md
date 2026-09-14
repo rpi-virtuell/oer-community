@@ -95,6 +95,44 @@ wächst mit der redaktionellen Überarbeitung, und Tests, die sich daran
 festmachen, würden dann unbemerkt etwas anderes prüfen. Beim Aktualisieren
 das Datum hier oben mitziehen.
 
+## Testquelle
+
+`testquelle/` sind keine echten Events. Der FOERBICO-Bestand hat (Stand
+14.09.) noch keine Seiten (Selbst-Label `["l","seite","foerbico/typ"]`),
+keine Kuratierungslisten (`kind:30004`) und kein gefülltes Profil — Stufe 2
+(Seiten, Menü, Fußzeile, Startseite, Kopf aus `kind:0`) lässt sich damit
+also noch nicht prüfen. `testquelle/erzeugen.mjs` erzeugt deshalb
+signierte Events eines **Wegwerf-Schlüssels**, mit dem der Hub diese
+Fälle durchspielen kann, bevor FOERBICO sie publiziert.
+
+Der geheime Schlüssel steht nur im Skript und ist wertlos — er signiert
+nichts Echtes. `testquelle/schluessel.json` enthält nur den öffentlichen
+Teil, den Tests als `konfig.autor` setzen.
+
+**Neu erzeugen ändert Signaturen und IDs** (Schnorr-Signaturen sind
+zufällig, auch bei gleichem Inhalt) — deshalb `node
+test/fixtures/testquelle/erzeugen.mjs` nur bei Bedarf ausführen, nie
+routinemäßig, und die neuen `events.json`/`schluessel.json` anschließend
+committen.
+
+| kind | d | Besonderheit |
+|---|---|---|
+| 0 | — | Profil: `name`, `display_name`, `picture`, `about` (Markdown mit Link), `website` |
+| 30023 | `startseite` | Seite (Label), Titel „Willkommen", Inhalt Markdown mit einem Absatz |
+| 30023 | `impressum` | Seite, Titel „Impressum" |
+| 30023 | `unser-team` | Seite, Titel „Unser Team", `inLanguage de` |
+| 30023 | `our-team` | Seite, Titel „Our team", `inLanguage en` |
+| 30023 | `artikel-a` | Artikel (kein Label), Titel „Artikel A", `published_at 1789300000`, `t` „Testthema" |
+| 30004 | `navigation` | `a`: unser-team, `oer-und-oep` (fehlt im Spiegel), startseite (soll übersprungen werden), artikel-a, sowie eine fremde Quelle |
+| 30004 | `fusszeile` | `a`: impressum, `datenschutz` (fehlt) |
+
+`testquelle/fixtures.test.js` prüft, dass alle acht Events gültig signiert
+sind und vom selben Schlüssel stammen. `testquelle/laden.js` ist der
+Test-Helfer für Stufe 2: `testquelle()` liefert Events und Pubkey roh,
+`inhaltDerTestquelle({ ohne })` einen fertigen Spiegelinhalt samt
+passender `Konfig` — optional ohne einzelne Events, um Fehlerfälle
+(fehlende Seite in der Navigation, fehlendes Profil) durchzuspielen.
+
 ## Auch Grundlage für den Spiegel
 
 Seit ADR-0028 speisen dieselben Dateien nicht mehr nur die Loader- und

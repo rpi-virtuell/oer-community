@@ -1,0 +1,250 @@
+[
+  {
+    "kind": 0,
+    "created_at": 1789400000,
+    "tags": [],
+    "content": "{\"name\":\"Testquelle\",\"display_name\":\"TQ\",\"picture\":\"https://blossom.example/logo.png\",\"about\":\"CC BY **Testquelle** — [Impressum](https://example.org/impressum)\",\"website\":\"https://test.example\"}",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "5ac8b5cf09c69f64140021edb3b20d40c27f365309e2dd07e336f4c179ee845f",
+    "sig": "e35db39351843013c58ef08e001024297bc56f982fe2a5ccb499c4bc40874e0361515b449b86b3fc271e0b4853d2bb6f8b2cc74414de5529f3ae08fc3292a526"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "startseite"
+      ],
+      [
+        "title",
+        "Willkommen"
+      ],
+      [
+        "published_at",
+        "1789400000"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "L",
+        "foerbico/typ"
+      ],
+      [
+        "l",
+        "seite",
+        "foerbico/typ"
+      ]
+    ],
+    "content": "Willkommen bei der **Testquelle**.\n\nZweiter Absatz.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "c00166c04e899e4a944d5e2b46a11118db01dc00e228b499a87cd62f88291463",
+    "sig": "74bd43d7f4dd8334a1839a0788d42ee4ce26dcdac524fcde6f8bed77a8a4f2b4e52a9f42bba8f3613b3d13c6efdd600161c5346bf7eff7a3f9a3c48128d9ee3a"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "impressum"
+      ],
+      [
+        "title",
+        "Impressum"
+      ],
+      [
+        "published_at",
+        "1789400000"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "L",
+        "foerbico/typ"
+      ],
+      [
+        "l",
+        "seite",
+        "foerbico/typ"
+      ]
+    ],
+    "content": "Verantwortlich: Testquelle.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "67deb6ca33a259ce11b5bc01e53885df714446c47f59c34cd8a1137a9f7cb24f",
+    "sig": "52ca772176de115a6c5566011cfa865b28ae5b6e7042d959b6fd3367cf11b0f39e61f35458cef55935e93560faa709ded0e5c7fdf539fc1a1bf48fad9a02a8c5"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "unser-team"
+      ],
+      [
+        "title",
+        "Unser Team"
+      ],
+      [
+        "published_at",
+        "1789400000"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "L",
+        "foerbico/typ"
+      ],
+      [
+        "l",
+        "seite",
+        "foerbico/typ"
+      ]
+    ],
+    "content": "Drei Menschen.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "28d6a39fd7317127cc78fb6354e2bdc29f9c59e1864169203181bf4ee9887172",
+    "sig": "acd3a5d39e5d70271fff7355cf700803700c5df2027e1964af0a79c2ba3bd23316a3258331f2350e1a273b9d151b08848d19dba913480d672a1d4224ef2331db"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "our-team"
+      ],
+      [
+        "title",
+        "Our team"
+      ],
+      [
+        "published_at",
+        "1789400000"
+      ],
+      [
+        "inLanguage",
+        "en"
+      ],
+      [
+        "L",
+        "foerbico/typ"
+      ],
+      [
+        "l",
+        "seite",
+        "foerbico/typ"
+      ]
+    ],
+    "content": "Three people.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "3659ab9e8b1914d5f10c6183c41394ffff842513e27850a0ea56750bffe7ca95",
+    "sig": "1433cf43e33caf393831a049beedb3246958252c17a32cea84e91c66cdfa30e82d98ddcd9da6409bdfa714bc591876683b06a8de03f6693fcd74f23738d5d8f7"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "artikel-a"
+      ],
+      [
+        "title",
+        "Artikel A"
+      ],
+      [
+        "summary",
+        "Anriss A",
+        "de"
+      ],
+      [
+        "published_at",
+        "1789300000"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "t",
+        "Testthema"
+      ]
+    ],
+    "content": "Text von Artikel A.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "4d822f182efae7ff83a21619611212cb2d7f0c80219dee2ccb05deceb76f13dc",
+    "sig": "17f89a37cb84df9d148f357e5009a65e40a7f67a275240822a8eefc7b2cf9acd2b4c88eecf7595ec574fc2f973a7f49181b7015c12326d558a4d223e6b7d08a1"
+  },
+  {
+    "kind": 30004,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "navigation"
+      ],
+      [
+        "title",
+        "Hauptmenü"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:unser-team"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:oer-und-oep"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:startseite"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:artikel-a"
+      ],
+      [
+        "a",
+        "30023:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:x"
+      ]
+    ],
+    "content": "",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "024e7da5f3075a6c66d762d7937faeb6680d21091cee38d7a781f6532dbda50b",
+    "sig": "ba9ac760849d0c44905c65b2d06920d46fc5c4960fc3b7a2148c915f05ac095c01f727d938d1b761f5008241f11b95a55644cce548d2e6dea20756eb6ef31c78"
+  },
+  {
+    "kind": 30004,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "fusszeile"
+      ],
+      [
+        "title",
+        "Fußzeile"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:impressum"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:datenschutz"
+      ]
+    ],
+    "content": "",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "c09cc28740d23abc2013d8554a2f2c9e2e4e514b0f8ace5e991ebb05a472d879",
+    "sig": "e0025fda0a9d99f088e64696bcb8919bf43a80ee9ebcdf00eb9e5bc2f8538aa2d1b93781d4a8376cd96d1682e5f9538839d114de7a7dbe920d52c8b33b0417a3"
+  }
+]
