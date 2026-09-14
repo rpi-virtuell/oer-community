@@ -90,7 +90,7 @@
     margin: 12px 0 0;
     padding: 12px;
     background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid var(--schrift-label);
+    border-left: 3px solid var(--amber);
     font-size: 0.92rem;
   }
   .werkzeug {
