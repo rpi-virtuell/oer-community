@@ -1,266 +1,194 @@
 # Designsystem community-hub
 
-**Grundlage:** Farbfusions- und Typografiekonzept FOERBICO × rpi-virtuell,
-v2 (Februar 2026) —
-[Farbkarte](https://rpi-virtuell.github.io/FOERBICO_und_rpi-virtuell/farbkarte-komplementaer.html).
-Es ordnet relilab als Tochtermarke von rpi-virtuell ein.
+**Grundlage:** `Website/Design/styleguide.md` (FOERBICO-Styleguide) und das
+PaperMod-Theme von oer.community, dessen CSS
+(`zz001-foerbico-theme.css`) die tatsächlich genutzten Werte zeigt —
+Stand 14.09.2026. **ADR-0031 ersetzt ADR-0018.** Die Farbkarte
+FOERBICO × rpi-virtuell und `mockup/index.html` sind der relilab-Stand vom
+04.09.2026 und nicht mehr maßgeblich — sie bleiben im Repository als
+Beleg dieses früheren Stands, nicht als Quelle für neue Werte.
 
-**Stand:** 04.09.2026 · Umsetzung: `src/app.css` (Tokens, Grundschrift,
-Bausteine), Gestaltungsstand `mockup/index.html` · Begründung: Spec,
-Entscheidung 4 · Kontrastentscheidungen: ADR-0018
+**Stand:** 14.09.2026 · Umsetzung: `src/app.css` (Tokens, Grundschrift,
+Bausteine) · Begründung: ADR-0031 · Kontrastentscheidungen: ADR-0031,
+nachgerechnet in `test/kontrast.test.js`.
 
 **Die Werte werden kopiert, nicht verlinkt.** Weder das WordPress-Stylesheet
-noch die Farbkarte werden zur Laufzeit geladen — sonst wäre WordPress nicht
-überflüssig, sondern Voraussetzung.
-
-**Wo Ist-Zustand und Designsystem sich widersprechen, gewinnt das
-Designsystem.** Das Schaufenster baut nicht die alte Seite nach, sondern
-passt in die gemeinsame Markenwelt. Die frühere Ableitung aus dem
-Blocksy-Theme (`#2872fa`, Roboto Condensed als Fließtext) gilt nicht mehr.
+noch ein PaperMod-Stylesheet werden zur Laufzeit geladen — sonst wäre
+WordPress nicht überflüssig, sondern Voraussetzung.
 
 ---
 
 ## Farben
 
-```css
-:root{
-  /* Institutionsfarben */
-  --relilab:      #34b2f6;  /* Primärfarbe */
-  --relilab-tief: #1a8fd0;  /* dunklere Stufe, Hover */
-  --magenta:      #d225f8;  /* Endpunkt des relilab-Gradienten */
-  --rpi:          #0072aa;  /* Muttermarke — hier: Linkfarbe, s. u. */
-  --foerbico:     #203a8f;
-  --fusion:       #1a5699;
-  --fau:          #04316a;  /* dunkelster Ton */
+Aus `Website/Design/styleguide.md` (FOERBICO), kopiert nach `src/app.css`:
 
-  /* Warm-Spektrum: Akzente */
-  --amber:      #f29422;  /* Primärakzent: Aktionen, aktive Zustände */
-  --amber-tief: #d97d13;
-  --pink:       #e54d9a;  /* Termine, Community-Formate */
-  --orange:     #ff8103;  /* relilab-Orange: Akzent, Gamification */
-  --mint:       #2ecc88;  /* Funktionsfarbe: Erfolg, Status */
+| Token | Wert | Wofür |
+|---|---|---|
+| `--fb-primaer` | `#203a8f` | Marke, Links, aktive Zustände |
+| `--fb-akzent` | `#ffa500` | Rahmen, Hervorhebung, Fokus — **nie** Grund für weißen Text |
+| `--fb-ueberschrift` | `#002366` | Überschriften |
+| `--fb-text` | `#333333` | Fließtext |
+| `--fb-rahmen` | `#d3d3d3` | Linien |
+| `--fb-flaeche` | `#f0f8ff` | Karten, Fußzeile, Hinweise |
+| `--fb-flaeche-2` | `#e6f2ff` | Kopfzeile, Marker |
+| `--fb-weiss` | `#ffffff` | Grund |
 
-  /* Flächen und Text */
-  --rl-text:       #1a1e2e;  /* Fließtext */
-  --rl-text-leise: #5a6178;  /* Metazeilen */
-  --rl-dunkel:     #04316a;  /* = --fau */
-  --rl-linie:      #e6e9f2;
-  --rl-flaeche:    #f6f7fb;
-  --rl-flaeche-2:  #eef0f7;
-  --rl-weiss:      #ffffff;
+Zwei Werte sind abgeleitet, nicht im Styleguide genannt:
 
-  --verlauf: linear-gradient(135deg, var(--relilab) 0%, var(--magenta) 100%);
-}
-```
+| Token | Wert | Herkunft |
+|---|---|---|
+| `--fb-text-leise` | `#5a6178` | Metazeilen — Wert aus dem früheren Designsystem übernommen, da der Styleguide keinen eigenen für gedämpften Text nennt |
+| `--fb-fehler` | `#971b2f` | Comenius-Dunkelrot aus der Farbtabelle des Styleguides (Zeile „Aktive Elemente", Spalte Comenius) — der Styleguide selbst nennt keinen Fehlerton, ADR-0031 legt diesen fest |
 
-### Einsatzregeln
-
-| Farbe | Wofür |
-|---|---|
-| `--amber` | Aktionen, Filter, aktive Zustände, Hervorhebungen |
-| `--pink` | Termine, Community-Events, partizipative Formate |
-| `--verlauf` | relilab-Submarke: Wortmarke, Aufmacher |
-| `--mint` | Statusmeldungen, Erfolg |
-| `--fau` | Fußzeile, Schrift auf Farbflächen |
+**Kein Dunkelmodus in dieser Stufe** (ADR-0031). PaperMod hatte einen; der
+Hub bekommt ihn, wenn jemand ihn vermisst.
 
 ---
 
 ## Schrift
 
-**Drei Schriften, drei Rollen.** Die Aufteilung ist Teil des Systems, nicht
-Geschmack — jede Schrift steht für eine der drei Marken.
-
-| Schrift | Rolle | Herkunft |
-|---|---|---|
-| Yanone Kaffeesatz | Überschriften, Display, Community-Bereiche | Community |
-| Roboto Condensed | Navigation, Labels, Marker, Metazeilen | FOERBICO |
-| Roboto | Fließtext, Beschreibungen | rpi-virtuell |
+**Eine Schrift für alles.** Roboto und Yanone Kaffeesatz aus dem früheren
+Designsystem entfallen samt Dateien und Lizenztexten — der
+FOERBICO-Styleguide nennt nur Roboto Condensed.
 
 ```css
---schrift-ueber: "Yanone Kaffeesatz", Roboto, system-ui, sans-serif;
---schrift-label: "Roboto Condensed", Roboto, system-ui, sans-serif;
---schrift-text:  Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+--schrift: 'Roboto Condensed', system-ui, -apple-system, 'Segoe UI', sans-serif;
 ```
 
-**Roboto Condensed ist nicht die Fließtextschrift.** Das war der Fehler der
-früheren Ableitung. Sie trägt Navigation, Marker und Metazeilen — kurze Texte
-in Versalien oder mit Sperrung.
+**Schriften werden lokal ausgeliefert** (`static/schriften/`), nicht von
+Google Fonts geladen — Schulnetze und Datenschutz. Eine variable Datei je
+Subset (`latin`, `latin-ext`) deckt die Schnittweiten 400 bis 700 ab. Dass
+keine Schrift von Google kommt und jede `url()` auf eine vorhandene Datei
+zeigt, prüft `src/lib/architektur.test.js`.
 
 ### Skala
 
 | Rolle | Wert |
 |---|---|
-| `h1` | `clamp(2rem, 4vw, 3rem)` |
-| `h2` | `clamp(1.6rem, 3vw, 2.25rem)` |
-| `h3` | `1.35rem` |
-| Fließtext | `16px`, `line-height: 1.65`, `font-weight: 400` |
-| Detailinhalt | `1.02rem` |
-| Metazeile, Marker | `.86rem` / `.78rem` |
-| Augenbraue | `.82rem`, `letter-spacing: .16em`, Versalien |
+| Fließtext (`body`) | `17px`, `line-height: 1.6`, `font-weight: 400` |
+| `h1` | `clamp(2rem, 4vw, 2.8rem)` |
+| `h2` | `clamp(1.5rem, 3vw, 2rem)` |
+| `h3` | `1.3rem` |
+| Metazeile | `.86rem` |
+| Marker | `.78rem` |
 
-Überschriften: `font-weight: 700`, `line-height: 1.15`, Farbe `--rl-dunkel`.
-
-**Schriften werden lokal ausgeliefert** (`static/schriften/`), nicht von
-Google Fonts geladen. Das Mockup nutzt das CDN, der Client nicht —
-Schulnetze und Datenschutz. Acht WOFF2-Subsets (latin, latin-ext) als
-variable Fonts, eine Datei deckt 400 bis 700; Lizenzen daneben in
-`LIZENZ.md`. Dass keine Schrift von Google kommt und jede `url()` auf
-eine vorhandene Datei zeigt, prüft `src/lib/architektur.test.js`.
+Überschriften (`h1`–`h6`): `font-weight: 700`, `line-height: 1.15`, Farbe
+`--fb-ueberschrift`.
 
 ---
 
 ## Maße
 
 ```css
---rl-container: 1499px;   /* Textbreite schmal: 820px */
---rl-kopf:      120px;    /* Kopfzeilenhöhe */
+--breite-container: 1499px;   /* Textbreite schmal: 820px */
+--breite-schmal:    820px;
+--hoehe-kopf:        120px;   /* Kopfzeilenhöhe */
+--radius:              5px;
 ```
 
-**Radien:** `6px` Knöpfe · `8px` Bilder, kleine Flächen · `10px` Karten ·
-`12px` Kästen · `999px` Marker und runde Knöpfe
-
-**Abschnittsabstand:** `56px 0` Standardblock, `72px 0` Aufmacher
+Das Layout — Textbreite, Container, Kopfzeilenhöhe — bleibt vom
+bisherigen Designsystem übernommen, weil es nicht markenspezifisch ist
+(ADR-0031).
 
 ```css
---schatten:       0 2px 24px rgba(20,50,100,.08);
---schatten-hover: 0 8px 40px rgba(20,50,100,.15);
+--schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
 ```
 
 ---
 
-## Kontrast — die Regeln, die aus der Palette folgen
+## Einsatzregeln
 
-Alle Werte unten sind nachgerechnet (WCAG 2.1, sRGB). Grenzen: **4,5:1** für
-normalen Text, **3:1** für großen Text (ab 18,66 px fett oder 24 px normal).
+- **Primär** (`--fb-primaer`) für Links, Marke, aktive Zustände.
+- **Fokusring** (`:focus-visible`) ist `3px` Akzent mit `2px` Abstand, dazu
+  ein `1px`-Saum aus `--fb-ueberschrift` (`box-shadow`): Orange allein liegt
+  auf Weiß bei 2,0:1 und damit unter den 3:1, die WCAG 2.1 für
+  Bedienelemente verlangt. Der Saum hebt den Kontrast, ohne die Akzentfarbe
+  des Rings zu ändern (ADR-0031).
+- **Akzent** (`--fb-akzent`) nur als Rahmen, Hervorhebung oder Fokusring —
+  **nie** als Grund für weißen Text. Orange trägt kein Weiß: 2,0:1, weit
+  unter der Grenze. Steht Text auf `--fb-akzent`, ist die Textfarbe
+  `--fb-ueberschrift` (7,4:1). `test/kontrast.test.js` prüft mechanisch,
+  dass keine Komponente `--fb-akzent` als Hintergrund mit `--fb-weiss` als
+  Textfarbe im selben Regelblock kombiniert.
+- **Flächen** (`--fb-flaeche`, `--fb-flaeche-2`) für Karten, Fußzeile,
+  Hinweise (`--fb-flaeche`) sowie Kopfzeile und Marker (`--fb-flaeche-2`).
+- **Fehler** (`--fb-fehler`) ausschließlich für Fehlerzustände.
 
-### Nie weiße Schrift auf Primär- oder Akzentflächen
+---
+
+## Kontrast
+
+Alle Werte sind mit der Formel aus `test/kontrast.test.js` nachgerechnet
+(WCAG 2.1, sRGB, relative Leuchtdichte). Grenze: **4,5:1**, unabhängig von
+der Textgröße — die Werte tragen die Farbe auch, wenn eine Schrift kleiner
+gesetzt wird. `test/kontrast.test.js` prüft diese Paare gegen genau diese
+Grenze.
 
 | Kombination | Verhältnis | |
 |---|---|---|
-| Weiß auf `--relilab` | 2,37:1 | durchgefallen |
-| Weiß auf `--amber` | 2,32:1 | durchgefallen |
-| **`--fau` auf `--relilab`** | **5,35:1** | AA |
-| **`--fau` auf `--amber`** | **5,47:1** | AA |
+| `--fb-text` auf `--fb-weiss` | 12,6:1 | AA |
+| `--fb-text` auf `--fb-flaeche` | 11,8:1 | AA |
+| `--fb-text-leise` auf `--fb-weiss` | 6,1:1 | AA |
+| `--fb-text-leise` auf `--fb-flaeche-2` | 5,4:1 | AA |
+| `--fb-primaer` auf `--fb-weiss` | 10,2:1 | AA |
+| `--fb-ueberschrift` auf `--fb-akzent` | 7,4:1 | AA |
+| `--fb-fehler` auf `--fb-weiss` | 8,4:1 | AA |
+| `--fb-weiss` auf `--fb-akzent` | 2,0:1 | **durchgefallen, deshalb verboten** |
 
-**Aktive Zustände tragen `--fau` als Textfarbe.** Betrifft: aktiver
-Navigationspunkt, gedrückter Filterknopf, aktiver Umschalter. Die Palette
-bleibt unverändert; es geht allein um die Schrift darauf.
-
-Die Farbkarte trifft dazu keine Aussage — das ist eine Festlegung dieses
-Projekts.
-
-### Knöpfe im Verlauf
-
-Der relilab.org-Knopf läuft Magenta → Orange. Weiß erreicht auf dem
-ursprünglichen `--amber` nur 2,50:1.
-
-```css
-background: linear-gradient(90deg, var(--magenta) 0%, var(--pink) 50%, #e8721a 100%);
-font-weight: 700;  /* bei 1.06rem → großer Text, Grenze 3:1 */
-```
-
-Gemessen über den Verlauf: Magenta 3,92:1 · Pink 3,58:1 · `#e8721a` 3,06:1 —
-durchgehend über 3:1. **Der Verlauf endet deshalb bei `#e8721a`, nicht bei
-`--amber`, und die Schrift muss fett bleiben.** Wird der Knopf kleiner oder
-magerer gesetzt, trägt die Farbe nicht mehr.
-
-### Marker
-
-Getönte Fläche (Farbe mit Deckkraft auf Weiß), Text in dunklerer Stufe:
-
-| Marker | Text | Fläche | Verhältnis | |
-|---|---|---|---|---|
-| Pink | `#c22e7d` | `--pink` 13 % | 4,51:1 | AA |
-| Blau | `--relilab-tief` | `--relilab` 14 % | 3,17:1 | nur großer Text |
-| Mint | `#1a9c63` | `--mint` 15 % | 3,13:1 | nur großer Text |
-| Amber | `--amber-tief` | `--amber` 16 % | 2,68:1 | **durchgefallen** |
-| Neutral | `--rl-text-leise` | `--rl-flaeche-2` | 5,40:1 | AA |
-
-Marker sind mit `.78rem` **kleiner** Text — die 3:1-Grenze gilt für sie
-nicht. Damit erfüllen nur Pink und Neutral die Anforderung. Siehe offene
-Punkte.
-
-### Weitere geprüfte Paare
-
-| Kombination | Verhältnis |
-|---|---|
-| `--rl-text` auf Weiß | 16,55:1 |
-| `--rl-text` auf `--rl-flaeche` | 15,46:1 |
-| `--rl-text-leise` auf Weiß | 6,15:1 |
-| `--rl-text-leise` auf `--rl-flaeche` | 5,74:1 |
-| Weiß auf `--fau` | 12,71:1 |
-| `--fau` auf `--mint` | 6,12:1 |
+**Weiß auf Akzent ist deshalb keine Option, keine Ausnahme.** Der letzte
+Wert steht in der Tabelle, weil er den Grund für die Einsatzregel oben
+liefert — nicht, weil er irgendwo eingesetzt wird.
 
 ---
 
-## Die drei Kontrastpunkte — entschieden (ADR-0018)
+## Bausteine
 
-Drei Stellen, an denen das Mockup die Kontrastanforderung nicht erfüllt.
-Am 04.09.2026 entschieden, die Werte rechnet `test/kontrast.test.js` aus
-den Tokens in `app.css` nach. Erst die Analyse, dann die Entscheidung:
+Wiederkehrende Klassen aus `src/app.css`:
 
-**1. Linkfarbe.** `--relilab-tief` erreicht auf Weiß **3,57:1** — für
-Fließtext-Links zu wenig. `--rpi #0072aa` aus derselben Farbkarte schafft
-**5,27:1** auf Weiß und 4,92:1 auf `--rl-flaeche` — beides AA — und
-bleibt im Markenraum. Empfehlung: `--rpi` für Links im
-Fließtext, `--relilab-tief` weiter für große und dekorative Elemente
-(Augenbraue, Zurück-Knopf ≥ 18,66 px fett).
-
-**2. Amber-Marker.** 2,68:1 bei `.78rem`. Zwei geprüfte Wege: Text auf
-`--fau` ergibt **11,16:1** — reichlich Reserve, kostet aber die warme
-Anmutung; oder eine dunklere Amber-Stufe, `#a35c0c` erreicht genau **4,50:1**,
-`#96550a` **5,12:1** mit Reserve. Empfehlung: `#96550a` als eigenes Token für
-Marker-Text. Betrifft nur den Marker, nicht `--amber` als Fläche.
-
-**3. Aufmacher-Verlauf.** Weiße Schrift startet bei 2,37:1 (blaues Ende) und
-erreicht erst zum Magenta hin 3,92:1. Die `h1` ist groß genug, dass 3:1 gilt,
-liegt am Anfang aber darunter. Die Augenbraue mit
-`rgba(255,255,255,.82)` kommt auf **2,03:1** und ist klar zu schwach.
-Mittel: Verlauf im Aufmacher dunkler anlegen (Richtung `--fusion`/`--fau`),
-oder eine abdunkelnde Auflage unter den Text legen. Die Augenbraue in jedem
-Fall auf volle Deckkraft.
-
-**Entschieden** — die Empfehlungen gelten, als Tokens in `src/app.css`:
-
-```css
---marker-amber-text: #96550a;   /* Punkt 2: 5,12:1 auf 16 % Amber */
---aufmacher-start:   #1a5699;   /* Punkt 3: = --fusion, Weiß 7,41:1 */
---aufmacher-ende:    #8d0fa8;   /*          Weiß 7,59:1 */
---verlauf-aufmacher: linear-gradient(135deg, var(--aufmacher-start) 0%, var(--aufmacher-ende) 100%);
---fuss-text:         #a8bccf;   /* Fußzeile auf --fau: 6,51:1 */
-```
-
-Punkt 1 ist umgesetzt (`a { color: var(--rpi) }`). Zwei Festlegungen kamen
-dazu: Die **Augenbraue auf Weiß** steht in `--rl-text-leise` — bei `.82rem`
-ist das kleiner Text, `--relilab-tief` reicht dort nicht. Und der
-**Fußzeilentext** aus dem Mockup (`#a8bccf`) besteht auf `--fau`.
-
-Das Mockup ist **nicht** korrigiert — es zeigt den Gestaltungsstand, der
-Client den Endstand.
+- **Metazeile** (`.metazeile`) — Datum, Themen, Bildnachweis: `.86rem`,
+  `--fb-text-leise`, als Flex-Zeile mit Umbruch.
+- **Marker** (`.marker`) — Themen-Schlagwort als Pille: Fläche
+  `--fb-flaeche-2`, Text `--fb-text-leise`, `.78rem`, voll gerundet.
+- **Augenbraue** (`.augenbraue`) — kurze Zeile über einer Überschrift:
+  `.82rem`, Versalien, `letter-spacing: .16em`, `--fb-text-leise`.
+- **Hinweis** (`.hinweis`) — Herkunftshinweis, fehlendes Bild, entfernte
+  Verweise: Fläche `--fb-flaeche`, linker Rahmen `--fb-akzent` (3px),
+  abgerundet nur rechts.
+- **Karte** (`Karte.svelte`) — Übersichtskachel: Rahmen `--fb-rahmen` (1px),
+  `--radius`, weißer Grund, Cover oben, Text darunter.
+- **Bildrahmen** — den orangen Rahmen (`1px solid --fb-akzent`, `--radius`)
+  trägt allein der `Bildbereich` (Cover und aufgelöste Bilder im Fließtext),
+  wie PaperMods `.post-content img`. Die **Karte** rahmt als Ganzes
+  (`1px solid --fb-rahmen`, `--radius`), nicht ihr Cover einzeln. Bilder, die
+  aus dem Fließtext-HTML kommen und keinen Nachweis haben (`.inhalt img`),
+  bekommen nur `--radius` — sonst behauptete der Akzentrahmen einen
+  geprüften Stand, den es nicht gibt.
+- **Keine kursive Schnittdatei.** Unter `static/schriften/` liegt je Familie
+  nur der aufrechte variable Schnitt (400–700, `font-style: normal`). `<em>`
+  wird deshalb vom Browser synthetisiert — bewusst: eine zweite Datei je
+  Familie kostet mehr Ladezeit, als die echte Kursive im Fließtext einbringt.
 
 ---
 
-## Übernommenes von relilab.org
+## Frühere Stände
 
-Die Startseite trägt Elemente der heutigen Seite weiter, damit sie als deren
-Nachfolgerin erkennbar bleibt: Titel „Gemeinsam religionsbezogene Bildung
-ermöglichen.", animiertes Intro-GIF, Knopf „Am Live-Anlass teilnehmen", vier
-Kästen (Wer wir sind · Wie wir arbeiten · Was wir tun · Mitmachen), Knopf
-„Anmeldung zum Newsletter".
+`mockup/index.html` und die Farbkarte FOERBICO × rpi-virtuell
+(`--relilab`, `--magenta`, `--verlauf`, `--fau` und Verwandte) sind der
+relilab-Stand vom 04.09.2026. Sie bleiben im Repository, sind aber seit
+ADR-0031 **nicht mehr maßgeblich** — der Gestaltungsstand im laufenden
+Client ist `src/app.css` mit den FOERBICO-Werten oben. ADR-0018
+(die drei Kontrastpunkte der relilab-Palette) ist durch ADR-0031 ersetzt
+und bleibt nur als Geschichte stehen.
 
-Die Kästen verweisen vorerst **zurück auf relilab.org**. Solange WordPress
-läuft, ist das richtig; beim Ablösen werden daraus eigene Seiten. Bewusster
-Zwischenstand, kein Endzustand.
-
-**Das Intro-GIF wiegt 11,2 MB.** `loading="lazy"`, Fläche über `aspect-ratio`
-reserviert, damit nichts springt. Für den Dauerbetrieb gehört es verkleinert
-oder als Video ausgeliefert — Aufgabe der Redaktion, nicht des Clients.
+Ebenso historisch: die geplante relilab-Seitenstruktur für die Startseite
+(Intro-Titel, animiertes GIF, vier Kästen, Newsletter-Knopf) wurde nie im
+Hub gebaut und entfällt mit ADR-0026/ADR-0027 — die Startseite ist die
+Seite `d = startseite` aus Nostr, kein festverdrahtetes relilab-Markup.
 
 ---
 
 ## Noch zu klären
 
-**Wie nah kommt „1:1"?** Farben, Schriften und Abstände sind Tokens; ein
-abweichendes Kartenraster oder eine andere Kopfzeile sind Komponentenarbeit.
-Erste Aufgabe ist eine Untersuchung, keine Schätzung: Seitenteile von
-relilab.org durchgehen und festhalten, was Token und was Komponente ist.
+**Wie nah kommt „1:1" an oer.community?** Farben, Schrift und Maße sind
+Tokens; ein abweichendes Kartenraster oder eine andere Kopfzeile sind
+Komponentenarbeit. Diese Untersuchung steht noch aus.

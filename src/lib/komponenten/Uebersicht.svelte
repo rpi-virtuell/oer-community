@@ -37,7 +37,7 @@
 <style>
   .detail-kopf {
     padding-bottom: 28px;
-    border-bottom: 1px solid var(--rl-linie);
+    border-bottom: 1px solid var(--fb-rahmen);
     margin-bottom: 32px;
   }
   .seitenzahlen { justify-content: space-between; margin-top: 32px; }

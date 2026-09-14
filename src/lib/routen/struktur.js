@@ -5,10 +5,13 @@
  */
 import { inhaltAufbereiten } from '../inhalt.js';
 import { strukturLaden } from '../loaders/struktur.js';
+import { basisUrlBestimmen, kanonisch } from '../kanonisch.js';
+
+export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';
 
 /** @typedef {import('../loaders/struktur.js').Eintrag} Eintrag */
 /** @typedef {import('../loaders/struktur.js').Struktur} Struktur */
-/** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'] }} Layoutstruktur */
+/** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'], basisUrl: string }} Layoutstruktur */
 
 /** Ansichten des Hubs, keine Seiten — deshalb ohne d. @type {Eintrag[]} */
 export const HUB_ANSICHTEN = [
@@ -30,8 +33,8 @@ export function fusstextHtml(markdown) {
   return html === '' ? null : html;
 }
 
-/** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt }} e @returns {Layoutstruktur} */
-export function strukturFuerLayout({ konfig, inhalt }) {
+/** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt, origin: string }} e @returns {Layoutstruktur} */
+export function strukturFuerLayout({ konfig, inhalt, origin }) {
   const s = strukturLaden(inhalt, konfig);
   return {
     wortmarke: s.profil?.name ?? WORTMARKE_RUECKFALL,
@@ -39,6 +42,7 @@ export function strukturFuerLayout({ konfig, inhalt }) {
     menue: [...s.menue, ...HUB_ANSICHTEN],
     fusszeilenLinks: s.fusszeile,
     fusstextHtml: fusstextHtml(s.profil?.fusstext ?? null),
-    befund: s.befund
+    befund: s.befund,
+    basisUrl: basisUrlBestimmen(s.profil, origin)
   };
 }

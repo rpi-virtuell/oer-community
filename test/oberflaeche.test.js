@@ -4,7 +4,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { render } from 'svelte/server';
 
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
@@ -54,6 +55,17 @@ const MENUE = [
 ];
 
 describe('Kopfzeile', () => {
+  // Feed-Hinweis im <head>: das Layout selbst lässt sich mit svelte/server
+  // nicht rendern (children-Snippet), deshalb steht der Hinweis hier (ADR-0029).
+  it('setzt den Feed-Hinweis im <head>', () => {
+    const { head } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', menue: HUB_ANSICHTEN }
+    });
+    expect(head).toContain('<link rel="alternate" type="application/rss+xml"');
+    expect(head).toContain('href="/feed.xml"');
+    expect(head).toContain('title="Community-Hub — Blog"');
+  });
+
   it('Kopfzeile: Logo und Wortmarke verlinken auf /, Menü aus der Struktur, aktueller Eintrag markiert', () => {
     const { body } = render(Kopfzeile, {
       props: {
@@ -182,6 +194,17 @@ describe('Fußzeile', () => {
 });
 
 describe('Artikelseite', () => {
+  it('setzt <link rel="canonical"> aus der kanonischenUrl', () => {
+    const { head } = render(Artikelseite, {
+      props: {
+        data: seitendaten(),
+        wortmarke: 'T',
+        kanonischeUrl: 'https://oer.community/die-kraft-der-gemeinschaft'
+      }
+    });
+    expect(head).toContain('<link rel="canonical" href="https://oer.community/die-kraft-der-gemeinschaft"');
+  });
+
   // Eine leere description ist schlechter als keine: Suchmaschinen und
   // Vorschauen lesen sie als ausdr\u00fcckliche Leerangabe.
   it('setzt <meta name="description"> nur, wenn eine Zusammenfassung da ist', () => {
@@ -473,5 +496,44 @@ describe('Artikelseite', () => {
     });
     expect(body).not.toContain('<img');
     expect(body).toContain(GRUND_TEXT['abgeloester-host']);
+  });
+});
+
+/**
+ * Alle .svelte-Dateien unter src/lib/komponenten/ und src/routes/, als
+ * [Pfad, Text] — eigene kleine Kopie der Idee aus kontrast.test.js.
+ * @returns {Array<[string, string]>}
+ */
+function komponentenQuellen() {
+  const wurzel = new URL('..', import.meta.url).pathname;
+  /** @type {Array<[string, string]>} */
+  const gefunden = [];
+  /** @param {string} verzeichnis */
+  function durchsuchen(verzeichnis) {
+    for (const eintrag of readdirSync(verzeichnis)) {
+      if (eintrag === 'node_modules' || eintrag.startsWith('.')) continue;
+      const pfad = join(verzeichnis, eintrag);
+      if (statSync(pfad).isDirectory()) {
+        durchsuchen(pfad);
+      } else if (eintrag.endsWith('.svelte')) {
+        gefunden.push([relative(wurzel, pfad), readFileSync(pfad, 'utf8')]);
+      }
+    }
+  }
+  durchsuchen(join(wurzel, 'src', 'lib', 'komponenten'));
+  durchsuchen(join(wurzel, 'src', 'routes'));
+  return gefunden;
+}
+
+describe('FOERBICO-Token in Komponenten (ADR-0031)', () => {
+  it('kein Alt-Token und kein Hex-Farbwert in Komponenten (ADR-0031)', () => {
+    const alt =
+      /var\(--(rl-|relilab|magenta|rpi|fau|amber|fuss-text|verlauf|aufmacher|schrift-(ueber|label|text)|marker-amber)/;
+    const hex = /#[0-9a-fA-F]{3,8}\b/;
+    for (const [pfad, text] of komponentenQuellen()) {
+      expect(alt.test(text), `${pfad} nutzt ein Alt-Token`).toBe(false);
+      const css = (text.match(/<style>[\s\S]*<\/style>/) ?? [''])[0];
+      expect(hex.test(css), `${pfad} hat einen Hex-Farbwert im <style>`).toBe(false);
+    }
   });
 });

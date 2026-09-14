@@ -29,7 +29,7 @@
 </article>
 
 <style>
-  .karte { border: 1px solid var(--rl-linie); border-radius: 12px; overflow: hidden; margin-bottom: 24px; background: var(--rl-weiss); }
+  .karte { border: 1px solid var(--fb-rahmen); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; background: var(--fb-weiss); }
   .cover img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: cover; }
   .text { padding: 20px 24px 24px; }
   h2 { font-size: 1.5rem; margin-bottom: 6px; }

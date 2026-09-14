@@ -211,6 +211,16 @@ ssh … 'systemctl --user restart community-hub'
 Fehlt ein Pflichtwert, startet der Dienst nicht und sagt im Journal,
 welcher — statt später leere Seiten zu liefern (CLAUDE.md).
 
+**Kanonische URLs und der Origin-Rückfall.** Basis für `<link
+rel="canonical">`, `feed.xml` und `sitemap.xml` ist der Origin aus dem
+`kind:0 website` der Quelle (ADR-0029). Steht dort nichts, zählt der Origin
+der Anfrage — und den bestimmt hinter einem Reverse-Proxy nicht die
+Anwendung, sondern der adapter-node: `ORIGIN` setzt ihn fest,
+`PROTOCOL_HEADER`/`HOST_HEADER` lassen ihn aus den Proxy-Kopfzeilen
+ableiten. Fehlt beides, steht in den kanonischen URLs die interne Adresse
+(`http://localhost:3000`). Solange kein `website` im Profil der Quelle
+steht, gehört `ORIGIN` deshalb in die `.env`.
+
 ## Kein Cache (überholt)
 
 Bis zur ersten Listenansicht fragte dieser Durchstich die Relays bei

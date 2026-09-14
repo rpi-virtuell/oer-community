@@ -17,7 +17,7 @@
 <style>
   .detail-kopf {
     padding-bottom: 28px;
-    border-bottom: 1px solid var(--rl-linie);
+    border-bottom: 1px solid var(--fb-rahmen);
     margin-bottom: 32px;
   }
   .detail-kopf h1 {
@@ -25,5 +25,8 @@
   }
   .meldung {
     font-size: 1.02rem;
+  }
+  .augenbraue {
+    color: var(--fb-fehler);
   }
 </style>

@@ -76,7 +76,8 @@
   .bild img {
     width: 100%;
     height: auto;
-    border-radius: 8px;
+    border: 1px solid var(--fb-akzent);
+    border-radius: var(--radius);
   }
   .bild figcaption {
     margin-top: 10px;

@@ -29,16 +29,16 @@
 </script>
 
 <div class="kopf">
-  <h4 style="color: var(--rl-text)">{titel}</h4>
+  <h4 style="color: var(--fb-text)">{titel}</h4>
   <span class="knoepfe">
-    <button type="button" onclick={kopieren} style="color: var(--rl-text-leise)">
+    <button type="button" onclick={kopieren} style="color: var(--fb-text-leise)">
       {kopiert ? 'kopiert' : 'kopieren'}
     </button>
     <button
       type="button"
       onclick={() => (offen = !offen)}
       aria-expanded={offen}
-      style="color: var(--rl-text-leise)"
+      style="color: var(--fb-text-leise)"
     >
       {offen ? 'einklappen' : 'ausklappen'}
     </button>
@@ -48,9 +48,9 @@
 <div
   class="block"
   class:offen
-  style="background: var(--rl-weiss); border-color: var(--rl-linie)"
+  style="background: var(--fb-weiss); border-color: var(--fb-rahmen)"
 >
-  <pre style="color: var(--rl-text)">{text}</pre>
+  <pre style="color: var(--fb-text)">{text}</pre>
 </div>
 
 <style>
@@ -76,7 +76,7 @@
     text-decoration: underline;
   }
   .knoepfe button:hover {
-    color: var(--rl-text);
+    color: var(--fb-text);
   }
   .block {
     border-width: 1px;

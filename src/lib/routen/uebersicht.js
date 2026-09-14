@@ -4,7 +4,7 @@
  * bleiben dünn (Task-12-Vorgabe): sie lesen Konfiguration und Spiegel und
  * reichen sie hier hinein.
  */
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { artikelListe, themenListe } from '../loaders/uebersicht.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { leerstandMeldung } from '../models/leerstand.js';
@@ -18,6 +18,18 @@ export function seitennummer(roh) {
   if (roh === undefined) return 1;
   if (!/^[1-9]\d*$/.test(roh)) error(404, `Es gibt keine Seite „${roh}“.`);
   return Number(roh);
+}
+
+/**
+ * Seitennummer der Route `/seite/[n]`: wie {@link seitennummer}, aber Seite 1
+ * leitet dauerhaft auf die Basis. Sonst hätte dieselbe Liste zwei Adressen
+ * (`/blog` und `/blog/seite/1`) — und damit zwei kanonische URLs (ADR-0029).
+ * @param {string|undefined} roh @param {string} basis
+ */
+export function seitennummerOhneEins(roh, basis) {
+  const n = seitennummer(roh);
+  if (n === 1) redirect(301, basis);
+  return n;
 }
 
 /** @param {Konfig} konfig @param {Inhalt} inhalt */

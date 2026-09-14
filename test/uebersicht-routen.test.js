@@ -64,8 +64,44 @@ async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOE
   });
 
   const { load } = await import(modulpfad);
-  return load(/** @type {any} */ ({ params }));
+  return load(/** @type {any} */ ({ params, url: new URL('https://hub.example/') }));
 }
+
+/**
+ * Lädt eine +server.js-Route (GET) frisch, mit gemocktem Spiegel und
+ * gemockter Umgebung — dasselbe Muster wie lade(), aber für Handler statt
+ * load-Funktionen.
+ * @param {string} modulpfad relativ zu test/, z. B. '../src/routes/feed.xml/+server.js'
+ * @param {string} pfad z. B. 'https://hub.example/feed.xml'
+ * @param {unknown} [inhalt] Standard: gültiger Bestand aus der Fixture
+ * @param {string} [autor] QUELLE_AUTOR in der gemockten Umgebung; Standard: FOERBICO
+ */
+async function ladeServer(modulpfad, pfad, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR) {
+  vi.resetModules();
+  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor) }));
+  vi.doMock('$lib/services/spiegel.js', async () => {
+    const echt = await import('../src/lib/services/spiegel.js');
+    return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
+  });
+  const { GET } = await import(modulpfad);
+  return GET(/** @type {any} */ ({ url: new URL(pfad) }));
+}
+
+describe('/feed.xml', () => {
+  it('liefert RSS mit application/rss+xml', async () => {
+    const response = await ladeServer('../src/routes/feed.xml/+server.js', 'https://hub.example/feed.xml');
+    expect(response.headers.get('content-type')).toBe('application/rss+xml; charset=utf-8');
+    expect(await response.text()).toContain('<rss');
+  });
+});
+
+describe('/sitemap.xml', () => {
+  it('liefert application/xml', async () => {
+    const response = await ladeServer('../src/routes/sitemap.xml/+server.js', 'https://hub.example/sitemap.xml');
+    expect(response.headers.get('content-type')).toBe('application/xml; charset=utf-8');
+    expect(await response.text()).toContain('<urlset');
+  });
+});
 
 describe('/blog', () => {
   it('liefert die erste Seite', async () => {
@@ -77,6 +113,12 @@ describe('/blog', () => {
 });
 
 describe('/blog/seite/[n]', () => {
+  it('Seite 1 leitet dauerhaft auf /blog — sie hätte sonst eine zweite kanonische Adresse', async () => {
+    await expect(
+      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '1' })
+    ).rejects.toMatchObject({ status: 301, location: '/blog' });
+  });
+
   it('liefert Seite 2; Unsinn ist 404', async () => {
     expect((await lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '2' })).seite).toBe(2);
     await expect(
@@ -113,13 +155,21 @@ describe('/themen/[thema]', () => {
 });
 
 describe('/themen/[thema]/seite/[n]', () => {
-  it('liefert Seite 1 eines Themas', async () => {
-    const daten = await lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', {
-      thema: 'community',
-      n: '1'
-    });
-    expect(daten.seite).toBe(1);
-    expect(daten.basis).toBe('/themen/community');
+  it('Seite 1 leitet dauerhaft auf das Thema selbst', async () => {
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '1' })
+    ).rejects.toMatchObject({ status: 301, location: '/themen/community' });
+  });
+
+  // Kein Thema des Fixture-Bestands füllt zwei Seiten (größtes: 18 Artikel),
+  // deshalb prüft Seite 2 hier den 404 jenseits des Bestands.
+  it('Seite 2 jenseits des Bestands ist 404; Unsinn ebenso', async () => {
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '2' })
+    ).rejects.toMatchObject({ status: 404 });
+    await expect(
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: 'abc' })
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 
@@ -164,6 +214,17 @@ describe('+layout.server.js', () => {
     const daten = await lade('../src/routes/+layout.server.js', {}, leererInhalt());
     expect(daten.struktur.wortmarke).toBe('Community-Hub');
   });
+
+  it('basisUrl: die website aus dem kind:0 der Testquelle', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+layout.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.struktur.basisUrl).toBe('https://test.example');
+  });
+
+  it('basisUrl: der Origin der Anfrage, wenn kein Profil da ist', async () => {
+    const daten = await lade('../src/routes/+layout.server.js', {}, leererInhalt());
+    expect(daten.struktur.basisUrl).toBe('https://hub.example');
+  });
 });
 
 describe('leerer Spiegel', () => {
@@ -172,7 +233,7 @@ describe('leerer Spiegel', () => {
       lade('../src/routes/blog/+page.server.js', {}, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
-      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '1' }, leererInhalt())
+      lade('../src/routes/blog/seite/[n]/+page.server.js', { n: '2' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       lade('../src/routes/themen/+page.server.js', {}, leererInhalt())
@@ -181,10 +242,16 @@ describe('leerer Spiegel', () => {
       lade('../src/routes/themen/[thema]/+page.server.js', { thema: 'community' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
-      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '1' }, leererInhalt())
+      lade('../src/routes/themen/[thema]/seite/[n]/+page.server.js', { thema: 'community', n: '2' }, leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       lade('../src/routes/+page.server.js', {}, leererInhalt())
+    ).rejects.toMatchObject({ status: 503 });
+    await expect(
+      ladeServer('../src/routes/feed.xml/+server.js', 'https://hub.example/feed.xml', leererInhalt())
+    ).rejects.toMatchObject({ status: 503 });
+    await expect(
+      ladeServer('../src/routes/sitemap.xml/+server.js', 'https://hub.example/sitemap.xml', leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
   });
 });

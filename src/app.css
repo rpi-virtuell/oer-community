@@ -3,47 +3,9 @@
 
 /* ── Schriften ───────────────────────────────────────────────────────────
    Lokal aus static/schriften/, nicht von Google (docs/designsystem.md:
-   Schulnetze, Datenschutz). Variable Fonts: eine Datei deckt 400 bis 700.
+   Schulnetze, Datenschutz). Variable Font: eine Datei deckt 400 bis 700.
    Subsets und unicode-range wie von Google Fonts ausgeliefert. */
 
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/roboto-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
-    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/roboto-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
-    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
-    U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Roboto';
-  font-style: italic;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/roboto-kursiv-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
-    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Roboto';
-  font-style: italic;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/roboto-kursiv-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
-    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
-    U+2C60-2C7F, U+A720-A7FF;
-}
 @font-face {
   font-family: 'Roboto Condensed';
   font-style: normal;
@@ -63,126 +25,90 @@
     U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
     U+2C60-2C7F, U+A720-A7FF;
 }
-@font-face {
-  font-family: 'Yanone Kaffeesatz';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/yanone-kaffeesatz-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
-    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Yanone Kaffeesatz';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('/schriften/yanone-kaffeesatz-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
-    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
-    U+2C60-2C7F, U+A720-A7FF;
-}
 
 /* ── Tokens (docs/designsystem.md) ──────────────────────────────────── */
 
 :root {
-  /* Institutionsfarben */
-  --relilab: #34b2f6;
-  --relilab-tief: #1a8fd0;
-  --magenta: #d225f8;
-  --rpi: #0072aa;
-  --foerbico: #203a8f;
-  --fusion: #1a5699;
-  --fau: #04316a;
+  /* Werte aus `Website/Design/styleguide.md` (FOERBICO), kopiert, nicht
+     verlinkt (ADR-0004, ADR-0031). Roboto Condensed ist die einzige
+     Schrift; die Kontrastpaare rechnet `test/kontrast.test.js` nach. */
 
-  /* Warm-Spektrum */
-  --amber: #f29422;
-  --amber-tief: #d97d13;
-  --pink: #e54d9a;
-  --orange: #ff8103;
-  --mint: #2ecc88;
-
-  /* Flächen und Text */
-  --rl-text: #1a1e2e;
-  --rl-text-leise: #5a6178;
-  --rl-dunkel: #04316a;
-  --rl-linie: #e6e9f2;
-  --rl-flaeche: #f6f7fb;
-  --rl-flaeche-2: #eef0f7;
-  --rl-weiss: #ffffff;
-
-  --verlauf: linear-gradient(135deg, var(--relilab) 0%, var(--magenta) 100%);
-
-  /* Kontrastentscheidungen (ADR-0018), nachgerechnet in test/kontrast.test.js:
-     Marker-Text auf 16 % Amber 5,12:1 · Fußzeilentext auf --fau 6,51:1 ·
-     Weiß auf den Enden des Aufmacher-Verlaufs 7,41:1 und 7,59:1. */
-  --marker-amber-text: #96550a;
-  --fuss-text: #a8bccf;
-  --aufmacher-start: #1a5699;
-  --aufmacher-ende: #8d0fa8;
-  --verlauf-aufmacher: linear-gradient(135deg, var(--aufmacher-start) 0%, var(--aufmacher-ende) 100%);
-
-  /* Drei Schriften, drei Rollen */
-  --schrift-ueber: 'Yanone Kaffeesatz', Roboto, system-ui, sans-serif;
-  --schrift-label: 'Roboto Condensed', Roboto, system-ui, sans-serif;
-  --schrift-text: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
-
-  /* Maße */
-  --rl-container: 1499px;
-  --rl-schmal: 820px;
-  --rl-kopf: 120px;
+  /* FOERBICO-Styleguide (ADR-0031) */
+  --fb-primaer:      #203a8f;  /* Marke, Links, aktive Zustände */
+  --fb-akzent:       #ffa500;  /* Rahmen, Hervorhebung, Fokus — nie Grund für weißen Text */
+  --fb-ueberschrift: #002366;
+  --fb-text:         #333333;
+  --fb-text-leise:   #5a6178;  /* abgeleitet: Metazeilen; nicht im Styleguide */
+  --fb-rahmen:       #d3d3d3;
+  --fb-flaeche:      #f0f8ff;  /* Karten, Fußzeile, Hinweise */
+  --fb-flaeche-2:    #e6f2ff;  /* Kopfzeile, Marker */
+  --fb-weiss:        #ffffff;
+  --fb-fehler:       #971b2f;  /* Comenius-Dunkelrot aus der Farbtabelle des Styleguides */
+  /* Schrift */
+  --schrift: 'Roboto Condensed', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Maße (unverändert übernommen, umbenannt) */
+  --breite-container: 1499px;
+  --breite-schmal: 820px;
+  --hoehe-kopf: 120px;
+  --radius: 5px;
   --schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
-  --schatten-hover: 0 8px 40px rgba(20, 50, 100, 0.15);
 }
 
 /* ── Grundschrift ────────────────────────────────────────────────────── */
 
 body {
-  background: var(--rl-weiss);
-  color: var(--rl-text);
-  font-family: var(--schrift-text);
-  font-size: 16px;
+  background: var(--fb-weiss);
+  color: var(--fb-text);
+  font-family: var(--schrift);
+  font-size: 17px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--schrift-ueber);
+  font-family: var(--schrift);
   font-weight: 700;
   line-height: 1.15;
-  color: var(--rl-dunkel);
+  color: var(--fb-ueberschrift);
   margin: 0 0 0.4em;
 }
-h1 { font-size: clamp(2rem, 4vw, 3rem); }
-h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); }
-h3 { font-size: 1.35rem; }
+h1 { font-size: clamp(2rem, 4vw, 2.8rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: 1.3rem; }
 
-/* Linkfarbe --rpi, nicht --relilab-tief: letzteres erreicht auf Weiß nur
-   3,57:1 und ist für Fließtext zu schwach (ADR-0018, Punkt 1). */
-a { color: var(--rpi); }
-a:hover { color: var(--relilab-tief); }
+a { color: var(--fb-primaer); }
+a:hover { color: var(--fb-ueberschrift); text-decoration: underline; }
+
+/* Fokus sichtbar, für Tastatur — der Akzent als Ring, nie als Grund für Text
+   (ADR-0031). Der Akzent allein bleibt auf Weiß unter 3:1; der dunkle Saum
+   aus --fb-ueberschrift bringt den Kontrast, ohne die Farbe zu ändern. */
+:focus-visible {
+  outline: 3px solid var(--fb-akzent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px var(--fb-ueberschrift);
+}
 
 /* ── Wiederkehrende Bausteine ─────────────────────────────────────────── */
 
 /* Metazeile: Datum, Themen, Bildnachweis — Roboto Condensed, leise. */
 .metazeile {
-  font-family: var(--schrift-label);
+  font-family: var(--schrift);
   font-size: 0.86rem;
-  color: var(--rl-text-leise);
+  color: var(--fb-text-leise);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
 
-/* Marker: neutral erfüllt AA (5,40:1); die farbigen Varianten folgen,
-   wenn eine Ansicht sie braucht. */
+/* Marker: neutral erfüllt AA; die farbigen Varianten folgen, wenn eine
+   Ansicht sie braucht. */
 .marker {
-  font-family: var(--schrift-label);
+  font-family: var(--schrift);
   display: inline-block;
-  background: var(--rl-flaeche-2);
-  color: var(--rl-text-leise);
+  background: var(--fb-flaeche-2);
+  color: var(--fb-text-leise);
   border-radius: 999px;
   padding: 3px 11px;
   font-size: 0.78rem;
@@ -191,26 +117,25 @@ a:hover { color: var(--relilab-tief); }
   line-height: 1.4;
 }
 
-/* Augenbraue über einer Überschrift. Auf Weiß in --rl-text-leise, nicht
-   --relilab-tief: bei .82rem ist das kleiner Text, 3,57:1 reicht nicht. */
+/* Augenbraue über einer Überschrift. */
 .augenbraue {
-  font-family: var(--schrift-label);
+  font-family: var(--schrift);
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--rl-text-leise);
+  color: var(--fb-text-leise);
   margin: 0 0 10px;
 }
 
 /* Hinweiskasten: Herkunft, fehlendes Bild, entfernte Verweise. */
 .hinweis {
-  background: var(--rl-flaeche);
-  border-left: 3px solid var(--amber);
+  background: var(--fb-flaeche);
+  border-left: 3px solid var(--fb-akzent);
   border-radius: 0 8px 8px 0;
   padding: 16px 20px;
   font-size: 0.92rem;
   margin: 32px 0;
   overflow-wrap: anywhere; /* lange Blossom-URLs im Hinweis */
 }
-.hinweis strong { color: var(--rl-dunkel); }
+.hinweis strong { color: var(--fb-ueberschrift); }

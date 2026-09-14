@@ -1,7 +1,11 @@
 <script>
+  import { kanonisch } from '$lib/kanonisch.js';
   let { data } = $props();
 </script>
-<svelte:head><title>Themen · {data.struktur.wortmarke}</title></svelte:head>
+<svelte:head>
+  <title>Themen · {data.struktur.wortmarke}</title>
+  <link rel="canonical" href={kanonisch(data.struktur.basisUrl, '/themen')} />
+</svelte:head>
 <header class="detail-kopf"><h1>Themen</h1></header>
 <ul class="themenliste">
   {#each data.themen as t (t.slug)}

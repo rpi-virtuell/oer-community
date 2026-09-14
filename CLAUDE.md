@@ -14,13 +14,14 @@ Die Spec vom 14.09.
 nur die Regeln. Widerspricht diese Datei einer ADR, gilt die ADR — und diese
 Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
 (Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
-Farben, Schriften, Abstände: `docs/designsystem.md`.
+Farben, Schriften, Abstände: `docs/designsystem.md` (FOERBICO, ADR-0031).
 
 **Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
-ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Domain
-und Farbtoken; umbenannt wurde nur der Projektname. Die **Wortmarke** in
-Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
+ADRs werden nicht umgeschrieben. **relilab bleibt** als dokumentierte,
+nicht betriebene Quelle (ADR-0012); die Farbtoken sind seit ADR-0031
+FOERBICO, nicht mehr relilab. Umbenannt wurde nur der Projektname.
+Die **Wortmarke** in Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
 `display_name`); fehlt beides, steht „Community-Hub" (ADR-0027, ersetzt
 ADR-0019).
 
@@ -207,6 +208,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
+- **Komponenten kennen nur Token; kein Hex außerhalb `src/app.css`; Text
+  auf `--fb-akzent` nie weiß** (ADR-0031, geprüft in `test/kontrast.test.js`
+  und `test/oberflaeche.test.js`).
 
 ### Sortierung
 
@@ -273,6 +277,10 @@ JSDoc, `checkJs` **und** `strict` über `svelte-check` · pnpm ·
 `nostr-tools` für `naddr`-Kodierung und Signaturprüfung,
 `applesauce-common/helpers` für NIP-23/NIP-52-Felder. Die Relay-Abfrage selbst
 ist eigener, schlanker Servercode.
+
+Feed (`/feed.xml`, RSS 2.0, 20 Artikel) und Sitemap (`/sitemap.xml`) werden
+aus dem Spiegel gebaut; kanonische URLs kommen aus `kind:0 website`,
+Rückfall Origin (ADR-0029).
 
 ## Arbeitsweise
 

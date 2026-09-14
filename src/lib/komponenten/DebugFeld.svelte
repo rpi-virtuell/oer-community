@@ -38,9 +38,9 @@
 <div
   class="feld"
   class:einspaltig
-  style="background: var(--rl-weiss); border-color: var(--rl-linie)"
+  style="background: var(--fb-weiss); border-color: var(--fb-rahmen)"
 >
-  <span class="label" style="color: var(--rl-text-leise)">{label}</span>
+  <span class="label" style="color: var(--fb-text-leise)">{label}</span>
   <span class="rechts">
     <code class="wert" title={kurz ? String(wert) : undefined}>{angezeigt}</code>
     {#if kopierbar && wert}
@@ -49,7 +49,7 @@
         class="knopf"
         onclick={kopieren}
         aria-label={kopiert ? `${label} kopiert` : `${label} kopieren`}
-        style="color: var(--rl-text-leise)"
+        style="color: var(--fb-text-leise)"
       >
         {#if kopiert}
           <!-- Haken -->
@@ -111,8 +111,8 @@
     cursor: pointer;
   }
   .knopf:hover {
-    background: var(--rl-flaeche-2);
-    color: var(--rl-text);
+    background: var(--fb-flaeche-2);
+    color: var(--fb-text);
   }
   .knopf svg {
     width: 0.85rem;

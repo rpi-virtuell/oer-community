@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
-import { themaLaden, seitennummer } from '$lib/routen/uebersicht.js';
+import { themaLaden, seitennummerOhneEins } from '$lib/routen/uebersicht.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
@@ -11,6 +11,6 @@ export function load({ params }) {
     konfig: konfigLesen(env),
     inhalt: spiegelHolen().lesen(),
     slug: params.thema,
-    seite: seitennummer(params.n)
+    seite: seitennummerOhneEins(params.n, `/themen/${encodeURIComponent(params.thema)}`)
   });
 }

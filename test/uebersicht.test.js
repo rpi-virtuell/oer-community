@@ -3,6 +3,9 @@ import { render } from 'svelte/server';
 import Karte from '../src/lib/komponenten/Karte.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import ThemenSeite from '../src/routes/themen/+page.svelte';
+import BlogSeitePage from '../src/routes/blog/seite/[n]/+page.svelte';
+import BlogPage from '../src/routes/blog/+page.svelte';
+import ThemaPage from '../src/routes/themen/[thema]/+page.svelte';
 import { strukturFuerLayout } from '../src/lib/routen/struktur.js';
 import { inhaltDerTestquelle } from './fixtures/testquelle/laden.js';
 
@@ -55,7 +58,7 @@ describe('/themen', () => {
       props: {
         data: {
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
-          struktur: strukturFuerLayout(inhaltDerTestquelle()),
+          struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           themen: [{ name: 'Lizenzen', slug: 'lizenzen', anzahl: 5 }]
         }
       }
@@ -70,11 +73,64 @@ describe('/themen', () => {
       props: {
         data: {
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
-          struktur: { ...strukturFuerLayout(inhaltDerTestquelle()), wortmarke: 'Testquelle' },
+          struktur: { ...strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }), wortmarke: 'Testquelle' },
           themen: []
         }
       }
     });
     expect(head).toContain('<title>Themen · Testquelle</title>');
+  });
+
+  it('setzt den kanonischen Link auf /themen', () => {
+    const { head } = render(ThemenSeite, {
+      props: {
+        data: {
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
+          themen: []
+        }
+      }
+    });
+    expect(head).toContain('<link rel="canonical" href="https://test.example/themen"');
+  });
+});
+
+/** Übersichtsdaten, wie die load-Funktionen sie liefern. @param {Partial<any>} ab */
+const uebersichtsdaten = (ab = {}) => ({
+  spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+  struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
+  karten: [], seite: 1, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null, ...ab
+});
+
+describe('/blog', () => {
+  it('setzt den kanonischen Link auf .../blog — Seite 1 ohne /seite/1', () => {
+    const { head } = render(BlogPage, { props: { data: uebersichtsdaten() } });
+    expect(head).toContain('<link rel="canonical" href="https://test.example/blog"');
+    expect(head).not.toContain('/blog/seite/1');
+  });
+});
+
+describe('/themen/[thema]', () => {
+  it('setzt den kanonischen Link auf das Thema — Seite 1 ohne /seite/1', () => {
+    const { head } = render(ThemaPage, {
+      props: { data: uebersichtsdaten({ basis: '/themen/community', ueberschrift: 'Community', thema: 'Community' }) }
+    });
+    expect(head).toContain('<link rel="canonical" href="https://test.example/themen/community"');
+    expect(head).not.toContain('/seite/1');
+  });
+});
+
+describe('/blog/seite/[n]', () => {
+  it('setzt den kanonischen Link auf .../blog/seite/2', () => {
+    const { head } = render(BlogSeitePage, {
+      props: {
+        data: {
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
+          karten: [], seite: 2, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null
+        }
+      }
+    });
+    expect(head).toContain('<link rel="canonical" href="https://test.example/blog/seite/2"');
   });
 });
