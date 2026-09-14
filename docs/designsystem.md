@@ -156,24 +156,6 @@ Wiederkehrende Klassen aus `src/app.css`:
 
 ---
 
-## Übernommenes von relilab.org
-
-Die Startseite trägt Elemente der heutigen Seite weiter, damit sie als deren
-Nachfolgerin erkennbar bleibt: Titel „Gemeinsam religionsbezogene Bildung
-ermöglichen.", animiertes Intro-GIF, Knopf „Am Live-Anlass teilnehmen", vier
-Kästen (Wer wir sind · Wie wir arbeiten · Was wir tun · Mitmachen), Knopf
-„Anmeldung zum Newsletter".
-
-Die Kästen verweisen vorerst **zurück auf relilab.org**. Solange WordPress
-läuft, ist das richtig; beim Ablösen werden daraus eigene Seiten. Bewusster
-Zwischenstand, kein Endzustand.
-
-**Das Intro-GIF wiegt 11,2 MB.** `loading="lazy"`, Fläche über `aspect-ratio`
-reserviert, damit nichts springt. Für den Dauerbetrieb gehört es verkleinert
-oder als Video ausgeliefert — Aufgabe der Redaktion, nicht des Clients.
-
----
-
 ## Frühere Stände
 
 `mockup/index.html` und die Farbkarte FOERBICO × rpi-virtuell
@@ -183,6 +165,11 @@ ADR-0031 **nicht mehr maßgeblich** — der Gestaltungsstand im laufenden
 Client ist `src/app.css` mit den FOERBICO-Werten oben. ADR-0018
 (die drei Kontrastpunkte der relilab-Palette) ist durch ADR-0031 ersetzt
 und bleibt nur als Geschichte stehen.
+
+Ebenso historisch: die geplante relilab-Seitenstruktur für die Startseite
+(Intro-Titel, animiertes GIF, vier Kästen, Newsletter-Knopf) wurde nie im
+Hub gebaut und entfällt mit ADR-0026/ADR-0027 — die Startseite ist die
+Seite `d = startseite` aus Nostr, kein festverdrahtetes relilab-Markup.
 
 ---
 
