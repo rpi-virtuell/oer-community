@@ -43,6 +43,16 @@ Hinweis — weil `kind:30004` (`navigation`, `fusszeile`) und eine Seite mit
 Selbst-Label und `d = startseite` noch nicht publiziert sind und `about`
 im Profil leer ist.
 
+**Fix-Welle nach dem Abschluss-Review (14.09.):** Der Loader dedupliziert
+die Listenziele und überspringt Ziele auf einem festen Pfad des Hubs
+(`blog`, `themen`, …) — zwei Einträge mit demselben Pfad brachen sonst die
+Client-Hydration des Layouts (`each_key_duplicate`), allein durch
+Redaktionsdaten. `/[d]` mit dem `d` der Startseite leitet jetzt dauerhaft
+auf `/` (die JSON-Route bleibt). Dazu: Der Struktur-Befund meldet ein
+Profil ohne Namen als „fehlt", `<meta name="description">` entfällt ohne
+Zusammenfassung, `FESTE_SEGMENTE` liegt in `models/` (ein Loader importiert
+nichts aus `routen/`). **312 Tests grün, `pnpm check` ohne Befund.**
+
 **Nächster Schritt:** Die Voraussetzungen in den Nachbar-Repos aus der
 Spec („Voraussetzungen in Nachbar-Repos", Punkte 1–6): FOERBICO-Frontmatter
 der sieben Seiten (`name`/`description`/`datePublished`, Startseite als

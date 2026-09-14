@@ -84,11 +84,11 @@ Struktur-Befund.
 
 ## Serverseitig rendern, nicht clientseitig
 
-Alle vier Ansichten liefern **fertiges HTML mit Inhalt** — nicht nur
+Alle Ansichten liefern **fertiges HTML mit Inhalt** — nicht nur
 OG-Metadaten. Die Seite ist ohne JavaScript lesbar.
 
-Im Browser laufen nur Bedienelemente: Themenfilter, Umschalten
-kommend/vergangen. **Keine Relay-Verbindung im Browser, keine
+Im Browser laufen nur Bedienelemente: der Themenfilter und der
+Debug-Schalter. **Keine Relay-Verbindung im Browser, keine
 Live-Aktualisierung** — die Inhalte ändern sich täglich, nicht sekündlich,
 und eine zweite Datenschicht wäre doppelte Fehlerquelle ohne Gegenwert.
 
@@ -105,7 +105,7 @@ Schlüssel und Relay-Adressen kommen aus der Konfiguration, nie aus dem Code.
   `5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf`
 
 ```json
-{ "kinds": [30023, 31922, 31923],
+{ "kinds": [30023],
   "authors": ["5a12b41e…"] }
 ```
 
@@ -118,14 +118,15 @@ für einen redaktionellen Account (ADR-0012), keine neue Regel.
 ließe jeden herein, der auf den Community-Key taggt. Die relilab-Quelle ist
 dokumentiert, aber **nicht in Betrieb**:
 
-- Termine-Bot (Absender):
+- relilab-Bot (Absender):
   `f6c14ab7add65d61cf9311a8685575c3f2de0ca540bc4ddf916f76f089f1aa43`
 - relilab-Community (`h`-Tag):
   `48706e894e64be57a250d3cd1f4c8a0f69ca900937936f8bd11a1329cd3c97e3`
 
-Kinds: `30023` Artikel (NIP-23) · `31923` Termine zeitgebunden · `31922`
-ganztägig · `1063` Lizenznachweis zu Bildern (NIP-94, wird über `#x`
-nachgeschlagen, nicht über die Hauptabfrage).
+Kinds: `30023` Artikel und Seiten (NIP-23) · `30004` Kuratierungslisten
+für Menü und Fußzeile (NIP-51) · `0` Profil der Quelle · `1063`
+Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
+über die Hauptabfrage).
 
 **Der Lizenznachweis liegt auf einem anderen Relay als der Artikel.**
 Der Artikel steht auf `relay.edufeed.org`, sein `kind:1063` nur auf
@@ -135,7 +136,6 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 ### Wiederkehrende Fallen
 
 - **Anzeigedatum von Artikeln ist `published_at`, nicht `created_at`.**
-  Termine haben kein `published_at` — dort zählt `start`.
 - **Events werden nie verändert.** Sie sind unveränderlich und nicht unser
   Code. Was zu säubern ist, wird **beim Rendern** gesäubert.
   **Die Bot-Säuberungsregeln gelten für FOERBICO nicht unverändert**
@@ -196,7 +196,14 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   trägt (ADR-0027); Seiten erscheinen nicht im Blog.
 - **Das Menü beschriftet Einträge mit dem Seitentitel;** Ziele außerhalb
   des Spiegels oder fremder Quellen werden übersprungen und im Befund
-  genannt.
+  genannt. **Auch doppelte Ziele und solche auf einem festen Pfad des Hubs**
+  (`FESTE_SEGMENTE` in `src/lib/models/feste-segmente.js`) **werden
+  übersprungen**: zwei Einträge mit demselben Pfad brächen die Hydration
+  des Layouts (`each_key_duplicate`) — auch im Produktionsbau, allein
+  durch Redaktionsdaten.
+- **Die Startseite hat eine Adresse: `/`.** `/[d]` mit dem `d` der
+  Startseite leitet dauerhaft dorthin; nur `/[d]/json` bleibt als
+  Entwickleransicht erreichbar.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
@@ -320,7 +327,7 @@ gespiegelt (ADR-0008). Bilder liegen auf `https://blossom.edufeed.org/`
 
 | Relay | wofür |
 |---|---|
-| `relay.edufeed.org` | Artikel und Termine |
+| `relay.edufeed.org` | Artikel, Seiten, Listen, Profil |
 | `relay-rpi.edufeed.org` | **Lizenznachweise `kind:1063`** |
 | `amb-relay.edufeed.org` | AMB-Metadaten |
 
