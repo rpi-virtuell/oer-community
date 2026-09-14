@@ -1,6 +1,7 @@
 # ADR-0019: Die Wortmarke ist vorläufig „Community-Hub"
 
-**Status:** angenommen (2026-09-04), ausdrücklich vorläufig
+**Status:** angenommen (2026-09-04), ausdrücklich vorläufig — ersetzt durch
+ADR-0027 (Wortmarke aus `kind:0`, 2026-09-14)
 **Beteiligte:** Jörg
 
 ## Kontext

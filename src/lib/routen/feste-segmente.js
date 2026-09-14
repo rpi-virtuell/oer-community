@@ -1,11 +1,7 @@
 /**
- * Die festen Segmente der ersten Pfadebene (ADR-0029): Adressen, die der Hub
- * selbst belegt und die deshalb kein `d` eines Beitrags sein dürfen. Ein `d`,
- * das einem davon gleicht, wäre unerreichbar — die Route gewönne.
- *
- * Die Liste steht hier als Konstante, damit `src/lib/routen/feste-segmente.test.js`
- * sie gegen den Bestand halten kann, statt sie in Tests neu zu behaupten.
- *
- * @type {readonly string[]}
+ * Die festen Segmente der ersten Pfadebene (ADR-0029) für die Routen-Schicht.
+ * Die Liste selbst steht in `src/lib/models/feste-segmente.js`, damit auch der
+ * Loader sie lesen kann, ohne aus `routen/` zu importieren (ADR-0014); hier
+ * steht nur der Re-Export, damit bestehende Aufrufer unverändert bleiben.
  */
-export const FESTE_SEGMENTE = Object.freeze(['blog', 'themen', 'en', 'feed.xml', 'sitemap.xml']);
+export { FESTE_SEGMENTE } from '../models/feste-segmente.js';

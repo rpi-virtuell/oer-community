@@ -1,7 +1,7 @@
 <script>
   let { data } = $props();
 </script>
-<svelte:head><title>Themen · community-hub</title></svelte:head>
+<svelte:head><title>Themen · {data.struktur.wortmarke}</title></svelte:head>
 <header class="detail-kopf"><h1>Themen</h1></header>
 <ul class="themenliste">
   {#each data.themen as t (t.slug)}

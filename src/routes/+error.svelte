@@ -1,9 +1,11 @@
 <script>
   import { page } from '$app/state';
+
+  const wortmarke = $derived(page.data?.struktur?.wortmarke ?? 'Community-Hub');
 </script>
 
 <svelte:head>
-  <title>Fehler {page.status} — community-hub</title>
+  <title>Fehler {page.status} · {wortmarke}</title>
 </svelte:head>
 
 <header class="detail-kopf">

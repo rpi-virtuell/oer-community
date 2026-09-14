@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
+import { inhaltDerTestquelle, testquelle } from './fixtures/testquelle/laden.js';
 
 /**
  * Prüft die load-Funktionen der Übersichten unter /, /blog, /blog/seite/[n],
@@ -16,15 +17,14 @@ const artikelEvents = JSON.parse(
   readFileSync(new URL('./fixtures/foerbico-artikel-30023.json', import.meta.url), 'utf8')
 );
 
-const UMGEBUNG = {
-  QUELLE_AUTOR: '5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf',
+const FOERBICO_AUTOR = '5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf';
+
+/** @param {string} autor */
+const umgebung = (autor) => ({
+  QUELLE_AUTOR: autor,
   RELAYS: 'wss://relay.edufeed.org/,wss://relay-rpi.edufeed.org/',
   BLOSSOM_URL: 'https://blossom.edufeed.org/'
-};
-
-// $env/dynamic/private gibt es nur im SvelteKit-Lauf; im Test steht die
-// Umgebung als Attrappe daneben.
-vi.mock('$env/dynamic/private', () => ({ env: UMGEBUNG }));
+});
 
 const RELAY = 'wss://relay.edufeed.org/';
 const RPI = 'wss://relay-rpi.edufeed.org/';
@@ -45,13 +45,18 @@ function inhaltMitArtikeln() {
 }
 
 /**
- * Lädt ein Routenmodul frisch, mit gemocktem Spiegel.
+ * Lädt ein Routenmodul frisch, mit gemocktem Spiegel und gemockter Umgebung.
  * @param {string} modulpfad relativ zu test/, z. B. '../src/routes/blog/+page.server.js'
  * @param {Record<string, string>} params
  * @param {unknown} [inhalt] Standard: gültiger Bestand aus der Fixture
+ * @param {string} [autor] QUELLE_AUTOR in der gemockten Umgebung; Standard: FOERBICO
  */
-async function lade(modulpfad, params, inhalt = inhaltMitArtikeln()) {
+async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR) {
   vi.resetModules();
+
+  // $env/dynamic/private gibt es nur im SvelteKit-Lauf; im Test steht die
+  // Umgebung als Attrappe daneben — je Aufruf neu, wegen resetModules().
+  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor) }));
 
   vi.doMock('$lib/services/spiegel.js', async () => {
     const echt = await import('../src/lib/services/spiegel.js');
@@ -121,8 +126,43 @@ describe('/themen/[thema]/seite/[n]', () => {
 describe('/', () => {
   it('zeigt die Übersicht mit dem Hinweis, dass die Startseite fehlt', async () => {
     const daten = await lade('../src/routes/+page.server.js', {});
+    expect(daten.art).toBe('blog');
     expect(daten.hinweis).toContain('startseite');
     expect(daten.karten).toHaveLength(20);
+  });
+
+  it('zeigt die Startseite als Seite, wenn sie publiziert ist', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.art).toBe('seite');
+    expect(daten.seite.artikel.titel).toBe('Willkommen');
+    expect(daten.seite.artikel.istSeite).toBe(true);
+  });
+
+  it('zeigt den Blog mit Hinweis, wenn die Startseite fehlt', async () => {
+    const { inhalt } = inhaltDerTestquelle({ ohne: [{ kind: 30023, d: 'startseite' }] });
+    const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.art).toBe('blog');
+    expect(daten.hinweis).toContain('startseite');
+  });
+});
+
+describe('/en', () => {
+  it('leitet dauerhaft auf / weiter', async () => {
+    await expect(lade('../src/routes/en/+page.server.js', {})).rejects.toMatchObject({ status: 301, location: '/' });
+  });
+});
+
+describe('+layout.server.js', () => {
+  it('liefert die Struktur der Testquelle, wenn QUELLE_AUTOR auf sie zeigt', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+layout.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.struktur.wortmarke).toBe('Testquelle');
+  });
+
+  it('wirft nie: bei leerem Spiegel Rückfall-Wortmarke, die Seiten melden den Leerstand', async () => {
+    const daten = await lade('../src/routes/+layout.server.js', {}, leererInhalt());
+    expect(daten.struktur.wortmarke).toBe('Community-Hub');
   });
 });
 

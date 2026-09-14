@@ -8,6 +8,9 @@
  * @property {string} spiegelPfad             JSON-Datei des Spiegels (ADR-0028)
  * @property {number} spiegelIntervallS       Abstand zwischen zwei Läufen
  * @property {number} spiegelStartwartezeitS  wie lange der Start auf den ersten Lauf wartet
+ * @property {string} startseiteD             Kennung (d) der Startseite; Konvention mit Standard (ADR-0027)
+ * @property {string} navigationD             Kennung (d) der Navigation; Konvention mit Standard (ADR-0027)
+ * @property {string} fusszeileD              Kennung (d) der Fußzeile; Konvention mit Standard (ADR-0027)
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -26,6 +29,14 @@ function positiveGanzzahl(roh, standard, name) {
     throw new Error(`${name} muss eine positive Ganzzahl sein, ist aber "${text}".`);
   }
   return wert;
+}
+
+/**
+ * Kennung mit Standard: getrimmt; leer oder nicht gesetzt heißt Standard.
+ * @param {string|undefined} roh @param {string} standard
+ */
+function kennung(roh, standard) {
+  return (roh ?? '').trim() || standard;
 }
 
 /**
@@ -82,6 +93,9 @@ export function konfigLesen(quelle) {
   const rohHTag = (quelle.QUELLE_H_TAG ?? '').trim();
   return {
     autor, hTag: rohHTag === '' ? null : rohHTag, relays, blossomUrl,
-    abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS
+    abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS,
+    startseiteD: kennung(quelle.STARTSEITE_D, 'startseite'),
+    navigationD: kennung(quelle.NAVIGATION_D, 'navigation'),
+    fusszeileD: kennung(quelle.FUSSZEILE_D, 'fusszeile')
   };
 }

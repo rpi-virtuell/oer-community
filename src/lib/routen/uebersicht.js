@@ -6,7 +6,9 @@
  */
 import { error } from '@sveltejs/kit';
 import { artikelListe, themenListe } from '../loaders/uebersicht.js';
+import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { leerstandMeldung } from '../models/leerstand.js';
+import { detailLaden } from './detail.js';
 
 /** @typedef {import('../konfig.js').Konfig} Konfig */
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
@@ -48,16 +50,22 @@ export function themenLaden({ konfig, inhalt }) {
 }
 
 /**
- * Stufe 1: Es gibt noch keine Startseite aus Nostr (ADR-0027, Stufe 2). Bis
- * dahin zeigt / den Blog und sagt der Redaktion, welches Event fehlt.
+ * `/`: die Startseite (kind:30023, d = konfig.startseiteD) als Seite — oder,
+ * solange sie fehlt, der Blog mit dem Hinweis, welches Event erwartet wird
+ * (ADR-0027).
  * @param {{ konfig: Konfig, inhalt: Inhalt }} e
  */
-export function startLaden({ konfig, inhalt }) {
+export async function startLaden({ konfig, inhalt }) {
+  leerOderWeiter(konfig, inhalt);
+  const { artikel } = artikelAusSpiegel(inhalt, { d: konfig.startseiteD });
+  if (artikel) {
+    const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt, istStartseite: true });
+    return /** @type {const} */ ({ art: 'seite', seite });
+  }
   const blog = blogLaden({ konfig, inhalt, seite: 1 });
-  return {
-    ...blog,
-    ueberschrift: 'Beiträge',
-    hinweis:
-      'Es ist noch keine Startseite publiziert: erwartet wird ein kind:30023 mit d = "startseite" unter dem Autor dieser Quelle. Bis dahin steht hier der Blog.'
-  };
+  const { seite: blogSeite, ...rest } = blog;
+  return /** @type {const} */ ({
+    art: 'blog', ...rest, seitennummer: blogSeite, ueberschrift: 'Beiträge',
+    hinweis: `Es ist noch keine Startseite publiziert: erwartet wird ein kind:30023 mit d = "${konfig.startseiteD}" unter dem Autor dieser Quelle. Bis dahin steht hier der Blog.`
+  });
 }

@@ -12,6 +12,7 @@ import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Artikelseite from '../src/lib/komponenten/Detail.svelte';
 import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
+import { HUB_ANSICHTEN } from '../src/lib/routen/struktur.js';
 
 /** @type {any} */
 const ARTIKEL = JSON.parse(
@@ -46,38 +47,83 @@ function seitendaten(abweichung = {}) {
   });
 }
 
-describe('Kopfzeile', () => {
-  const { body } = render(Kopfzeile);
+const MENUE = [
+  { titel: 'Unser Team', pfad: '/unser-team', d: 'unser-team' },
+  { titel: 'Blog', pfad: '/blog', d: '' },
+  { titel: 'Themen', pfad: '/themen', d: '' }
+];
 
-  it('trägt die Wortmarke und führt zur Startseite', () => {
-    expect(body).toMatch(/<a[^>]+href="\/"/);
-    expect(body).toMatch(/Community-<span[^>]*>Hub/);
+describe('Kopfzeile', () => {
+  it('Kopfzeile: Logo und Wortmarke verlinken auf /, Menü aus der Struktur, aktueller Eintrag markiert', () => {
+    const { body } = render(Kopfzeile, {
+      props: {
+        wortmarke: 'Testquelle',
+        logoUrl: 'https://blossom.example/logo.png',
+        menue: MENUE,
+        aktuellerPfad: '/blog/seite/2'
+      }
+    });
+    expect(body).toContain('<img src="https://blossom.example/logo.png"');
+    expect(body).toContain('Testquelle');
+    expect(body).toContain('href="/unser-team"');
+    expect(body).toMatch(
+      /href="\/blog"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/blog"/
+    );
+    expect(body).not.toMatch(/href="\/themen"[^>]*aria-current/);
   });
 
-  it('verlinkt Blog und Themen — Ansichten, die es jetzt gibt', () => {
+  it('nur mit den Hub-Ansichten: genau zwei Men\u00fclinks', () => {
+    const { body } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', menue: HUB_ANSICHTEN }
+    });
+    const links = body.match(/<nav[\s\S]*?<\/nav>/)?.[0].match(/<a /g) ?? [];
+    expect(links).toHaveLength(2);
     expect(body).toContain('href="/blog"');
     expect(body).toContain('href="/themen"');
   });
+
+  it('Kopfzeile ohne Logo: nur Wortmarke, kein <img>', () => {
+    const { body } = render(Kopfzeile, {
+      props: { wortmarke: 'Community-Hub', logoUrl: null, menue: MENUE }
+    });
+    expect(body).not.toContain('<img');
+    expect(body).toContain('Community-Hub');
+  });
 });
+
+/** @type {import('../src/lib/loaders/struktur.js').Struktur['befund']} */
+const BEFUND = {
+  profil: 'ok',
+  navigation: 'fehlt',
+  fusszeile: 'ok',
+  startseite: 'fehlt',
+  erwartet: {
+    profil: 'kind:0 von abc…',
+    navigation: 'kind:30004 mit d = "navigation" von abc…',
+    fusszeile: 'kind:30004 mit d = "fusszeile" von abc…',
+    startseite: 'kind:30023 mit d = "startseite" von abc…'
+  },
+  uebersprungen: ['fusszeile: „datenschutz“ liegt nicht im Spiegel']
+};
 
 describe('Fußzeile', () => {
   it('trägt die Wortmarke und den Debug-Schalter', () => {
-    const { body } = render(Fusszeile);
-    expect(body).toMatch(/Community-<span[^>]*>Hub/);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
+    expect(body).toMatch(/Community-Hub/);
     expect(body).toMatch(/type="checkbox"/);
   });
 
   // Seit ADR-0029 ist die Adresse das d, nicht das naddr — die Fußzeile darf
   // nichts anderes behaupten.
   it('nennt das d als Adresse und das naddr nur als Weiterleitung', () => {
-    const { body } = render(Fusszeile);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
     expect(body).toContain('unter seiner stabilen Adresse');
     expect(body).toMatch(/leitet dorthin weiter/);
     expect(body).not.toMatch(/stabilen <code>naddr<\/code>-Adresse/);
   });
 
   it('nennt kein Relay — Adressen sind Konfiguration, kein Code', () => {
-    const { body } = render(Fusszeile);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
     expect(body).not.toContain('wss://');
     expect(body).not.toContain('edufeed.org');
   });
@@ -85,6 +131,7 @@ describe('Fußzeile', () => {
   it('nennt das Alter nur, wenn der letzte Lauf scheiterte', () => {
     const alt = render(Fusszeile, {
       props: {
+        wortmarke: 'Community-Hub',
         spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: true, relays: ['wss://r/'] }
       }
     }).body;
@@ -92,27 +139,112 @@ describe('Fußzeile', () => {
     expect(alt).toContain('kein Relay erreichbar');
 
     const frisch = render(Fusszeile, {
-      props: { spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] } }
+      props: {
+        wortmarke: 'Community-Hub',
+        spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] }
+      }
     }).body;
     expect(frisch).not.toContain('Stand:');
+  });
+
+  it('Fußzeile: Fußtext-HTML, Links und Wortmarke', () => {
+    const { body } = render(Fusszeile, {
+      props: {
+        wortmarke: 'Testquelle',
+        fusstextHtml: '<p>CC BY <strong>Testquelle</strong></p>',
+        links: [{ titel: 'Impressum', pfad: '/impressum', d: 'impressum' }],
+        befund: BEFUND
+      }
+    });
+    expect(body).toContain('<strong>Testquelle</strong>');
+    expect(body).toContain('href="/impressum"');
+    expect(body).not.toContain('Schaufenster für Beiträge');
+  });
+
+  it('ohne Links rendert die Fu\u00dfzeile keine Linkliste', () => {
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub', links: [] } });
+    expect(body).not.toContain('class="links"');
+  });
+
+  it('Fußzeile ohne Fußtext zeigt den Rückfallsatz; der Befund erscheint nur im Debug-Modus', () => {
+    const zu = render(Fusszeile, {
+      props: { wortmarke: 'Community-Hub', befund: BEFUND }
+    }).body;
+    expect(zu).toContain('Schaufenster für Beiträge');
+    expect(zu).not.toContain('erwartet:');
+
+    const offen = render(Fusszeile, {
+      props: { wortmarke: 'Community-Hub', befund: BEFUND, debugStart: true }
+    }).body;
+    expect(offen).toContain('kind:30004 mit d = "navigation"');
+    expect(offen).toContain('datenschutz');
   });
 });
 
 describe('Artikelseite', () => {
+  // Eine leere description ist schlechter als keine: Suchmaschinen und
+  // Vorschauen lesen sie als ausdr\u00fcckliche Leerangabe.
+  it('setzt <meta name="description"> nur, wenn eine Zusammenfassung da ist', () => {
+    const mit = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } });
+    expect(mit.head).toContain('name="description"');
+
+    const ohne = render(Artikelseite, {
+      props: {
+        data: seitendaten({ artikel: { ...seitendaten().artikel, zusammenfassung: '' } }),
+        wortmarke: 'T'
+      }
+    });
+    expect(ohne.head).not.toContain('name="description"');
+  });
+
+  it('eine Seite zeigt Titel und Inhalt, aber kein Datum, keine Themen, kein Cover', () => {
+    const { body, head } = render(Artikelseite, {
+      props: {
+        data: seitendaten({
+          artikel: {
+            ...seitendaten().artikel,
+            istSeite: true,
+            themen: ['X'],
+            bildUrl: 'https://blossom.edufeed.org/abc.jpg'
+          }
+        }),
+        wortmarke: 'Testquelle'
+      }
+    });
+    expect(body).toContain('<h1');
+    expect(body).not.toContain('<time');
+    expect(body).not.toContain('class="marker"');
+    expect(body).not.toContain('<img');
+    expect(head).toContain('<title>Die Kraft der Gemeinschaft · Testquelle</title>');
+  });
+
+  it('ein Artikel behält Datum und Themen; die Startseite trägt nur die Wortmarke im Titel', () => {
+    const artikel = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
+    expect(artikel.body).toContain('<time');
+    const start = render(Artikelseite, {
+      props: {
+        data: seitendaten({ artikel: { ...seitendaten().artikel, istSeite: true, titel: 'Willkommen' } }),
+        wortmarke: 'Testquelle',
+        nurWortmarke: true
+      }
+    });
+    expect(start.head).toContain('<title>Testquelle</title>');
+  });
+
   it('setzt das Datum maschinenlesbar als <time>', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toMatch(new RegExp(`<time[^>]+datetime="${VEROEFFENTLICHT.slice(0, 10)}`));
   });
 
   it('zeigt jedes Thema als Marker in der Metazeile', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     for (const thema of ['OER', 'Community']) {
       expect(body).toMatch(new RegExp(`class="marker[^"]*"[^>]*>\\s*${thema}`));
     }
   });
 
   it('zeigt das Bild auch ohne Nachweis und weist den Stand aus (ADR-0022)', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     // Das Bild wird ausgeliefert — der Kern von ADR-0022, Punkt 2.
     expect(body).toContain('https://blossom.edufeed.org/abc.jpeg');
     // …aber nicht stillschweigend: der Stand steht daran.
@@ -147,7 +279,7 @@ describe('Artikelseite', () => {
 
   it('beschriftet ein nachgewiesenes Bild nach bildattribution.md (ADR-0022)', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }) }
+      props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }), wortmarke: 'Testquelle' }
     });
     // Reihenfolge normativ: Titel, Urheber, Lizenz — nur Kommas, keine Wörter.
     const titel = body.indexOf('nosTr-schrein</span>');
@@ -175,7 +307,8 @@ describe('Artikelseite', () => {
           urheberUrl: 'https://www.inaturalist.org/users/2831535',
           license: 'https://creativecommons.org/licenses/by-sa/4.0/',
           bearbeitung: 'beschnitten'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toMatch(
@@ -196,7 +329,8 @@ describe('Artikelseite', () => {
         data: mitNachweis({
           titel: 'Ein Bild',
           license: 'https://creativecommons.org/licenses/by-sa/4.0/'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toContain('CC BY-SA 4.0');
@@ -210,7 +344,8 @@ describe('Artikelseite', () => {
         data: mitNachweis({
           titel: 'nosTr-schrein',
           alt: 'Schrein als Sinnbild zyklischer Erneuerung'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toMatch(/<img[^>]+alt="Schrein als Sinnbild zyklischer Erneuerung"/);
@@ -219,7 +354,7 @@ describe('Artikelseite', () => {
 
   it('faellt beim Alt-Text auf den Titel des Nachweises zurueck — wie Editor und md2blossom', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitNachweis({ titel: 'nosTr-schrein' }) }
+      props: { data: mitNachweis({ titel: 'nosTr-schrein' }), wortmarke: 'Testquelle' }
     });
     expect(body).toMatch(/<img[^>]+alt="nosTr-schrein"/);
   });
@@ -266,7 +401,8 @@ describe('Artikelseite', () => {
             bearbeitung: null,
             mime: 'image/jpeg'
           }
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     const davor = body.indexOf('Davor');
@@ -284,7 +420,7 @@ describe('Artikelseite', () => {
 
   it('zeigt bei ungeklärter Lizenz die Markdown-Unterschrift als Rückfall', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitFliesstextbild({ ok: false, grund: 'kein-nachweis' }) }
+      props: { data: mitFliesstextbild({ ok: false, grund: 'kein-nachweis' }), wortmarke: 'Testquelle' }
     });
     expect(body).toMatch(/<img[^>]+src="https:\/\/blossom\.edufeed\.org\/bild\.jpeg"/);
     expect(body).toContain('Lizenz ungeklärt');
@@ -293,7 +429,7 @@ describe('Artikelseite', () => {
   });
 
   it('erklärt die aus dem Fließtext entfernten Bildverweise', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toContain('nosTr-schrein.jpg');
     // Der Grund ist ADR-0015 (kein Nachweis), nicht der Pfad: absolute
     // Blossom-Verweise werden genauso entfernt wie relative.
@@ -308,7 +444,8 @@ describe('Artikelseite', () => {
           artikel: { ...seitendaten().artikel, bildUrl: null },
           lizenz: { ok: false, grund: 'kein-bild' },
           entfernteBilder: []
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).not.toContain('Lizenz ungeklärt');
@@ -322,7 +459,8 @@ describe('Artikelseite', () => {
           artikel: { ...seitendaten().artikel, bildUrl: 'nosTr-schrein.jpg' },
           lizenz: { ok: false, grund: 'relativ' },
           entfernteBilder: []
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toContain('Bild nicht angezeigt');

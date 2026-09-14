@@ -7,19 +7,23 @@
    * Die Seitendaten aus `routen/detail.js` (`seite`) — hier lokal typisiert,
    * damit diese Komponente keinen Typ aus routes/ importiert (CLAUDE.md).
    *
-   * @type {{ data: {
-   *   artikel: { titel: string, zusammenfassung: string, veroeffentlicht: string,
-   *     themen: string[], bildUrl: string|null, sprache: 'de'|'en', istSeite: boolean },
-   *   lizenz: import('../models/lizenz.js').Ergebnis,
-   *   teile: import('../inhalt.js').Teil[],
-   *   fliesstext: Record<string, import('../models/lizenz.js').Ergebnis>,
-   *   entfernteBilder: string[],
-   *   befund: import('../models/entwickleransicht.js').Befund,
-   *   pfad: string,
-   *   stand: { zeitpunkt: string, nichtErreichbar: string[] }|null
-   * } }}
+   * @type {{
+   *   data: {
+   *     artikel: { titel: string, zusammenfassung: string, veroeffentlicht: string,
+   *       themen: string[], bildUrl: string|null, sprache: 'de'|'en', istSeite: boolean },
+   *     lizenz: import('../models/lizenz.js').Ergebnis,
+   *     teile: import('../inhalt.js').Teil[],
+   *     fliesstext: Record<string, import('../models/lizenz.js').Ergebnis>,
+   *     entfernteBilder: string[],
+   *     befund: import('../models/entwickleransicht.js').Befund,
+   *     pfad: string,
+   *     stand: { zeitpunkt: string, nichtErreichbar: string[] }|null
+   *   },
+   *   wortmarke: string,
+   *   nurWortmarke?: boolean
+   * }}
    */
-  let { data } = $props();
+  let { data, wortmarke, nurWortmarke = false } = $props();
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
   const datum = $derived(
@@ -32,33 +36,39 @@
 </script>
 
 <svelte:head>
-  <title>{data.artikel.titel} — community-hub</title>
-  <meta name="description" content={data.artikel.zusammenfassung} />
+  <title>{nurWortmarke ? wortmarke : `${data.artikel.titel} · ${wortmarke}`}</title>
+  {#if data.artikel.zusammenfassung}
+    <meta name="description" content={data.artikel.zusammenfassung} />
+  {/if}
 </svelte:head>
 
 <article>
   <header class="detail-kopf">
     <h1>{data.artikel.titel}</h1>
-    <div class="metazeile">
-      <time datetime={data.artikel.veroeffentlicht}>{datum}</time>
-      {#if data.artikel.themen.length > 0}
-        <ul class="themen">
-          {#each data.artikel.themen as thema (thema)}
-            <li class="marker">{thema}</li>
-          {/each}
-        </ul>
-      {/if}
-    </div>
+    {#if !data.artikel.istSeite}
+      <div class="metazeile">
+        <time datetime={data.artikel.veroeffentlicht}>{datum}</time>
+        {#if data.artikel.themen.length > 0}
+          <ul class="themen">
+            {#each data.artikel.themen as thema (thema)}
+              <li class="marker">{thema}</li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
   </header>
 
-  <Bildbereich
-    lizenz={data.lizenz}
-    titel={data.artikel.titel}
-    bildUrl={data.artikel.bildUrl}
-  />
+  {#if !data.artikel.istSeite}
+    <Bildbereich
+      lizenz={data.lizenz}
+      titel={data.artikel.titel}
+      bildUrl={data.artikel.bildUrl}
+    />
 
-  {#if data.artikel.zusammenfassung}
-    <p class="vorspann">{data.artikel.zusammenfassung}</p>
+    {#if data.artikel.zusammenfassung}
+      <p class="vorspann">{data.artikel.zusammenfassung}</p>
+    {/if}
   {/if}
 
   <!-- Markdown aus dem Event, in inhalt.js gesäubert und in Teile zerlegt:

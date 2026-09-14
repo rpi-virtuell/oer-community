@@ -1,5 +1,6 @@
 <script>
   import '../app.css';
+  import { page } from '$app/state';
 
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
@@ -8,11 +9,22 @@
   let { children, data } = $props();
 </script>
 
-<Kopfzeile />
+<Kopfzeile
+  wortmarke={data.struktur.wortmarke}
+  logoUrl={data.struktur.logoUrl}
+  menue={data.struktur.menue}
+  aktuellerPfad={page.url.pathname}
+/>
 <main class="schmal">
   {@render children()}
 </main>
-<Fusszeile spiegelstand={data.spiegelstand} />
+<Fusszeile
+  wortmarke={data.struktur.wortmarke}
+  fusstextHtml={data.struktur.fusstextHtml}
+  links={data.struktur.fusszeilenLinks}
+  befund={data.struktur.befund}
+  spiegelstand={data.spiegelstand}
+/>
 
 <style>
   /* Textbreite „schmal" aus dem Designsystem: 820px. */

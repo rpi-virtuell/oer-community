@@ -22,7 +22,10 @@ const KONFIG = {
   abgeloesteHosts: ['oer.community'],
   spiegelPfad: 'daten/spiegel.json',
   spiegelIntervallS: 600,
-  spiegelStartwartezeitS: 20
+  spiegelStartwartezeitS: 20,
+  startseiteD: 'startseite',
+  navigationD: 'navigation',
+  fusszeileD: 'fusszeile'
 };
 
 const ADRESSE = {

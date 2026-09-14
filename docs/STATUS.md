@@ -9,6 +9,60 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-14 (spät) — Stufe 2: Struktur aus Nostr
+
+**Passiert:** Stufe 2 der Spec vom 14.09. ist umgesetzt. Neu:
+`src/lib/models/profil.js` liest `kind:0` — Wortmarke aus `name`
+(Rückfall `display_name`), Logo aus `picture` nur bei `https`, Fußtext
+aus `about` als Markdown ohne Bilder, dazu `website` (für Stufe 4).
+`src/lib/models/liste.js` löst `kind:30004`-Kuratierungslisten in
+`a`-Tags auf. `src/lib/loaders/struktur.js` löst Menü und Fußzeile gegen
+den Spiegel auf und liefert einen Befund mit „fehlt — erwartet: …" sowie
+den übersprungenen Zielen — fremde Quelle, nicht im Spiegel, oder die
+Startseite selbst, die nicht ins Menü gehört. `src/lib/routen/struktur.js`
+liefert die Layout-Daten und hängt die Hub-Ansichten Blog und Themen an;
+ohne Profil greift die Rückfall-Wortmarke „Community-Hub". Kopfzeile zeigt
+Logo, Wortmarke und Menü mit `aria-current`; Fußzeile zeigt Fußtext, Links
+und im Debug-Modus den Struktur-Befund. Seiten erscheinen ohne
+Datum/Themen/Cover, `<title>` ist `<Seitentitel> · <Wortmarke>`. `/` zeigt
+die Startseite (`d = STARTSEITE_D`) oder, solange die fehlt, den Blog mit
+Hinweis; `/en` leitet auf `/` weiter. Neue Konfiguration `STARTSEITE_D`,
+`NAVIGATION_D`, `FUSSZEILE_D`. Für Profil, Menü, Fußzeile und Startseite
+gibt es eine eigene Testquelle (`test/fixtures/testquelle/`, Wegwerf-Schlüssel
+`4ac8e494…`, erzeugt mit `erzeugen.mjs`), weil FOERBICO selbst noch kein
+`kind:30004` publiziert. **303 Tests grün, `pnpm check` ohne Befund.**
+Kleine Aufräumung im Zuge der Doku: `startLaden` in `routen/uebersicht.js`
+hatte die lokale Variable `seitennummer` über die gleichnamige exportierte
+Funktion gelegt — umbenannt in `blogSeite`.
+
+**Wo steht das Projekt:** Rauchtests vom 14.09. abends gegen
+`relay.edufeed.org` zeigen die Kopfzeile mit „FOERBICO" und Logo aus dem
+echten `kind:0`; das Menü zeigt nur Blog und Themen, die Fußzeile bleibt
+ohne Links und mit dem Rückfallsatz, `/` zeigt weiterhin den Blog mit
+Hinweis — weil `kind:30004` (`navigation`, `fusszeile`) und eine Seite mit
+Selbst-Label und `d = startseite` noch nicht publiziert sind und `about`
+im Profil leer ist.
+
+**Fix-Welle nach dem Abschluss-Review (14.09.):** Der Loader dedupliziert
+die Listenziele und überspringt Ziele auf einem festen Pfad des Hubs
+(`blog`, `themen`, …) — zwei Einträge mit demselben Pfad brachen sonst die
+Client-Hydration des Layouts (`each_key_duplicate`), allein durch
+Redaktionsdaten. `/[d]` mit dem `d` der Startseite leitet jetzt dauerhaft
+auf `/` (die JSON-Route bleibt). Dazu: Der Struktur-Befund meldet ein
+Profil ohne Namen als „fehlt", `<meta name="description">` entfällt ohne
+Zusammenfassung, `FESTE_SEGMENTE` liegt in `models/` (ein Loader importiert
+nichts aus `routen/`). **312 Tests grün, `pnpm check` ohne Befund.**
+
+**Nächster Schritt:** Die Voraussetzungen in den Nachbar-Repos aus der
+Spec („Voraussetzungen in Nachbar-Repos", Punkte 1–6): FOERBICO-Frontmatter
+der sieben Seiten (`name`/`description`/`datePublished`, Startseite als
+`startseite`), mdparser-Selbst-Label, `inLanguage` als String, `sync
+navigation`, der Profil-Text `about`, Site-Logos nach Blossom. Danach
+Stufe 3 (FOERBICO-Gestaltung, ADR-0031) und Stufe 4 (Feed, Sitemap,
+kanonische URLs aus `website`).
+
+---
+
 ## 2026-09-14 — Stufe 1 aus der Spec „oer.community aus Nostr": Spiegel, `/[d]`, Blog, Themen
 
 **Passiert:** Spec vom 14.09.
