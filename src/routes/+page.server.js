@@ -6,6 +6,6 @@ import { spiegelHolen } from '$lib/services/spiegel.js';
 export const prerender = false;
 
 /** @type {import('./$types').PageServerLoad} */
-export function load() {
+export async function load() {
   return startLaden({ konfig: konfigLesen(env), inhalt: spiegelHolen().lesen() });
 }

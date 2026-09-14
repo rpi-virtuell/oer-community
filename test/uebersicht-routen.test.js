@@ -126,8 +126,30 @@ describe('/themen/[thema]/seite/[n]', () => {
 describe('/', () => {
   it('zeigt die Übersicht mit dem Hinweis, dass die Startseite fehlt', async () => {
     const daten = await lade('../src/routes/+page.server.js', {});
+    expect(daten.art).toBe('blog');
     expect(daten.hinweis).toContain('startseite');
     expect(daten.karten).toHaveLength(20);
+  });
+
+  it('zeigt die Startseite als Seite, wenn sie publiziert ist', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.art).toBe('seite');
+    expect(daten.seite.artikel.titel).toBe('Willkommen');
+    expect(daten.seite.artikel.istSeite).toBe(true);
+  });
+
+  it('zeigt den Blog mit Hinweis, wenn die Startseite fehlt', async () => {
+    const { inhalt } = inhaltDerTestquelle({ ohne: [{ kind: 30023, d: 'startseite' }] });
+    const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.art).toBe('blog');
+    expect(daten.hinweis).toContain('startseite');
+  });
+});
+
+describe('/en', () => {
+  it('leitet dauerhaft auf / weiter', async () => {
+    await expect(lade('../src/routes/en/+page.server.js', {})).rejects.toMatchObject({ status: 301, location: '/' });
   });
 });
 
