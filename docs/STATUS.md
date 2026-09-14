@@ -9,6 +9,34 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-14 (nachts) — Produzentenseite: Seiten publiziert, mdparser kann Menü und Listen
+
+**Passiert:** Die Voraussetzungen 1–4 aus der Spec sind umgesetzt, direkt auf
+`main` (Entscheidung Jörg). **mdparser** (`a1dc096`…`451e6e4`, Mirror
+`edufeed-org/mdparser` synchron): Seiten (`type: 'page'`) tragen das
+Selbst-Label `["L","foerbico/typ"]`, `["l","seite","foerbico/typ"]`;
+`inLanguage` als String wird zur Liste (19 Beiträge kamen als Sprache „d" an);
+neue Subcommands `redaktion` (Redaktionsliste `kind:30000`, vom 04.09.) und
+`navigation` (`kind:30004` `navigation`/`fusszeile` aus
+`Website/navigation.yaml`); `AUTHOR_SECRET_HEX` in der `.env` erlaubt Handläufe
+ohne Bunker; zwei Typfehler behoben, `deno test` läuft wieder (80 Tests).
+Contract `event-tag-mapping.md` im oer-orchestrator ergänzt. **FOERBICO-Repo**
+(`a362648`): die sechs Seiten haben `name`, `description`, `datePublished`,
+`creator` (FOERBICO als Organisation); neu `content/de/startseite/index.md`
+(`d = startseite`, Hugo rendert sie nicht) und `Website/navigation.yaml`. Die
+GitHub-Action hat alle sieben Seiten publiziert; sie liegen mit Label auf
+`relay.edufeed.org` und `relay-rpi.edufeed.org`.
+
+**Wo steht das Projekt:** Der Hub zeigt die Seiten unter ihren Pfaden und `/`
+als Startseite, sobald der Spiegel sie geladen hat. Menü und Fußzeile fehlen
+noch: Die beiden `kind:30004` brauchen eine Signatur mit dem FOERBICO-Key
+(`deno task navigation` mit `AUTHOR_SECRET_HEX` oder Bunker), ebenso die
+Redaktionsliste. Der Fußtext im Profil-`about` ist weiterhin leer.
+Beschreibungen und Daten der Seiten sind abgeleitet, nicht redigiert.
+
+**Nächster Schritt:** `deno task redaktion` und `deno task navigation`
+ausführen; Profil-`about` setzen. Dann Stufe 3 (Gestaltung, ADR-0031).
+
 ## 2026-09-14 (spät) — Stufe 2: Struktur aus Nostr
 
 **Passiert:** Stufe 2 der Spec vom 14.09. ist umgesetzt. Neu:
