@@ -45,6 +45,17 @@ Artikeln mit auflösbarem Lizenznachweis: 16 Artikel tragen ein `x`-Tag,
 (`d = startseite`), weil die noch nicht aus Nostr kommt. `pnpm lint` und
 `pnpm test:e2e` existieren weiterhin nicht.
 
+**Live seit 14.09., 19:03 Uhr:** `https://community-hub.rpi-virtuell.net/`
+läuft mit Stufe 1 (Pipeline 6). Der Spiegel lädt dort 87 Artikel und 37
+Nachweise in 5,9 s von zwei Relays; `/blog`, `/themen`, `/[d]`, `naddr`-Weiterleitung
+und die Umlaut-Adresse antworten wie erwartet. Vorher scheiterten die
+Pipelines 2 bis 5: Pipeline 2 am Altfehler in `svelte-check`, 3 bis 5 am
+Deploy-Skript, weil das Server-Repo auf dem gelöschten Branch
+`succesful-deployment` steht und der Deploy-Schlüssel nur das Skript ausführen
+darf. Übergangslösung: der Branch existiert wieder und wird mit `main`
+mitgeführt (`docs/betrieb.md`). Dauerhaft: Ludger stellt das Server-Repo auf
+`main` um.
+
 **Nächster Schritt:** Stufe 2 der Spec planen — Seiten-Darstellung, Menü
 und Fußzeile aus `kind:30004`, Wortmarke und Logo aus `kind:0`, Startseite.
 Das braucht die mdparser-Punkte 1–4 aus der Spec vom 14.09.

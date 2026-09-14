@@ -294,10 +294,10 @@ Caesar-Scheibe (`test/fixtures/*-caesar-scheibe.json`, Personen-Key,
 | Umgebung | Quelle | Datenquelle |
 |---|---|---|
 | lokal (`pnpm dev`) | Arbeitskopie | `relay.edufeed.org` |
-| `dev.relilab.org` | `dev` | `relay.edufeed.org` |
-| `int.relilab.org` | `main` | `relay.edufeed.org` |
+| `community-hub.rpi-virtuell.net` (Dev) | `main`, bei jedem Push per Woodpecker | `relay.edufeed.org`, `relay-rpi.edufeed.org` |
 
-Ziel ist oer.community; Zwischenstände laufen auf dem Hetzner-Server aus
+Ziel ist oer.community. Der Deploy-Weg samt Stolperstein steht in
+`docs/betrieb.md` (Abschnitt Dev-Umgebung); ältere Zwischenstände liefen auf dem Hetzner-Server aus
 `docs/betrieb.md`.
 
 Kein eigenes Relay — die Edufeed-Relays werden genutzt und bei Bedarf
