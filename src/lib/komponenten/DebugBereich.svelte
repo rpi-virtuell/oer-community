@@ -49,13 +49,13 @@
   const host = (/** @type {string} */ url) => url.replace(/^wss:\/\//, '').replace(/\/$/, '');
 </script>
 
-<div class="rahmen" style="border-color: var(--rl-linie)">
+<div class="rahmen" style="border-color: var(--fb-rahmen)">
   <button
     type="button"
     class="auslöser"
     onclick={() => (offen = !offen)}
     aria-expanded={offen}
-    style="color: var(--rl-text)"
+    style="color: var(--fb-text)"
   >
     <svg class="chevron" class:gedreht={offen} viewBox="0 0 24 24" fill="none"
          stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -66,23 +66,23 @@
       <!-- Wie bei edufeed: zeigt den Aufklapp-Zustand, nicht den Modus.
            Neutral getönt — die einzige Marker-Variante, die bei kleiner
            Schrift die Kontrastanforderung erfüllt (5,40:1). -->
-      <span class="marke" style="background: var(--rl-flaeche-2); color: var(--rl-text-leise)">
+      <span class="marke" style="background: var(--fb-flaeche-2); color: var(--fb-text-leise)">
         Aktiv
       </span>
     {/if}
   </button>
 
   {#if offen}
-    <div class="inhalt" style="background: var(--rl-flaeche)">
+    <div class="inhalt" style="background: var(--fb-flaeche)">
       {#if stand}
-        <p class="stand" style="color: var(--rl-text-leise)">
+        <p class="stand" style="color: var(--fb-text-leise)">
           Stand des Spiegels: {new Date(stand.zeitpunkt).toLocaleString('de-DE')}
           {#if stand.nichtErreichbar.length > 0}
             · nicht erreichbar: {stand.nichtErreichbar.join(', ')}
           {/if}
         </p>
       {/if}
-      <p class="hinweis" style="color: var(--rl-text-leise)">
+      <p class="hinweis" style="color: var(--fb-text-leise)">
         Der Lizenznachweis steht <strong>nicht</strong> im Beitrag. Der
         <code>kind:30023</code> trägt nur den Hash im <code>x</code>-Tag; der
         Nachweis ist ein eigenes <code>kind:1063</code> auf einem anderen
@@ -92,7 +92,7 @@
 
       <!-- ── Beitrag ────────────────────────────────────────────────── -->
       <section>
-        <h4 style="color: var(--rl-text)">Beitrag (kind:30023)</h4>
+        <h4 style="color: var(--fb-text)">Beitrag (kind:30023)</h4>
         <div class="raster">
           <DebugFeld label="Event ID" wert={befund.artikel.event?.id}
                      kurz={kurz(befund.artikel.event?.id ?? null)} kopierbar />
@@ -107,7 +107,7 @@
 
       <!-- ── Lizenznachweis ─────────────────────────────────────────── -->
       <section>
-        <h4 style="color: var(--rl-text)">Lizenznachweis (kind:1063)</h4>
+        <h4 style="color: var(--fb-text)">Lizenznachweis (kind:1063)</h4>
         {#if befund.lizenz.event}
           <div class="raster">
             <DebugFeld label="Event ID" wert={befund.lizenz.event.id}
@@ -117,7 +117,7 @@
             <DebugFeld label="Erstellt" wert={zeit(befund.lizenz.event.created_at)} einspaltig />
           </div>
         {:else}
-          <p class="fehlt" style="color: var(--rl-text-leise)">
+          <p class="fehlt" style="color: var(--fb-text-leise)">
             Kein Nachweis aufgelöst.
             {#if befund.lizenz.herkunft.grundText}{befund.lizenz.herkunft.grundText}{/if}
           </p>
@@ -126,7 +126,7 @@
 
       <!-- ── Herkunft ───────────────────────────────────────────────── -->
       <section>
-        <h4 style="color: var(--rl-text)">Auf welchem Relay lag was?</h4>
+        <h4 style="color: var(--fb-text)">Auf welchem Relay lag was?</h4>
         <div class="raster">
           <DebugFeld label="Beitrag von"
                      wert={befund.artikel.herkunft.geliefertVon.map(host).join(', ') || '—'}
@@ -149,29 +149,29 @@
 
       <!-- ── Prüfkette ─────────────────────────────────────────────── -->
       <section>
-        <h4 style="color: var(--rl-text)">
+        <h4 style="color: var(--fb-text)">
           Prüfkette (ADR-0013)
-          <span class="ergebnis" style="color: var(--rl-text-leise)">
+          <span class="ergebnis" style="color: var(--fb-text-leise)">
             {befund.kette.ok ? 'vollständig bestanden' : (befund.kette.text ?? '')}
           </span>
         </h4>
         <ol class="kette">
           {#each befund.kette.schritte as schritt (schritt.nr)}
-            <li style="background: var(--rl-weiss); border-color: var(--rl-linie)">
+            <li style="background: var(--fb-weiss); border-color: var(--fb-rahmen)">
               <span class="zeichen" aria-hidden="true">{zeichen(schritt.ok)}</span>
-              <span class="frage" style="color: var(--rl-text)">
+              <span class="frage" style="color: var(--fb-text)">
                 {schritt.frage}
                 <span class="sr">
                   {schritt.ok === true ? '— bestanden' : schritt.ok === false ? '— gescheitert' : '— nicht geprüft'}
                 </span>
               </span>
-              <code class="wert" style="color: var(--rl-text-leise)">
+              <code class="wert" style="color: var(--fb-text-leise)">
                 {schritt.wert ? (schritt.wert.length > 26 ? kurz(schritt.wert) : schritt.wert) : '—'}
               </code>
             </li>
           {/each}
         </ol>
-        <p class="fussnote" style="color: var(--rl-text-leise)">
+        <p class="fussnote" style="color: var(--fb-text-leise)">
           <span aria-hidden="true">·</span> heißt nicht geprüft — ein früherer
           Schritt brach ab, oder Schritt 5 hatte keinen <code>etag</code>.
         </p>
@@ -179,7 +179,7 @@
 
       <!-- ── Hashes ────────────────────────────────────────────────── -->
       <section>
-        <h4 style="color: var(--rl-text)">Die drei Hashes müssen gleich sein</h4>
+        <h4 style="color: var(--fb-text)">Die drei Hashes müssen gleich sein</h4>
         <div class="raster">
           <DebugFeld label="am Beitrag (x-Tag)" wert={befund.hashes.amArtikel}
                      kurz={kurz(befund.hashes.amArtikel)} kopierbar einspaltig />

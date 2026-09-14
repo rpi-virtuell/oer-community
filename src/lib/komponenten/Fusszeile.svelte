@@ -107,23 +107,24 @@
 
 <style>
   .fuss {
-    background: var(--fau);
-    color: var(--fuss-text);
+    background: var(--fb-flaeche);
+    color: var(--fb-text);
+    border-top: 1px solid var(--fb-akzent);
     margin-top: 64px;
     padding: 48px 0;
     font-size: 0.92rem;
   }
   .innen {
-    max-width: var(--rl-container);
+    max-width: var(--breite-container);
     margin: 0 auto;
     padding: 0 24px;
   }
   .marke {
-    font-family: var(--schrift-ueber);
+    font-family: var(--schrift);
     font-size: 2rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--rl-weiss);
+    color: var(--fb-ueberschrift);
     margin: 0 0 12px;
   }
   .text {
@@ -131,7 +132,7 @@
     margin: 0;
   }
   .text :global(a) {
-    color: var(--rl-weiss);
+    color: var(--fb-primaer);
     text-decoration: underline;
   }
   .links {
@@ -142,14 +143,14 @@
     margin: 16px 0 0;
   }
   .links a {
-    color: var(--rl-weiss);
+    color: var(--fb-primaer);
   }
   .stand {
     max-width: 60ch;
     margin: 12px 0 0;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid var(--amber);
+    background: var(--fb-weiss);
+    border-left: 3px solid var(--fb-akzent);
     font-size: 0.92rem;
   }
   .werkzeug {
@@ -159,8 +160,8 @@
     gap: 0.5rem 0.75rem;
     margin-top: 28px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-    font-family: var(--schrift-label);
+    border-top: 1px solid var(--fb-rahmen);
+    font-family: var(--schrift);
     font-size: 0.86rem;
   }
   .schalter {
@@ -168,22 +169,22 @@
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    color: var(--rl-weiss);
+    color: var(--fb-text);
   }
   .schalter input {
-    accent-color: var(--relilab);
+    accent-color: var(--fb-primaer);
   }
   .erklaerung {
     font-size: 0.8rem;
   }
   .befund {
     margin-top: 20px;
-    font-family: var(--schrift-label);
+    font-family: var(--schrift);
     font-size: 0.86rem;
   }
   .befund h2 {
     font-size: 1rem;
-    color: var(--rl-weiss);
+    color: var(--fb-ueberschrift);
     margin: 0 0 6px;
   }
   .befund ul {

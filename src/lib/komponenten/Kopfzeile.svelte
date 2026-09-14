@@ -31,12 +31,12 @@
 
 <style>
   .kopf {
-    height: var(--rl-kopf);
-    background: var(--rl-weiss);
-    border-bottom: 1px solid var(--rl-linie);
+    height: var(--hoehe-kopf);
+    background: var(--fb-flaeche-2);
+    border-bottom: 1px solid var(--fb-akzent);
   }
   .innen {
-    max-width: var(--rl-container);
+    max-width: var(--breite-container);
     height: 100%;
     margin: 0 auto;
     padding: 0 24px;
@@ -50,33 +50,32 @@
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    font-family: var(--schrift-label);
+    font-family: var(--schrift);
     font-weight: 500;
   }
   .nav a {
-    color: var(--rl-dunkel);
+    color: var(--fb-primaer);
     text-decoration: none;
   }
-  .nav a:hover {
-    text-decoration: underline;
-  }
+  .nav a:hover,
   .nav a[aria-current] {
     text-decoration: underline;
     text-underline-offset: 0.3em;
+    color: var(--fb-ueberschrift);
   }
   .marke {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-family: var(--schrift-ueber);
+    font-family: var(--schrift);
     font-size: 2rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--rl-dunkel);
+    color: var(--fb-ueberschrift);
     text-decoration: none;
   }
   .marke:hover {
-    color: var(--rl-dunkel);
+    color: var(--fb-ueberschrift);
   }
   .logo {
     height: 48px;

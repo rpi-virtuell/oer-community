@@ -111,7 +111,7 @@
 <style>
   .detail-kopf {
     padding-bottom: 28px;
-    border-bottom: 1px solid var(--rl-linie);
+    border-bottom: 1px solid var(--fb-rahmen);
     margin-bottom: 32px;
   }
   .detail-kopf h1 {
@@ -163,19 +163,19 @@
     margin-bottom: 0.25rem;
   }
   .inhalt :global(blockquote) {
-    border-left: 3px solid var(--relilab);
+    border-left: 3px solid var(--fb-akzent);
     margin: 1.4em 0;
     padding: 0.4em 0 0.4em 1.2em;
-    color: var(--rl-text-leise);
+    color: var(--fb-text-leise);
   }
   .inhalt :global(code) {
-    background: var(--rl-flaeche);
+    background: var(--fb-flaeche);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.9em;
   }
   .inhalt :global(pre) {
-    background: var(--rl-flaeche);
+    background: var(--fb-flaeche);
     padding: 16px;
     border-radius: 8px;
     overflow-x: auto;
@@ -192,14 +192,14 @@
   }
   .inhalt :global(td),
   .inhalt :global(th) {
-    border: 1px solid var(--rl-linie);
+    border: 1px solid var(--fb-rahmen);
     padding: 8px 12px;
     text-align: left;
   }
   .inhalt :global(img) {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
+    border-radius: var(--radius);
     margin: 1.4em 0;
   }
 </style>

@@ -29,7 +29,7 @@
 <style>
   /* Textbreite „schmal" aus dem Designsystem: 820px. */
   .schmal {
-    max-width: var(--rl-schmal);
+    max-width: var(--breite-schmal);
     margin: 0 auto;
     padding: 40px 24px 0;
   }

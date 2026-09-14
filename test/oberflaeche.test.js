@@ -4,7 +4,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { render } from 'svelte/server';
 
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
@@ -473,5 +474,44 @@ describe('Artikelseite', () => {
     });
     expect(body).not.toContain('<img');
     expect(body).toContain(GRUND_TEXT['abgeloester-host']);
+  });
+});
+
+/**
+ * Alle .svelte-Dateien unter src/lib/komponenten/ und src/routes/, als
+ * [Pfad, Text] — eigene kleine Kopie der Idee aus kontrast.test.js.
+ * @returns {Array<[string, string]>}
+ */
+function komponentenQuellen() {
+  const wurzel = new URL('..', import.meta.url).pathname;
+  /** @type {Array<[string, string]>} */
+  const gefunden = [];
+  /** @param {string} verzeichnis */
+  function durchsuchen(verzeichnis) {
+    for (const eintrag of readdirSync(verzeichnis)) {
+      if (eintrag === 'node_modules' || eintrag.startsWith('.')) continue;
+      const pfad = join(verzeichnis, eintrag);
+      if (statSync(pfad).isDirectory()) {
+        durchsuchen(pfad);
+      } else if (eintrag.endsWith('.svelte')) {
+        gefunden.push([relative(wurzel, pfad), readFileSync(pfad, 'utf8')]);
+      }
+    }
+  }
+  durchsuchen(join(wurzel, 'src', 'lib', 'komponenten'));
+  durchsuchen(join(wurzel, 'src', 'routes'));
+  return gefunden;
+}
+
+describe('FOERBICO-Token in Komponenten (ADR-0031)', () => {
+  it('kein Alt-Token und kein Hex-Farbwert in Komponenten (ADR-0031)', () => {
+    const alt =
+      /var\(--(rl-|relilab|magenta|rpi|fau|amber|fuss-text|verlauf|aufmacher|schrift-(ueber|label|text)|marker-amber)/;
+    const hex = /#[0-9a-fA-F]{3,8}\b/;
+    for (const [pfad, text] of komponentenQuellen()) {
+      expect(alt.test(text), `${pfad} nutzt ein Alt-Token`).toBe(false);
+      const css = (text.match(/<style>[\s\S]*<\/style>/) ?? [''])[0];
+      expect(hex.test(css), `${pfad} hat einen Hex-Farbwert im <style>`).toBe(false);
+    }
   });
 });
