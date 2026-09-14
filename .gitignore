@@ -5,3 +5,5 @@ build/
 .DS_Store
 .env.sicherung-*
 .claude/worktrees/
+daten/spiegel.json
+daten/spiegel.json.tmp

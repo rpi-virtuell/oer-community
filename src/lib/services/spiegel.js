@@ -11,6 +11,8 @@
  * (Architekturtest). Sie kennt die Oberfläche nicht.
  */
 
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { hashAusUrl } from '../models/lizenz.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
@@ -41,6 +43,45 @@ import { eventsHolen, eventsVonAllen } from './relay.js';
 const BILD = /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 /** Relays begrenzen Filtergrößen; 50 Hashes je REQ sind überall sicher. */
 const BLOCK = 50;
+
+/**
+ * Datei auf der Platte: erst temporär schreiben, dann umbenennen — ein
+ * Absturz mitten im Schreiben hinterlässt keine halbe Datei.
+ * @param {string} pfad
+ */
+export function dateiSpeicher(pfad) {
+  return {
+    async lesen() {
+      try {
+        return await readFile(pfad, 'utf8');
+      } catch {
+        return null;
+      }
+    },
+    /** @param {string} text */
+    async schreiben(text) {
+      await mkdir(dirname(pfad), { recursive: true });
+      const tmp = `${pfad}.tmp`;
+      await writeFile(tmp, text, 'utf8');
+      await rename(tmp, pfad);
+    }
+  };
+}
+
+/** Standard-Planer: setInterval, das den Prozess nicht am Beenden hindert.
+ * @param {() => unknown} fn @param {number} ms */
+function intervallPlanen(fn, ms) {
+  const t = setInterval(fn, ms);
+  t.unref?.();
+  return { stoppen: () => clearInterval(t) };
+}
+
+/** Sieht ein Objekt aus wie ein Inhalt? Mehr wird nicht geprüft — Events sind signiert, ihre Form prüft niemand hier.
+ * @param {unknown} x @returns {x is Inhalt} */
+function istInhalt(x) {
+  return !!x && typeof x === 'object' && Array.isArray(/** @type {any} */ (x).artikel) &&
+    Array.isArray(/** @type {any} */ (x).nachweise) && /** @type {any} */ (x).stand !== undefined;
+}
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
@@ -107,8 +148,13 @@ export function hashesSammeln(artikel) {
  * @param {typeof eventsHolen} [eingabe.holen]        nur zum Prüfen austauschbar
  * @param {typeof etagHolenEcht} [eingabe.etagHolen]  dito
  * @param {() => number} [eingabe.jetzt]               dito
+ * @param {ReturnType<typeof dateiSpeicher>} [eingabe.speicher]  dito
+ * @param {(fn: () => unknown, ms: number) => { stoppen(): void }} [eingabe.planen]  dito
  */
-export function spiegelErstellen({ konfig, holen = eventsHolen, etagHolen = etagHolenEcht, jetzt = () => Date.now() }) {
+export function spiegelErstellen({
+  konfig, holen = eventsHolen, etagHolen = etagHolenEcht, jetzt = () => Date.now(),
+  speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen
+}) {
   let inhalt = leererInhalt();
   /** @type {Fehlschlag|null} */
   let fehlschlag = null;
@@ -170,12 +216,101 @@ export function spiegelErstellen({ konfig, holen = eventsHolen, etagHolen = etag
       quellen, etags
     };
     fehlschlag = null;
+
+    try {
+      await speicher.schreiben(JSON.stringify(inhalt));
+    } catch (ursache) {
+      // Die Datei ist Komfort für den Neustart, kein Teil des Laufs.
+      console.warn('Spiegel: Datei nicht geschrieben —', ursache instanceof Error ? ursache.message : ursache);
+    }
+
     return { gueltig: true, inhalt };
+  }
+
+  async function ausDateiLaden() {
+    const text = await speicher.lesen();
+    if (text === null) return false;
+    try {
+      const geparst = JSON.parse(text);
+      if (!istInhalt(geparst)) return false;
+      inhalt = geparst;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** @type {{ stoppen(): void }|null} */
+  let timer = null;
+
+  async function starten() {
+    await ausDateiLaden();
+    const erster = auffrischen().catch((ursache) => {
+      console.warn('Spiegel: erster Lauf gescheitert —', ursache instanceof Error ? ursache.message : ursache);
+    });
+    const frist = new Promise((fertig) => {
+      const t = setTimeout(fertig, konfig.spiegelStartwartezeitS * 1000);
+      t.unref?.();
+    });
+    await Promise.race([erster, frist]);
+    timer ??= planen(() => {
+      auffrischen().catch((ursache) => {
+        console.warn('Spiegel: Lauf gescheitert —', ursache instanceof Error ? ursache.message : ursache);
+      });
+    }, konfig.spiegelIntervallS * 1000);
+  }
+
+  function stoppen() {
+    timer?.stoppen();
+    timer = null;
   }
 
   return {
     lesen: () => inhalt,
     letzterFehlschlag: () => fehlschlag,
-    auffrischen
+    auffrischen,
+    ausDateiLaden,
+    starten,
+    stoppen
   };
+}
+
+/** @typedef {ReturnType<typeof spiegelErstellen>} Spiegel */
+/** @type {Spiegel|null} */
+let instanz = null;
+
+/**
+ * Startet den einen Spiegel des Prozesses — aus hooks.server.js. Ein zweiter
+ * Aufruf liefert denselben; niemand baut versehentlich zwei Läufe.
+ * @param {Konfig} konfig
+ * @param {Partial<Parameters<typeof spiegelErstellen>[0]>} [optionen]  nur zum Prüfen
+ */
+export function spiegelStarten(konfig, optionen = {}) {
+  if (!instanz) {
+    instanz = spiegelErstellen({ konfig, ...optionen });
+    bereit = instanz.starten();
+  }
+  return instanz;
+}
+
+/** @type {Promise<void>} */
+let bereit = Promise.resolve();
+
+/** Löst auf, wenn der erste Lauf durch ist oder die Startwartezeit verstrich — für hooks.server.js. */
+export function spiegelBereit() {
+  return bereit;
+}
+
+/** Der laufende Spiegel — für Routen. */
+export function spiegelHolen() {
+  if (!instanz) {
+    throw new Error('Der Spiegel läuft nicht. Er wird in src/hooks.server.js gestartet — fehlt die Datei?');
+  }
+  return instanz;
+}
+
+export function spiegelZuruecksetzenFuerTests() {
+  instanz?.stoppen();
+  instanz = null;
+  bereit = Promise.resolve();
 }

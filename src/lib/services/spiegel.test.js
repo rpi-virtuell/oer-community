@@ -67,7 +67,7 @@ describe('hashesSammeln', () => {
 
 describe('spiegelErstellen().auffrischen', () => {
   it('führt ersetzbare Events zusammen: neuestes created_at je d gewinnt', async () => {
-    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe() });
     const { gueltig, inhalt } = await s.auffrischen();
     expect(gueltig).toBe(true);
     expect(inhalt.artikel).toHaveLength(1);
@@ -76,7 +76,7 @@ describe('spiegelErstellen().auffrischen', () => {
   });
 
   it('holt die Nachweise über alle Relays und merkt sich die Herkunft', async () => {
-    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe() });
     const { inhalt } = await s.auffrischen();
     expect(inhalt.nachweise.map((e) => e.id)).toEqual([NACHWEIS.id]);
     expect(inhalt.quellen[NACHWEIS.id]).toEqual([RPI]);
@@ -85,7 +85,7 @@ describe('spiegelErstellen().auffrischen', () => {
 
   it('fragt den etag nur für attestierte Bild-URLs', async () => {
     const etagHolen = vi.fn(async () => '"abc"');
-    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen, speicher: speicherAttrappe() });
     const { inhalt } = await s.auffrischen();
     const cover = ARTIKEL_NEU.tags.find((/** @type {string[]} */ t) => t[0] === 'image')[1];
     expect(etagHolen).toHaveBeenCalledWith(cover);
@@ -94,7 +94,7 @@ describe('spiegelErstellen().auffrischen', () => {
 
   it('ein Lauf ohne antwortendes Relay ist ungültig und ersetzt nichts', async () => {
     const lage = { tot: /** @type {string[]} */ ([]) };
-    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(lage), etagHolen: async () => undefined });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(lage), etagHolen: async () => undefined, speicher: speicherAttrappe() });
     await s.auffrischen();
     const vorher = s.lesen();
     lage.tot = [RELAY, RPI];
@@ -102,13 +102,13 @@ describe('spiegelErstellen().auffrischen', () => {
     expect(gueltig).toBe(false);
     expect(s.lesen()).toBe(vorher);
     expect(s.letzterFehlschlag()?.gefragteRelays).toEqual([RELAY, RPI]);
-    const nie = spiegelErstellen({ konfig: KONFIG, holen: relays(lage), etagHolen: async () => undefined });
+    const nie = spiegelErstellen({ konfig: KONFIG, holen: relays(lage), etagHolen: async () => undefined, speicher: speicherAttrappe() });
     await nie.auffrischen();
     expect(nie.lesen()).toEqual(leererInhalt());
   });
 
   it('ein Relay tot, eines antwortet: gültig, das tote steht im Stand', async () => {
-    const s = spiegelErstellen({ konfig: KONFIG, holen: relays({ tot: [RPI] }), etagHolen: async () => undefined });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays({ tot: [RPI] }), etagHolen: async () => undefined, speicher: speicherAttrappe() });
     const { gueltig, inhalt } = await s.auffrischen();
     expect(gueltig).toBe(true);
     expect(inhalt.stand?.nichtErreichbar).toEqual([RPI]);
@@ -134,8 +134,90 @@ describe('spiegelErstellen().auffrischen', () => {
       if (/** @type {number[]} */ (filter.kinds).includes(1063) && url === RELAY) groessen.push(/** @type {string[]} */ (filter['#x']).length);
       return { events: [], erreicht: true };
     };
-    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined });
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
     await s.auffrischen();
     expect(groessen).toEqual([50, 50, 20]);
+  });
+});
+
+/** Speicher-Attrappe im Speicher. */
+function speicherAttrappe(/** @type {string|null} */ anfang = null) {
+  let text = anfang;
+  return {
+    lesen: async () => text,
+    schreiben: async (/** @type {string} */ t) => { text = t; },
+    inhalt: () => text
+  };
+}
+
+describe('Spiegel und Datei', () => {
+  it('schreibt nach einem gültigen Lauf und liest beim Start zurück', async () => {
+    const speicher = speicherAttrappe();
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher });
+    await s.auffrischen();
+    expect(speicher.inhalt()).toContain(ARTIKEL_NEU.id);
+
+    const neu = spiegelErstellen({ konfig: KONFIG, holen: relays({ tot: [RELAY, RPI] }), etagHolen: async () => undefined, speicher });
+    expect(await neu.ausDateiLaden()).toBe(true);
+    expect(neu.lesen().artikel[0].id).toBe(ARTIKEL_NEU.id);
+    expect(neu.lesen().stand?.zeitpunkt).toBeTruthy();
+  });
+
+  it('eine kaputte oder fremde Datei wird ignoriert', async () => {
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe('{"nix":1}') });
+    expect(await s.ausDateiLaden()).toBe(false);
+    const k = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe('kein json') });
+    expect(await k.ausDateiLaden()).toBe(false);
+  });
+
+  it('ein ungültiger Lauf schreibt die Datei nicht', async () => {
+    const speicher = speicherAttrappe('ALT');
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays({ tot: [RELAY, RPI] }), etagHolen: async () => undefined, speicher });
+    await s.auffrischen();
+    expect(speicher.inhalt()).toBe('ALT');
+  });
+});
+
+describe('starten', () => {
+  it('lädt die Datei, wartet den ersten Lauf ab und plant den Timer', async () => {
+    /** @type {Array<{ fn: () => unknown, ms: number }>} */
+    const geplant = [];
+    const s = spiegelErstellen({
+      konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe(),
+      planen: (fn, ms) => { geplant.push({ fn, ms }); return { stoppen: () => {} }; }
+    });
+    await s.starten();
+    expect(s.lesen().artikel).toHaveLength(1);
+    expect(geplant).toEqual([{ fn: expect.any(Function), ms: 600_000 }]);
+  });
+
+  it('geht nach der Startwartezeit ans Netz, auch wenn der Lauf hängt', async () => {
+    /** @type {import('./relay.js').eventsHolen} */
+    const haengt = () => new Promise(() => {});
+    const s = spiegelErstellen({
+      konfig: { ...KONFIG, spiegelStartwartezeitS: 1 }, holen: haengt, etagHolen: async () => undefined,
+      speicher: speicherAttrappe(), planen: () => ({ stoppen: () => {} })
+    });
+    vi.useFakeTimers();
+    const fertig = s.starten();
+    await vi.advanceTimersByTimeAsync(1000);
+    await fertig;
+    vi.useRealTimers();
+    expect(s.lesen()).toEqual(leererInhalt());
+  });
+});
+
+describe('Singleton', () => {
+  it('spiegelHolen wirft vor dem Start und liefert danach immer dasselbe', async () => {
+    const { spiegelBereit, spiegelHolen, spiegelStarten, spiegelZuruecksetzenFuerTests } = await import('./spiegel.js');
+    spiegelZuruecksetzenFuerTests();
+    expect(() => spiegelHolen()).toThrow(/hooks\.server\.js/);
+    const a = spiegelStarten({ ...KONFIG, relays: [] }, { speicher: speicherAttrappe(), planen: () => ({ stoppen: () => {} }) });
+    const b = spiegelStarten({ ...KONFIG, relays: [] });
+    expect(a).toBe(b);
+    expect(spiegelHolen()).toBe(a);
+    await spiegelBereit();
+    expect(a.letzterFehlschlag()?.gefragteRelays).toEqual([]);
+    spiegelZuruecksetzenFuerTests();
   });
 });
