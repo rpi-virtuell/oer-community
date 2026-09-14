@@ -20,9 +20,9 @@ Farben, Schriften, Abstände: `docs/designsystem.md`.
 `community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
 ADRs werden nicht umgeschrieben. **relilab bleibt** als Mandant, Domain
 und Farbtoken; umbenannt wurde nur der Projektname. Die **Wortmarke** in
-Kopf- und Fußzeile ist vorläufig „Community-Hub" — ADR-0019 ist durch
-ADR-0026 ersetzt: die Wortmarke kommt ab Stufe 2 aus `kind:0` (ADR-0027),
-bis dahin steht „Community-Hub".
+Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
+`display_name`); fehlt beides, steht „Community-Hub" (ADR-0027, ersetzt
+ADR-0019).
 
 **Wo das Projekt steht und was als Nächstes dran ist: `docs/STATUS.md`**
 (Logbuch, neuester Eintrag oben). Diese Datei hier beschreibt teils den
@@ -75,6 +75,12 @@ nur er importiert `services/relay.js`, geprüft vom Architekturtest
 wird alle `SPIEGEL_INTERVALL_S` Sekunden neu aufgebaut; scheitert der
 letzte Lauf, nennt die Fußzeile das Alter des angezeigten Stands
 (ADR-0028).
+
+Menü und Fußzeile sind Kuratierungslisten `kind:30004` (`d = navigation`,
+`d = fusszeile`), die Startseite ist die Seite `d = startseite`; alle drei
+Kennungen sind Konfiguration mit Standard (`NAVIGATION_D`, `FUSSZEILE_D`,
+`STARTSEITE_D`). Fehlt etwas, zeigt die Fußzeile im Debug-Modus den
+Struktur-Befund.
 
 ## Serverseitig rendern, nicht clientseitig
 
@@ -188,6 +194,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   `oer.community`) gelten wie relative Pfade (ADR-0030).
 - **Ein Beitrag ist eine Seite**, wenn er `["l","seite","foerbico/typ"]`
   trägt (ADR-0027); Seiten erscheinen nicht im Blog.
+- **Das Menü beschriftet Einträge mit dem Seitentitel;** Ziele außerhalb
+  des Spiegels oder fremder Quellen werden übersprungen und im Befund
+  genannt.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
@@ -288,6 +297,9 @@ er ist der einzige Fall **im FOERBICO-Bestand**, der die ganze Kette
 durchläuft. Als zweiter, autorenfremder Durchlauf dient die
 Caesar-Scheibe (`test/fixtures/*-caesar-scheibe.json`, Personen-Key,
 `credit` eine natürliche Person, mit `kind:30142` am selben Hash).
+Für Profil, Menü, Fußzeile und Startseite dient `test/fixtures/testquelle/`
+(Wegwerf-Schlüssel, mit dem Skript `erzeugen.mjs` erzeugt) — eigene Events,
+weil FOERBICO selbst noch kein `kind:30004` publiziert.
 
 ## Umgebungen
 
