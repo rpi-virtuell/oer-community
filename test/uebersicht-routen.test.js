@@ -67,6 +67,34 @@ async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOE
   return load(/** @type {any} */ ({ params, url: new URL('https://hub.example/') }));
 }
 
+/**
+ * Lädt eine +server.js-Route (GET) frisch, mit gemocktem Spiegel und
+ * gemockter Umgebung — dasselbe Muster wie lade(), aber für Handler statt
+ * load-Funktionen.
+ * @param {string} modulpfad relativ zu test/, z. B. '../src/routes/feed.xml/+server.js'
+ * @param {string} pfad z. B. 'https://hub.example/feed.xml'
+ * @param {unknown} [inhalt] Standard: gültiger Bestand aus der Fixture
+ * @param {string} [autor] QUELLE_AUTOR in der gemockten Umgebung; Standard: FOERBICO
+ */
+async function ladeServer(modulpfad, pfad, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR) {
+  vi.resetModules();
+  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor) }));
+  vi.doMock('$lib/services/spiegel.js', async () => {
+    const echt = await import('../src/lib/services/spiegel.js');
+    return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
+  });
+  const { GET } = await import(modulpfad);
+  return GET(/** @type {any} */ ({ url: new URL(pfad) }));
+}
+
+describe('/feed.xml', () => {
+  it('liefert RSS mit application/rss+xml', async () => {
+    const response = await ladeServer('../src/routes/feed.xml/+server.js', 'https://hub.example/feed.xml');
+    expect(response.headers.get('content-type')).toBe('application/rss+xml; charset=utf-8');
+    expect(await response.text()).toContain('<rss');
+  });
+});
+
 describe('/blog', () => {
   it('liefert die erste Seite', async () => {
     const daten = await lade('../src/routes/blog/+page.server.js', {});
@@ -196,6 +224,9 @@ describe('leerer Spiegel', () => {
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       lade('../src/routes/+page.server.js', {}, leererInhalt())
+    ).rejects.toMatchObject({ status: 503 });
+    await expect(
+      ladeServer('../src/routes/feed.xml/+server.js', 'https://hub.example/feed.xml', leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
   });
 });
