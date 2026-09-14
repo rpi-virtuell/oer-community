@@ -1,5 +1,30 @@
 # Betrieb
 
+## Dev-Umgebung: `community-hub.rpi-virtuell.net`
+
+Jeder Push auf `main` löst die Woodpecker-Pipeline aus (`.woodpecker.yml`):
+`pnpm install`, `pnpm check`, `pnpm test`, `pnpm build`, dann per SSH als
+`svc-cha` das Skript `~/ServerSetup/scripts/deploy-app.sh community-hub`
+auf `community-hub.rpi-virtuell.net`. Das Skript zieht
+`~/SourceCode/community-hub` per `git pull`, synchronisiert eine git-freie
+Kopie und baut das Image aus dem `Dockerfile` mit Podman. **Der Container
+ist also der Docker-Weg**, nicht die systemd-Unit weiter unten — deshalb
+liegt `daten/themen.json` im Image (Dockerfile). Ob der Container ein
+Volume für `daten/` bekommt, entscheidet das Skript auf dem Server; ohne
+Volume startet der Spiegel nach jedem Neustart leer und lädt neu (ADR-0028),
+die Datei schreibt er dann nur ins Container-Dateisystem.
+
+Status und Logs: Forgejo zeigt den Commit-Status, die Pipeline liegt unter
+`https://woody.git.rpi-virtuell.de/repos/13/`. Eingerichtet von Ludger
+(PR #3, 08.09.2026).
+
+**Stolperstein vom 14.09.2026:** Das Server-Repo stand noch auf dem nach
+dem Merge gelöschten Branch `succesful-deployment`; `git pull` fand keinen
+Upstream, der Deploy-Schritt brach nach einer Sekunde ab (Pipeline 2 und
+3). Die Pipeline wechselt seither vor dem Skript auf `main`.
+
+## Zweiter Server (Hetzner, systemd)
+
 **Server:** `46.225.82.96` (Hetzner, Ubuntu 24.04.4, 7,6 GB RAM, 65 GB frei)
 **Zugang:** `ssh -i ~/.ssh/id_cihacker joerg@46.225.82.96`
 **Verzeichnis:** `~/community-hub` · **Port:** 8080, **nur auf `127.0.0.1`**

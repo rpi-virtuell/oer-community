@@ -30,4 +30,10 @@ steps:
       key:
         from_secret: deploy_ssh_key
       script:
+        # Das Server-Repo stand nach dem Merge von PR #3 noch auf dem
+        # gelöschten Branch succesful-deployment; `git pull` im Deploy-Skript
+        # fand keinen Upstream mehr (Pipeline 3, 14.09.2026). Deshalb vorab
+        # auf main wechseln — idempotent, wenn es schon dort steht.
+        - git -C ~/SourceCode/community-hub fetch origin main
+        - git -C ~/SourceCode/community-hub checkout main
         - ~/ServerSetup/scripts/deploy-app.sh community-hub
