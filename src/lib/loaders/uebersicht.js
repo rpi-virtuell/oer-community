@@ -20,16 +20,52 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 export const JE_SEITE = 20;
 
 /**
- * Alle Artikel (keine Seiten), published_at absteigend, Themen normalisiert.
+ * Anzeigename je Slug — der Slug ist die Identität eines Themas, nicht der
+ * Name: Tags außerhalb der Tabelle behalten ihre Schreibweise, und `Community`
+ * neben `community` ergäbe sonst zwei Einträge mit derselben URL. Es gewinnt
+ * der häufigste Name, bei Gleichstand der alphabetisch erste.
+ *
+ * @param {Array<{ artikel: import('../models/artikel.js').Artikel, namen: string[] }>} bestand
+ * @returns {Map<string, string>} Slug → Anzeigename
+ */
+function anzeigenamenJeSlug(bestand) {
+  /** @type {Map<string, Map<string, number>>} */
+  const zaehler = new Map();
+  for (const { namen } of bestand) {
+    for (const name of namen) {
+      const slug = themenSlug(name);
+      const je = zaehler.get(slug) ?? new Map();
+      je.set(name, (je.get(name) ?? 0) + 1);
+      zaehler.set(slug, je);
+    }
+  }
+  /** @type {Map<string, string>} */
+  const namenJeSlug = new Map();
+  for (const [slug, je] of zaehler) {
+    const [name] = [...je.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'))[0];
+    namenJeSlug.set(slug, name);
+  }
+  return namenJeSlug;
+}
+
+/**
+ * Alle Artikel (keine Seiten), published_at absteigend, Themen normalisiert
+ * und je Slug auf einen Eintrag mit einem Anzeigenamen zusammengefasst.
  * @param {Inhalt} inhalt @param {Map<string, string>} tabelle
  */
 function artikelSortiert(inhalt, tabelle) {
-  return inhalt.artikel
+  const bestand = inhalt.artikel
     .map((e) => artikelAusEvent(e))
     .filter((a) => !a.istSeite)
-    .map((a) => ({
-      artikel: a,
-      themen: [...new Set(a.themen.map((t) => themaNormalisieren(t, tabelle)))].map((name) => ({ name, slug: themenSlug(name) }))
+    .map((a) => ({ artikel: a, namen: a.themen.map((t) => themaNormalisieren(t, tabelle)) }));
+  const namenJeSlug = anzeigenamenJeSlug(bestand);
+  return bestand
+    .map(({ artikel, namen }) => ({
+      artikel,
+      themen: [...new Set(namen.map((name) => themenSlug(name)))].map((slug) => ({
+        name: namenJeSlug.get(slug) ?? slug,
+        slug
+      }))
     }))
     .sort((x, y) => y.artikel.veroeffentlicht.getTime() - x.artikel.veroeffentlicht.getTime());
 }
@@ -84,12 +120,15 @@ export function artikelListe(inhalt, konfig, { seite = 1, themaSlug = null, tabe
  * @param {Inhalt} inhalt @param {{ tabelle?: Map<string, string> }} [optionen]
  */
 export function themenListe(inhalt, { tabelle = themenTabelle() } = {}) {
-  /** @type {Map<string, number>} */
+  /** @type {Map<string, { name: string, anzahl: number }>} */
   const zaehler = new Map();
   for (const { themen } of artikelSortiert(inhalt, tabelle)) {
-    for (const t of themen) zaehler.set(t.name, (zaehler.get(t.name) ?? 0) + 1);
+    for (const t of themen) {
+      const bisher = zaehler.get(t.slug);
+      zaehler.set(t.slug, { name: t.name, anzahl: (bisher?.anzahl ?? 0) + 1 });
+    }
   }
   return [...zaehler.entries()]
-    .map(([name, anzahl]) => ({ name, slug: themenSlug(name), anzahl }))
+    .map(([slug, { name, anzahl }]) => ({ name, slug, anzahl }))
     .sort((a, b) => b.anzahl - a.anzahl || a.name.localeCompare(b.name, 'de'));
 }

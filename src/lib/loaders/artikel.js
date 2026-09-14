@@ -1,4 +1,4 @@
-import { artikelAusEvent } from '../models/artikel.js';
+import { artikelAusEvent, dNormalisieren } from '../models/artikel.js';
 import { ZUSAMMENFUEHREN_UNERREICHBAR } from '../services/spiegel.js';
 
 /**
@@ -21,8 +21,9 @@ const tagWert = (tags, name) => tags.find((t) => t[0] === name && t.length > 1)?
  * @returns {{ artikel: Artikel|null, event: Event|null }}
  */
 export function artikelAusSpiegel(inhalt, { d, sprache = null }) {
+  const gesucht = dNormalisieren(d);
   for (const event of inhalt.artikel) {
-    if (tagWert(event.tags ?? [], 'd') !== d) continue;
+    if (dNormalisieren(tagWert(event.tags ?? [], 'd') ?? '') !== gesucht) continue;
     const artikel = artikelAusEvent(event);
     if (sprache && artikel.sprache !== sprache) continue;
     return { artikel, event };
@@ -49,7 +50,8 @@ export function abfrageAusStand(inhalt, konfig, event) {
   return {
     gefragteRelays: stand.gefragteRelays,
     fehler: stand.nichtErreichbar,
-    ohneTreffer: event ? antwortend.filter((r) => !lieferanten.includes(r)) : [],
+    // Ohne Event hat kein antwortendes Relay geliefert — alle stehen ohne Treffer da.
+    ohneTreffer: event ? antwortend.filter((r) => !lieferanten.includes(r)) : antwortend,
     quellen: event ? { [event.id]: lieferanten } : {},
     grund: null
   };

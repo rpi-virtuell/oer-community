@@ -55,6 +55,45 @@ describe('artikelListe', () => {
   });
 });
 
+describe('Themen-Slug ist die Identität (Live-Kollision Community/community)', () => {
+  /** Zwei Artikel mit derselben Schreibweise-Variante eines Tags außerhalb der Tabelle. */
+  const gross = { ...REFERENZ, id: 'g'.repeat(64), tags: [['d', 'gross'], ['title', 'Gross'], ['published_at', '1788433000'], ['t', 'Community']] };
+  const klein = { ...REFERENZ, id: 'k'.repeat(64), tags: [['d', 'klein'], ['title', 'Klein'], ['published_at', '1788433001'], ['t', 'community']] };
+  const zwei = { ...leererInhalt(), stand: /** @type {any} */ ({}), artikel: [gross, klein] };
+
+  it('fasst beide Schreibweisen zu einem Eintrag mit der Summe zusammen', () => {
+    const themen = themenListe(zwei, { tabelle: TABELLE });
+    const treffer = themen.filter((t) => t.slug === 'community');
+    expect(treffer).toHaveLength(1);
+    expect(treffer[0].anzahl).toBe(2);
+  });
+
+  it('gibt jeder Karte je Slug genau ein Thema mit demselben Anzeigenamen', () => {
+    const liste = artikelListe(zwei, KONFIG, { tabelle: TABELLE });
+    const namen = new Set(liste.karten.flatMap((k) => k.themen.filter((t) => t.slug === 'community').map((t) => t.name)));
+    expect(namen.size).toBe(1);
+    for (const k of liste.karten) expect(k.themen.filter((t) => t.slug === 'community')).toHaveLength(1);
+  });
+
+  it('der Filter findet beide Artikel unter dem einen Slug', () => {
+    expect(artikelListe(zwei, KONFIG, { themaSlug: 'community', tabelle: TABELLE }).gesamt).toBe(2);
+  });
+
+  it('wählt bei Gleichstand den alphabetisch ersten Namen', () => {
+    // localeCompare('de') stellt 'community' vor 'Community' — deterministisch
+    // ist, worauf es ankommt, nicht welche der beiden Schreibweisen gewinnt.
+    expect(themenListe(zwei, { tabelle: TABELLE })[0].name).toBe('community');
+  });
+
+  it('wählt sonst den häufigsten Namen', () => {
+    const zweiterKlein = { ...klein, id: 'j'.repeat(64), tags: [['d', 'klein2'], ['title', 'Klein 2'], ['published_at', '1788433002'], ['t', 'community']] };
+    const drei = { ...zwei, artikel: [gross, klein, zweiterKlein] };
+    const treffer = themenListe(drei, { tabelle: TABELLE }).find((t) => t.slug === 'community');
+    expect(treffer?.name).toBe('community');
+    expect(treffer?.anzahl).toBe(3);
+  });
+});
+
 describe('themenListe', () => {
   it('zählt normalisiert, sortiert nach Anzahl, dann Name', () => {
     const themen = themenListe(inhalt, { tabelle: TABELLE });

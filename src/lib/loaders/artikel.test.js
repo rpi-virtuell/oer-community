@@ -26,6 +26,15 @@ describe('artikelAusSpiegel', () => {
     expect(artikelAusSpiegel(inhalt, { d: 'gibt-es-nicht' }).artikel).toBeNull();
     expect(artikelAusSpiegel(inhalt, { d: 'die-kraft-der-gemeinschaft', sprache: 'en' }).artikel).toBeNull();
   });
+
+  // Drei Live-Artikel tragen das Prozentzeichen literal im d-Tag; SvelteKit
+  // dekodiert den Param, bevor er hier ankommt (ADR-0029).
+  it('findet ein prozent-kodiertes d über seine dekodierte Form', () => {
+    const kodiert = { ...ARTIKEL, id: 'f'.repeat(64), tags: [['d', 'oer-visuelle-qualit%C3%A4t'], ['title', 'Visuelle Qualität']] };
+    const mitKodiertem = { ...inhalt, artikel: [ARTIKEL, kodiert] };
+    expect(artikelAusSpiegel(mitKodiertem, { d: 'oer-visuelle-qualität' }).event?.id).toBe(kodiert.id);
+    expect(artikelAusSpiegel(mitKodiertem, { d: 'oer-visuelle-qualit%C3%A4t' }).event?.id).toBe(kodiert.id);
+  });
 });
 
 describe('abfrageAusStand', () => {
@@ -37,6 +46,15 @@ describe('abfrageAusStand', () => {
     const beide = { ...inhalt, stand: { ...inhalt.stand, nichtErreichbar: [] } };
     expect(abfrageAusStand(beide, KONFIG, ARTIKEL).ohneTreffer).toEqual([RPI]);
   });
+  // Ohne Treffer heißt: die antwortenden Relays hatten das Event nicht. Ein
+  // leeres ohneTreffer behauptete, alle hätten geliefert.
+  it('ohne Event stehen alle antwortenden Relays in ohneTreffer', () => {
+    const a = abfrageAusStand(inhalt, KONFIG, null);
+    expect(a.ohneTreffer).toEqual([RELAY]);
+    const beide = { ...inhalt, stand: { ...inhalt.stand, nichtErreichbar: [] } };
+    expect(abfrageAusStand(beide, KONFIG, null).ohneTreffer).toEqual([RELAY, RPI]);
+  });
+
   it('ohne Stand: alle Relays gefragt, keines erreichbar', () => {
     const a = abfrageAusStand(leererInhalt(), KONFIG, null);
     expect(a.grund).toBe('kein-relay-erreichbar');

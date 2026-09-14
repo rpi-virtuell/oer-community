@@ -37,6 +37,24 @@
 export const SEITEN_LABEL = { namensraum: 'foerbico/typ', wert: 'seite' };
 
 /**
+ * Vergleichsform eines `d`: Drei Live-Artikel tragen das Prozentzeichen
+ * literal im `d`-Tag (`oer-visuelle-qualit%C3%A4t`), SvelteKit reicht den
+ * Param aber dekodiert herein. Beide Seiten werden auf die dekodierte Form
+ * gebracht, damit die echte oer.community-Adresse trifft (ADR-0029). Eine
+ * Kodierung, die nicht dekodiert (etwa `100%-frei`), bleibt roh.
+ *
+ * @param {string} d
+ * @returns {string}
+ */
+export function dNormalisieren(d) {
+  try {
+    return decodeURIComponent(d);
+  } catch {
+    return d;
+  }
+}
+
+/**
  * Erster Wert eines Tags, oder null.
  *
  * @param {string[][]} tags
@@ -101,6 +119,6 @@ export function artikelAusEvent(event) {
  * @returns {string}
  */
 export function beitragsPfad(beitrag) {
-  const d = encodeURIComponent(beitrag.d);
+  const d = encodeURIComponent(dNormalisieren(beitrag.d));
   return beitrag.sprache === 'en' ? `/en/${d}` : `/${d}`;
 }
