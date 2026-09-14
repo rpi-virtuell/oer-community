@@ -4,8 +4,8 @@ import { themaNormalisieren, themenSlug, themenTabelle, themenTabelleLesen } fro
 describe('themenTabelleLesen', () => {
   it('bildet jede Schreibweise auf die Anzeigeform ab, die Anzeigeform auf sich selbst', () => {
     const t = themenTabelleLesen('{"Open Educational Resources (OER)": ["OER", "oer"]}');
-    expect(t.get('OER')).toBe('Open Educational Resources (OER)');
-    expect(t.get('Open Educational Resources (OER)')).toBe('Open Educational Resources (OER)');
+    expect(t.get('oer')).toBe('Open Educational Resources (OER)');
+    expect(t.get('open educational resources (oer)')).toBe('Open Educational Resources (OER)');
   });
   it('wirft, wenn eine Schreibweise zweimal vorkommt', () => {
     expect(() => themenTabelleLesen('{"A": ["x"], "B": ["x"]}')).toThrow(/x/);

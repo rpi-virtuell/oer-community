@@ -19,17 +19,14 @@ export function themenTabelleLesen(text) {
   const roh = JSON.parse(text);
   /** @type {Map<string, string>} */
   const tabelle = new Map();
-  /** @type {Map<string, string>} */
-  const normalisiert = new Map();
   /** @param {string} form @param {string} ziel */
   const eintragen = (form, ziel) => {
-    const norm = schluessel(form);
-    const bisher = normalisiert.get(norm);
+    const k = schluessel(form);
+    const bisher = tabelle.get(k);
     if (bisher && bisher !== ziel) {
       throw new Error(`daten/themen.json: "${form}" steht unter "${bisher}" und unter "${ziel}".`);
     }
-    normalisiert.set(norm, ziel);
-    tabelle.set(form, ziel);
+    tabelle.set(k, ziel);
   };
   for (const [anzeige, formen] of Object.entries(roh)) {
     eintragen(anzeige, anzeige);
@@ -40,13 +37,7 @@ export function themenTabelleLesen(text) {
 
 /** @param {string} name @param {Map<string, string>} tabelle */
 export function themaNormalisieren(name, tabelle) {
-  const normalized = schluessel(name);
-  for (const [key, value] of tabelle) {
-    if (schluessel(key) === normalized) {
-      return value;
-    }
-  }
-  return name.trim();
+  return tabelle.get(schluessel(name)) ?? name.trim();
 }
 
 const UMLAUTE = /** @type {Record<string, string>} */ ({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' });
@@ -58,7 +49,7 @@ export function themenSlug(name) {
     .toLowerCase()
     .replace(/[äöüß]/g, (z) => UMLAUTE[z])
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
