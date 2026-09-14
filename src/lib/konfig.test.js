@@ -73,3 +73,19 @@ describe('konfigLesen: Spiegel und abgelöste Hosts (Spec 14.09.)', () => {
     expect(() => konfigLesen({ ...GUELTIG, SPIEGEL_STARTWARTEZEIT_S: '0' })).toThrow(/SPIEGEL_STARTWARTEZEIT_S/);
   });
 });
+
+describe('konfigLesen: Struktur-Kennungen (ADR-0027)', () => {
+  const GUELTIG = { QUELLE_AUTOR: 'a'.repeat(64), RELAYS: 'wss://relay.edufeed.org/', BLOSSOM_URL: 'https://blossom.edufeed.org/' };
+  it('nimmt die Konventionen als Standard', () => {
+    const k = konfigLesen(GUELTIG);
+    expect(k.startseiteD).toBe('startseite');
+    expect(k.navigationD).toBe('navigation');
+    expect(k.fusszeileD).toBe('fusszeile');
+  });
+  it('lässt andere Namen zu, getrimmt; leer heißt Standard', () => {
+    const k = konfigLesen({ ...GUELTIG, STARTSEITE_D: ' start ', NAVIGATION_D: '', FUSSZEILE_D: 'footer' });
+    expect(k.startseiteD).toBe('start');
+    expect(k.navigationD).toBe('navigation');
+    expect(k.fusszeileD).toBe('footer');
+  });
+});

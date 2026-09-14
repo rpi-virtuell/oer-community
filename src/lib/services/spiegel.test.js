@@ -18,7 +18,8 @@ const RPI = 'wss://relay-rpi.edufeed.org/';
 const KONFIG = {
   autor: ARTIKEL_ALT.pubkey, hTag: null, relays: [RELAY, RPI],
   blossomUrl: 'https://blossom.edufeed.org/', abgeloesteHosts: ['oer.community'],
-  spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20
+  spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
+  startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile'
 };
 
 /**
