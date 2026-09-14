@@ -31,7 +31,9 @@ import { detailLaden } from './detail.js';
  * @param {import('../services/spiegel.js').Inhalt} e.inhalt
  */
 export async function detailAlsJson({ d, sprache, konfig, inhalt }) {
-  const { seite, ergebnis } = await detailLaden({ d, sprache, konfig, inhalt });
+  // Ein naddr führt hier auf die JSON-Adresse des Beitrags, nicht auf seine
+  // Seite — wer die Rohdaten anfragt, will sie auch nach der Weiterleitung.
+  const { seite, ergebnis } = await detailLaden({ d, sprache, konfig, inhalt, anhang: '/json' });
 
   return json(
     {

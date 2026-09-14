@@ -204,7 +204,8 @@ export function spiegelErstellen({
       if (etag) etags[url] = etag;
     }
 
-    const profil = [...p.events].sort((x, y) => -neuer(x, y))[0] ?? null;
+    // `neuer` sortiert schon neuestes zuerst — nicht noch einmal umdrehen.
+    const profil = [...p.events].sort(neuer)[0] ?? null;
     const listen = neuestesJeD(l.events);
 
     inhalt = {
@@ -237,7 +238,9 @@ export function spiegelErstellen({
     try {
       const geparst = JSON.parse(text);
       if (!istInhalt(geparst)) return false;
-      inhalt = geparst;
+      // Eine ältere oder knappe Datei kennt listen/quellen/etags noch nicht;
+      // die Leerform auffüllen, statt später an fehlenden Feldern zu werfen.
+      inhalt = { ...leererInhalt(), ...geparst };
       return true;
     } catch {
       return false;

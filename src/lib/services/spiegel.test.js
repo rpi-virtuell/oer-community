@@ -150,6 +150,22 @@ function speicherAttrappe(/** @type {string|null} */ anfang = null) {
   };
 }
 
+describe('Profilwahl', () => {
+  it('behält das neueste kind:0, nicht das älteste', async () => {
+    const alt = { ...PROFIL, id: 'a'.repeat(64), created_at: 1 };
+    const neu = { ...PROFIL, id: 'b'.repeat(64), created_at: 5 };
+    /** @type {import('./relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(0)) return { events: url === RELAY ? [alt, neu] : [], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const { inhalt } = await s.auffrischen();
+    expect(inhalt.profil?.id).toBe(neu.id);
+  });
+});
+
 describe('Spiegel und Datei', () => {
   it('schreibt nach einem gültigen Lauf und liest beim Start zurück', async () => {
     const speicher = speicherAttrappe();
@@ -161,6 +177,16 @@ describe('Spiegel und Datei', () => {
     expect(await neu.ausDateiLaden()).toBe(true);
     expect(neu.lesen().artikel[0].id).toBe(ARTIKEL_NEU.id);
     expect(neu.lesen().stand?.zeitpunkt).toBeTruthy();
+  });
+
+  it('füllt eine Datei ohne listen/quellen/etags auf, statt später zu werfen', async () => {
+    const knapp = JSON.stringify({ stand: null, artikel: [ARTIKEL_NEU], nachweise: [] });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe(knapp) });
+    expect(await s.ausDateiLaden()).toBe(true);
+    expect(s.lesen().quellen).toEqual({});
+    expect(s.lesen().etags).toEqual({});
+    expect(s.lesen().listen).toEqual([]);
+    expect(s.lesen().profil).toBeNull();
   });
 
   it('eine kaputte oder fremde Datei wird ignoriert', async () => {

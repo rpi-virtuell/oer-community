@@ -37,10 +37,11 @@ export function naddrWeiterleitung(segment, konfig, inhalt) {
  * @param {'de'|'en'} e.sprache
  * @param {import('../konfig.js').Konfig} e.konfig
  * @param {import('../services/spiegel.js').Inhalt} e.inhalt
+ * @param {string} [e.anhang]  Suffix des Weiterleitungsziels, für /[d]/json
  */
-export async function detailLaden({ d, sprache, konfig, inhalt }) {
+export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '' }) {
   const ziel = naddrWeiterleitung(d, konfig, inhalt);
-  if (ziel) redirect(301, ziel);
+  if (ziel) redirect(301, ziel + anhang);
 
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);
@@ -50,8 +51,9 @@ export async function detailLaden({ d, sprache, konfig, inhalt }) {
   if (!ergebnis.ok) error(ergebnis.status, ergebnis.meldung);
 
   const { artikel } = ergebnis;
-  // In der falschen Sprache aufgerufen: dorthin, wo der Beitrag wohnt.
-  if (artikel.sprache !== sprache) redirect(301, beitragsPfad(artikel));
+  // In der falschen Sprache aufgerufen: dorthin, wo der Beitrag wohnt — für
+  // /[d]/json auf die dortige JSON-Adresse.
+  if (artikel.sprache !== sprache) redirect(301, beitragsPfad(artikel) + anhang);
 
   const befund = befundErstellen({
     artikelEvent: ergebnis.artikelEvent, artikelAbfrage: ergebnis.artikelAbfrage,
