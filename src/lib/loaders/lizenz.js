@@ -50,26 +50,9 @@ export async function lizenzLaden({ hash, relays, holen = eventsHolen }) {
   };
 }
 
-/**
- * Holt den etag eines Bildes per HEAD, für Schritt 5 der Prüfkette.
- *
- * Blossom liefert den SHA-256 als etag — die Prüfung kostet damit keinen
- * Download. Scheitert die Anfrage, wird Schritt 5 übersprungen.
- *
- * @param {string} bildUrl
- * @returns {Promise<string|undefined>}
- */
-export async function etagHolen(bildUrl) {
-  try {
-    const antwort = await fetch(bildUrl, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(5000)
-    });
-    return antwort.headers.get('etag') ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
+// etagHolen zog nach services/blossom.js um (Task 4) — hier nur re-exportiert,
+// damit bestehende Importe nicht brechen. loaders/lizenz.js wird in Task 7 ersetzt.
+export { etagHolen } from '../services/blossom.js';
 
 /**
  * Lädt die Nachweise zu **mehreren** Hashes in einer Abfrage (ADR-0023) —
