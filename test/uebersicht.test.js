@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
 import Karte from '../src/lib/komponenten/Karte.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
+import ThemenSeite from '../src/routes/themen/+page.svelte';
 
 const NACHWEIS = /** @type {any} */ ({ id: 'n', hash: 'h', url: 'https://blossom.edufeed.org/h.jpg', titel: 'Schrein', license: 'https://creativecommons.org/publicdomain/zero/1.0/', credit: 'Comenius-Institut', beschreibung: null, quelle: null, alt: 'Ein Schrein', urheberUrl: null, bearbeitung: null, ki: null, mime: 'image/jpeg' });
 const karte = (/** @type {Partial<any>} */ ab = {}) => ({
@@ -43,5 +44,21 @@ describe('Uebersicht', () => {
   it('zeigt bei einer einzigen Seite keine Seitenzahlen', () => {
     const { body } = render(Uebersicht, { props: { karten: [karte()], seite: 1, seiten: 1, basis: '/blog', ueberschrift: 'Blog' } });
     expect(body).not.toContain('Seite 1 von 1');
+  });
+});
+
+describe('/themen', () => {
+  it('listet Themen mit Link auf den Slug und Anzahl', () => {
+    const { body } = render(ThemenSeite, {
+      props: {
+        data: {
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          themen: [{ name: 'Lizenzen', slug: 'lizenzen', anzahl: 5 }]
+        }
+      }
+    });
+    expect(body).toContain('href="/themen/lizenzen"');
+    expect(body).toContain('Lizenzen');
+    expect(body).toContain('5');
   });
 });
