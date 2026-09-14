@@ -39,6 +39,7 @@ describe('nachweisAusEvents', () => {
   });
 
   it('liest das ai-Tag, laesst nur generated und modified gelten (ADR-0025)', () => {
+    /** @param {string} wert */
     const mit = (wert) =>
       nachweisAusEvents([event([['x', HASH], ['url', BILD], ['license', 'L'], ['ai', wert]])]);
     expect(mit('generated')?.ki).toBe('generated');
