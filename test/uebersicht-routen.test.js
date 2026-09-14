@@ -95,6 +95,14 @@ describe('/feed.xml', () => {
   });
 });
 
+describe('/sitemap.xml', () => {
+  it('liefert application/xml', async () => {
+    const response = await ladeServer('../src/routes/sitemap.xml/+server.js', 'https://hub.example/sitemap.xml');
+    expect(response.headers.get('content-type')).toBe('application/xml; charset=utf-8');
+    expect(await response.text()).toContain('<urlset');
+  });
+});
+
 describe('/blog', () => {
   it('liefert die erste Seite', async () => {
     const daten = await lade('../src/routes/blog/+page.server.js', {});
@@ -227,6 +235,9 @@ describe('leerer Spiegel', () => {
     ).rejects.toMatchObject({ status: 503 });
     await expect(
       ladeServer('../src/routes/feed.xml/+server.js', 'https://hub.example/feed.xml', leererInhalt())
+    ).rejects.toMatchObject({ status: 503 });
+    await expect(
+      ladeServer('../src/routes/sitemap.xml/+server.js', 'https://hub.example/sitemap.xml', leererInhalt())
     ).rejects.toMatchObject({ status: 503 });
   });
 });
