@@ -1,12 +1,32 @@
 /**
  * @typedef {object} Konfig
- * @property {string} autor         Autorenschlüssel der Quelle (hex, 64)
- * @property {string|null} hTag     zweites Filterkriterium, oder null
- * @property {string[]} relays      mindestens eines, alle wss://
- * @property {string} blossomUrl    Basisadresse des Bildspeichers
+ * @property {string} autor
+ * @property {string|null} hTag
+ * @property {string[]} relays
+ * @property {string} blossomUrl
+ * @property {string[]} abgeloesteHosts       Bild-Hosts, die der Hub ersetzt (ADR-0030)
+ * @property {string} spiegelPfad             JSON-Datei des Spiegels (ADR-0028)
+ * @property {number} spiegelIntervallS       Abstand zwischen zwei Läufen
+ * @property {number} spiegelStartwartezeitS  wie lange der Start auf den ersten Lauf wartet
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
+
+/**
+ * Positive Ganzzahl aus der Umgebung, mit Standard. Ein gesetzter, aber
+ * unbrauchbarer Wert bricht ab — stiller Rückfall auf den Standard würde
+ * eine Fehlkonfiguration verstecken.
+ * @param {string|undefined} roh @param {number} standard @param {string} name
+ */
+function positiveGanzzahl(roh, standard, name) {
+  const text = (roh ?? '').trim();
+  if (text === '') return standard;
+  const wert = Number(text);
+  if (!Number.isInteger(wert) || wert <= 0) {
+    throw new Error(`${name} muss eine positive Ganzzahl sein, ist aber "${text}".`);
+  }
+  return wert;
+}
 
 /**
  * Liest die Konfiguration und bricht bei fehlendem Pflichtwert ab.
@@ -46,6 +66,22 @@ export function konfigLesen(quelle) {
     );
   }
 
+  // ADR-0030: Standard ist die Domain, die der Hub ablöst. Ein leerer Wert
+  // schaltet die Regel bewusst ab — leer ist nicht "nicht gesetzt".
+  const abgeloesteHosts =
+    quelle.ABGELOESTE_HOSTS === undefined
+      ? ['oer.community']
+      : quelle.ABGELOESTE_HOSTS.split(',').map((h) => h.trim().toLowerCase()).filter(Boolean);
+
+  const spiegelPfad = (quelle.SPIEGEL_PFAD ?? '').trim() || 'daten/spiegel.json';
+  const spiegelIntervallS = positiveGanzzahl(quelle.SPIEGEL_INTERVALL_S, 600, 'SPIEGEL_INTERVALL_S');
+  const spiegelStartwartezeitS = positiveGanzzahl(
+    quelle.SPIEGEL_STARTWARTEZEIT_S, 20, 'SPIEGEL_STARTWARTEZEIT_S'
+  );
+
   const rohHTag = (quelle.QUELLE_H_TAG ?? '').trim();
-  return { autor, hTag: rohHTag === '' ? null : rohHTag, relays, blossomUrl };
+  return {
+    autor, hTag: rohHTag === '' ? null : rohHTag, relays, blossomUrl,
+    abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS
+  };
 }

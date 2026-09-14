@@ -17,7 +17,11 @@ const KONFIG = {
   autor: ARTIKEL.pubkey,
   hTag: null,
   relays: ['wss://relay.edufeed.org/', 'wss://relay-rpi.edufeed.org/'],
-  blossomUrl: 'https://blossom.edufeed.org/'
+  blossomUrl: 'https://blossom.edufeed.org/',
+  abgeloesteHosts: ['oer.community'],
+  spiegelPfad: 'daten/spiegel.json',
+  spiegelIntervallS: 600,
+  spiegelStartwartezeitS: 20
 };
 
 /** Verteilt die Events wie in Wirklichkeit: Artikel und Nachweis getrennt. */
