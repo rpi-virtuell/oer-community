@@ -80,24 +80,39 @@ describe('Kopfzeile', () => {
   });
 });
 
+/** @type {import('../src/lib/loaders/struktur.js').Struktur['befund']} */
+const BEFUND = {
+  profil: 'ok',
+  navigation: 'fehlt',
+  fusszeile: 'ok',
+  startseite: 'fehlt',
+  erwartet: {
+    profil: 'kind:0 von abc…',
+    navigation: 'kind:30004 mit d = "navigation" von abc…',
+    fusszeile: 'kind:30004 mit d = "fusszeile" von abc…',
+    startseite: 'kind:30023 mit d = "startseite" von abc…'
+  },
+  uebersprungen: ['fusszeile: „datenschutz“ liegt nicht im Spiegel']
+};
+
 describe('Fußzeile', () => {
   it('trägt die Wortmarke und den Debug-Schalter', () => {
-    const { body } = render(Fusszeile);
-    expect(body).toMatch(/Community-<span[^>]*>Hub/);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
+    expect(body).toMatch(/Community-Hub/);
     expect(body).toMatch(/type="checkbox"/);
   });
 
   // Seit ADR-0029 ist die Adresse das d, nicht das naddr — die Fußzeile darf
   // nichts anderes behaupten.
   it('nennt das d als Adresse und das naddr nur als Weiterleitung', () => {
-    const { body } = render(Fusszeile);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
     expect(body).toContain('unter seiner stabilen Adresse');
     expect(body).toMatch(/leitet dorthin weiter/);
     expect(body).not.toMatch(/stabilen <code>naddr<\/code>-Adresse/);
   });
 
   it('nennt kein Relay — Adressen sind Konfiguration, kein Code', () => {
-    const { body } = render(Fusszeile);
+    const { body } = render(Fusszeile, { props: { wortmarke: 'Community-Hub' } });
     expect(body).not.toContain('wss://');
     expect(body).not.toContain('edufeed.org');
   });
@@ -105,6 +120,7 @@ describe('Fußzeile', () => {
   it('nennt das Alter nur, wenn der letzte Lauf scheiterte', () => {
     const alt = render(Fusszeile, {
       props: {
+        wortmarke: 'Community-Hub',
         spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: true, relays: ['wss://r/'] }
       }
     }).body;
@@ -112,9 +128,40 @@ describe('Fußzeile', () => {
     expect(alt).toContain('kein Relay erreichbar');
 
     const frisch = render(Fusszeile, {
-      props: { spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] } }
+      props: {
+        wortmarke: 'Community-Hub',
+        spiegelstand: { zeitpunkt: '2026-09-14T07:00:00Z', veraltet: false, relays: [] }
+      }
     }).body;
     expect(frisch).not.toContain('Stand:');
+  });
+
+  it('Fußzeile: Fußtext-HTML, Links und Wortmarke', () => {
+    const { body } = render(Fusszeile, {
+      props: {
+        wortmarke: 'Testquelle',
+        fusstextHtml: '<p>CC BY <strong>Testquelle</strong></p>',
+        links: [{ titel: 'Impressum', pfad: '/impressum', d: 'impressum' }],
+        befund: BEFUND
+      }
+    });
+    expect(body).toContain('<strong>Testquelle</strong>');
+    expect(body).toContain('href="/impressum"');
+    expect(body).not.toContain('Schaufenster für Beiträge');
+  });
+
+  it('Fußzeile ohne Fußtext zeigt den Rückfallsatz; der Befund erscheint nur im Debug-Modus', () => {
+    const zu = render(Fusszeile, {
+      props: { wortmarke: 'Community-Hub', befund: BEFUND }
+    }).body;
+    expect(zu).toContain('Schaufenster für Beiträge');
+    expect(zu).not.toContain('erwartet:');
+
+    const offen = render(Fusszeile, {
+      props: { wortmarke: 'Community-Hub', befund: BEFUND, debugStart: true }
+    }).body;
+    expect(offen).toContain('kind:30004 mit d = "navigation"');
+    expect(offen).toContain('datenschutz');
   });
 });
 

@@ -18,7 +18,13 @@
 <main class="schmal">
   {@render children()}
 </main>
-<Fusszeile spiegelstand={data.spiegelstand} />
+<Fusszeile
+  wortmarke={data.struktur.wortmarke}
+  fusstextHtml={data.struktur.fusstextHtml}
+  links={data.struktur.fusszeilenLinks}
+  befund={data.struktur.befund}
+  spiegelstand={data.spiegelstand}
+/>
 
 <style>
   /* Textbreite „schmal" aus dem Designsystem: 820px. */
