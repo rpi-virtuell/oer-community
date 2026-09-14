@@ -5,4 +5,4 @@
   let { data } = $props();
 </script>
 
-<Detail {data} />
+<Detail {data} wortmarke={data.struktur.wortmarke} />

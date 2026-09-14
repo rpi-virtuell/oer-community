@@ -166,20 +166,54 @@ describe('Fußzeile', () => {
 });
 
 describe('Artikelseite', () => {
+  it('eine Seite zeigt Titel und Inhalt, aber kein Datum, keine Themen, kein Cover', () => {
+    const { body, head } = render(Artikelseite, {
+      props: {
+        data: seitendaten({
+          artikel: {
+            ...seitendaten().artikel,
+            istSeite: true,
+            themen: ['X'],
+            bildUrl: 'https://blossom.edufeed.org/abc.jpg'
+          }
+        }),
+        wortmarke: 'Testquelle'
+      }
+    });
+    expect(body).toContain('<h1');
+    expect(body).not.toContain('<time');
+    expect(body).not.toContain('class="marker"');
+    expect(body).not.toContain('<img');
+    expect(head).toContain('<title>Die Kraft der Gemeinschaft · Testquelle</title>');
+  });
+
+  it('ein Artikel behält Datum und Themen; die Startseite trägt nur die Wortmarke im Titel', () => {
+    const artikel = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
+    expect(artikel.body).toContain('<time');
+    const start = render(Artikelseite, {
+      props: {
+        data: seitendaten({ artikel: { ...seitendaten().artikel, istSeite: true, titel: 'Willkommen' } }),
+        wortmarke: 'Testquelle',
+        nurWortmarke: true
+      }
+    });
+    expect(start.head).toContain('<title>Testquelle</title>');
+  });
+
   it('setzt das Datum maschinenlesbar als <time>', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toMatch(new RegExp(`<time[^>]+datetime="${VEROEFFENTLICHT.slice(0, 10)}`));
   });
 
   it('zeigt jedes Thema als Marker in der Metazeile', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     for (const thema of ['OER', 'Community']) {
       expect(body).toMatch(new RegExp(`class="marker[^"]*"[^>]*>\\s*${thema}`));
     }
   });
 
   it('zeigt das Bild auch ohne Nachweis und weist den Stand aus (ADR-0022)', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     // Das Bild wird ausgeliefert — der Kern von ADR-0022, Punkt 2.
     expect(body).toContain('https://blossom.edufeed.org/abc.jpeg');
     // …aber nicht stillschweigend: der Stand steht daran.
@@ -214,7 +248,7 @@ describe('Artikelseite', () => {
 
   it('beschriftet ein nachgewiesenes Bild nach bildattribution.md (ADR-0022)', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }) }
+      props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }), wortmarke: 'Testquelle' }
     });
     // Reihenfolge normativ: Titel, Urheber, Lizenz — nur Kommas, keine Wörter.
     const titel = body.indexOf('nosTr-schrein</span>');
@@ -242,7 +276,8 @@ describe('Artikelseite', () => {
           urheberUrl: 'https://www.inaturalist.org/users/2831535',
           license: 'https://creativecommons.org/licenses/by-sa/4.0/',
           bearbeitung: 'beschnitten'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toMatch(
@@ -263,7 +298,8 @@ describe('Artikelseite', () => {
         data: mitNachweis({
           titel: 'Ein Bild',
           license: 'https://creativecommons.org/licenses/by-sa/4.0/'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toContain('CC BY-SA 4.0');
@@ -277,7 +313,8 @@ describe('Artikelseite', () => {
         data: mitNachweis({
           titel: 'nosTr-schrein',
           alt: 'Schrein als Sinnbild zyklischer Erneuerung'
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toMatch(/<img[^>]+alt="Schrein als Sinnbild zyklischer Erneuerung"/);
@@ -286,7 +323,7 @@ describe('Artikelseite', () => {
 
   it('faellt beim Alt-Text auf den Titel des Nachweises zurueck — wie Editor und md2blossom', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitNachweis({ titel: 'nosTr-schrein' }) }
+      props: { data: mitNachweis({ titel: 'nosTr-schrein' }), wortmarke: 'Testquelle' }
     });
     expect(body).toMatch(/<img[^>]+alt="nosTr-schrein"/);
   });
@@ -333,7 +370,8 @@ describe('Artikelseite', () => {
             bearbeitung: null,
             mime: 'image/jpeg'
           }
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     const davor = body.indexOf('Davor');
@@ -351,7 +389,7 @@ describe('Artikelseite', () => {
 
   it('zeigt bei ungeklärter Lizenz die Markdown-Unterschrift als Rückfall', () => {
     const { body } = render(Artikelseite, {
-      props: { data: mitFliesstextbild({ ok: false, grund: 'kein-nachweis' }) }
+      props: { data: mitFliesstextbild({ ok: false, grund: 'kein-nachweis' }), wortmarke: 'Testquelle' }
     });
     expect(body).toMatch(/<img[^>]+src="https:\/\/blossom\.edufeed\.org\/bild\.jpeg"/);
     expect(body).toContain('Lizenz ungeklärt');
@@ -360,7 +398,7 @@ describe('Artikelseite', () => {
   });
 
   it('erklärt die aus dem Fließtext entfernten Bildverweise', () => {
-    const { body } = render(Artikelseite, { props: { data: seitendaten() } });
+    const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toContain('nosTr-schrein.jpg');
     // Der Grund ist ADR-0015 (kein Nachweis), nicht der Pfad: absolute
     // Blossom-Verweise werden genauso entfernt wie relative.
@@ -375,7 +413,8 @@ describe('Artikelseite', () => {
           artikel: { ...seitendaten().artikel, bildUrl: null },
           lizenz: { ok: false, grund: 'kein-bild' },
           entfernteBilder: []
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).not.toContain('Lizenz ungeklärt');
@@ -389,7 +428,8 @@ describe('Artikelseite', () => {
           artikel: { ...seitendaten().artikel, bildUrl: 'nosTr-schrein.jpg' },
           lizenz: { ok: false, grund: 'relativ' },
           entfernteBilder: []
-        })
+        }),
+        wortmarke: 'Testquelle'
       }
     });
     expect(body).toContain('Bild nicht angezeigt');

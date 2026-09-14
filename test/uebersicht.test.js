@@ -64,4 +64,17 @@ describe('/themen', () => {
     expect(body).toContain('Lizenzen');
     expect(body).toContain('5');
   });
+
+  it('trägt „Themen" und die Wortmarke aus der Struktur im <title>', () => {
+    const { head } = render(ThemenSeite, {
+      props: {
+        data: {
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          struktur: { ...strukturFuerLayout(inhaltDerTestquelle()), wortmarke: 'Testquelle' },
+          themen: []
+        }
+      }
+    });
+    expect(head).toContain('<title>Themen · Testquelle</title>');
+  });
 });
