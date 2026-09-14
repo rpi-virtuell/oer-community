@@ -20,7 +20,7 @@
 
 import { getEventHash, verifyEvent } from 'nostr-tools/pure';
 
-import { ABFRAGEGRUND_TEXT } from '../services/relay.js';
+import { ABFRAGEGRUND_TEXT } from '../services/spiegel.js';
 import { GRUND_TEXT, lizenzPruefen } from './lizenz.js';
 
 /**

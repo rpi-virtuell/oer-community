@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { leererInhalt } from '../src/lib/services/spiegel.js';
 
 /**
  * Prüft die load-Funktion der Detailansicht.
@@ -46,51 +47,59 @@ const UMGEBUNG = {
 // Umgebung als Attrappe daneben.
 vi.mock('$env/dynamic/private', () => ({ env: UMGEBUNG }));
 
+const RELAY = 'wss://relay.edufeed.org/';
+const RPI = 'wss://relay-rpi.edufeed.org/';
+
 /**
- * Relay-Attrappe: nur relay-rpi kennt den Lizenznachweis — so liegt es
- * auch in Wirklichkeit (ADR-0013).
+ * Spiegelinhalt nachstellen: nur relay-rpi kennt den Lizenznachweis — so
+ * liegt es auch in Wirklichkeit (ADR-0013). Die Fälle „unerreichbar" und
+ * „ohne Artikel" werden über den Spiegel-Inhalt selbst nachgestellt, nicht
+ * mehr über eine Relay-Attrappe — seit ADR-0028 liest die Route aus dem
+ * Spiegel (Task 7 baut diesen Test in Task 8 vollständig um).
  *
  * @param {{ unerreichbar?: boolean, ohneArtikel?: boolean,
- *   ohneNachweis?: boolean }} [lage]
+ *   ohneNachweis?: boolean, etag?: string }} [lage]
  */
-function relaysNachstellen(lage = {}) {
-  return vi.fn(
-    async (
-      /** @type {string} */ url,
-      /** @type {Record<string, unknown>} */ filter
-    ) => {
-      if (lage.unerreichbar) return { events: [], erreicht: false };
+function inhaltNachstellen(lage = {}) {
+  if (lage.unerreichbar) return leererInhalt();
 
-      const kinds = /** @type {number[]} */ (filter.kinds ?? []);
-      if (kinds.includes(1063)) {
-        const treffer = lage.ohneNachweis || url !== 'wss://relay-rpi.edufeed.org/';
-        return { events: treffer ? [] : [nachweisEvent], erreicht: true };
+  return {
+    ...leererInhalt(),
+    stand: {
+      zeitpunkt: '2026-09-14T10:00:00Z',
+      dauerMs: 3,
+      gefragteRelays: [RELAY, RPI],
+      nichtErreichbar: [],
+      anzahl: {
+        artikel: lage.ohneArtikel ? 0 : 1,
+        listen: 0,
+        nachweise: lage.ohneNachweis ? 0 : 1,
+        profil: 0
       }
-      if (lage.ohneArtikel) return { events: [], erreicht: true };
-      return {
-        events: url === 'wss://relay.edufeed.org/' ? [artikelEvent] : [],
-        erreicht: true
-      };
-    }
-  );
+    },
+    artikel: lage.ohneArtikel ? [] : [artikelEvent],
+    nachweise: lage.ohneNachweis ? [] : [nachweisEvent],
+    quellen: lage.ohneArtikel
+      ? {}
+      : { [artikelEvent.id]: [RELAY], ...(lage.ohneNachweis ? {} : { [nachweisEvent.id]: [RPI] }) },
+    etags: lage.etag
+      ? { [artikelEvent.tags.find((/** @type {string[]} */ t) => t[0] === 'image')[1]]: lage.etag }
+      : {}
+  };
 }
 
 /**
- * Lädt die Route frisch und schiebt ihr die Relay-Attrappe unter.
+ * Lädt die Route frisch und schiebt ihr den Spiegel-Inhalt unter.
  *
- * @param {{ naddr?: string, holen?: unknown, etag?: string|undefined }} [eingabe]
+ * @param {{ naddr?: string, inhalt?: unknown }} [eingabe]
  */
 async function ladeMitAttrappe(eingabe = {}) {
   vi.resetModules();
-  const holen = eingabe.holen ?? relaysNachstellen();
+  const inhalt = eingabe.inhalt ?? inhaltNachstellen();
 
-  vi.doMock('$lib/services/relay.js', async () => {
-    const echt = await import('../src/lib/services/relay.js');
-    return { ...echt, eventsHolen: holen };
-  });
-  vi.doMock('$lib/loaders/lizenz.js', async () => {
-    const echt = await import('../src/lib/loaders/lizenz.js');
-    return { ...echt, etagHolen: async () => eingabe.etag };
+  vi.doMock('$lib/services/spiegel.js', async () => {
+    const echt = await import('../src/lib/services/spiegel.js');
+    return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
   });
 
   const { load } = await import('../src/routes/[naddr]/+page.server.js');
@@ -119,9 +128,9 @@ describe('Detailansicht laedt den Artikel serverseitig', () => {
     }
   });
 
-  it('meldet den Grund, wenn zum Bild kein Nachweis auf einem Relay liegt', async () => {
+  it('meldet den Grund, wenn zum Bild kein Nachweis im Spiegel liegt', async () => {
     const daten = await ladeMitAttrappe({
-      holen: relaysNachstellen({ ohneNachweis: true })
+      inhalt: inhaltNachstellen({ ohneNachweis: true })
     });
 
     expect(daten.artikel.titel).toContain('Die Kraft der Gemeinschaft');
@@ -138,18 +147,18 @@ describe('Detailansicht nennt jeden Fehlerfall', () => {
     });
   });
 
-  it('bricht mit 503 ab und nennt die Relays, wenn keines antwortet', async () => {
+  it('bricht mit 503 ab und nennt die Relays, wenn der Spiegel noch keinen Stand hat', async () => {
     await expect(
-      ladeMitAttrappe({ holen: relaysNachstellen({ unerreichbar: true }) })
+      ladeMitAttrappe({ inhalt: inhaltNachstellen({ unerreichbar: true }) })
     ).rejects.toMatchObject({
       status: 503,
       body: { message: expect.stringContaining('relay.edufeed.org') }
     });
   });
 
-  it('bricht mit 404 ab und nennt d, wenn die Relays antworten aber nichts haben', async () => {
+  it('bricht mit 404 ab und nennt d, wenn der Spiegel einen Stand ohne den Artikel hat', async () => {
     await expect(
-      ladeMitAttrappe({ holen: relaysNachstellen({ ohneArtikel: true }) })
+      ladeMitAttrappe({ inhalt: inhaltNachstellen({ ohneArtikel: true }) })
     ).rejects.toMatchObject({
       status: 404,
       body: { message: expect.stringContaining('die-kraft-der-gemeinschaft') }

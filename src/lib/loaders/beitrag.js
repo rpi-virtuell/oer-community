@@ -7,6 +7,11 @@
  * `naddr` ignoriert. Lägen sie zweimal vor, wäre die JSON-Route der Umweg,
  * sobald einer davon in einer Kopie vergessen wird.
  *
+ * **Seit ADR-0028 wird kein Relay mehr gefragt.** Die Quelle ist der
+ * Spiegel (`services/spiegel.js`) — ein vorab gebauter, vollständiger
+ * Stand im Speicher. Was nicht im Spiegel steht, gibt es nicht; ein neuer
+ * Lauf des Spiegels holt es nach, nicht diese Funktion.
+ *
  * Diese Datei kennt die Oberfläche nicht: Sie wirft keinen SvelteKit-Fehler,
  * sondern liefert `ok: false` mit Status und Meldung. Die Route entscheidet,
  * was sie daraus macht.
@@ -15,14 +20,14 @@
 import { inhaltAufbereiten } from '../inhalt.js';
 import { ABLEHNUNG_TEXT, adressePruefen } from '../models/adresse.js';
 import { lizenzPruefen } from '../models/lizenz.js';
-import { eventsHolen } from '../services/relay.js';
-import { artikelLaden } from './artikel.js';
-import { etagHolen as etagHolenEcht, lizenzLaden, lizenzenLaden } from './lizenz.js';
+import { abfrageAusStand, artikelAusSpiegel } from './artikel.js';
+import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 
 /**
  * @typedef {import('../naddr.js').Adresse} Adresse
  * @typedef {import('../konfig.js').Konfig} Konfig
- * @typedef {import('../services/relay.js').Event} Event
+ * @typedef {import('../services/spiegel.js').Inhalt} Inhalt
+ * @typedef {import('../services/spiegel.js').Event} Event
  * @typedef {import('../models/artikel.js').Artikel} Artikel
  * @typedef {import('../models/lizenz.js').Nachweis} Nachweis
  * @typedef {import('../models/entwickleransicht.js').Abfrage} Abfrage
@@ -61,16 +66,10 @@ const NICHT_GEFRAGT = {
  * @param {object} eingabe
  * @param {Adresse} eingabe.adresse
  * @param {Konfig} eingabe.konfig
- * @param {typeof eventsHolen} [eingabe.holen]          nur zum Prüfen austauschbar
- * @param {(bildUrl: string) => Promise<string|undefined>} [eingabe.etagHolen]
+ * @param {Inhalt} eingabe.inhalt
  * @returns {Promise<Beitrag|Absage>}
  */
-export async function beitragLaden({
-  adresse,
-  konfig,
-  holen = eventsHolen,
-  etagHolen = etagHolenEcht
-}) {
+export async function beitragLaden({ adresse, konfig, inhalt }) {
   // Der naddr kommt von aussen: nur die eigene Quelle wird angezeigt
   // (ADR-0016). Sonst wäre dies ein offener Nostr-Renderer.
   const zulaessig = adressePruefen(adresse, konfig);
@@ -78,124 +77,48 @@ export async function beitragLaden({
     return { ok: false, status: 404, meldung: ABLEHNUNG_TEXT[zulaessig.grund] };
   }
 
-  const artikelErgebnis = await artikelLaden({
-    adresse,
-    relays: konfig.relays,
-    holen
-  });
-
-  const { artikel, event: artikelEvent, gefragteRelays, grund } = artikelErgebnis;
-
-  if (!artikel || !artikelEvent) {
-    // `grund` unterscheidet „keines erreichbar" von „hat geantwortet und
-    // nichts". Nur so heisst 404 wirklich 404.
-    if (grund !== null) {
-      return {
-        ok: false,
-        status: 503,
-        meldung:
-          `Kein Relay hat geantwortet. Gefragt wurden: ${gefragteRelays.join(', ')}. ` +
-          'Verbindung und RELAYS in der .env prüfen.'
-      };
-    }
+  if (inhalt.stand === null) {
     return {
-      ok: false,
-      status: 404,
-      meldung:
-        `Kein Artikel mit d="${adresse.d}" von ${adresse.author.slice(0, 12)}… gefunden. ` +
-        `Gefragt wurden: ${gefragteRelays.join(', ')}.`
+      ok: false, status: 503,
+      meldung: `Noch kein Stand vom Relay. Gefragt wurden: ${konfig.relays.join(', ')}. Verbindung und RELAYS in der .env prüfen.`
     };
   }
 
-  const artikelAbfrage = {
-    gefragteRelays,
-    fehler: artikelErgebnis.fehler,
-    ohneTreffer: artikelErgebnis.ohneTreffer,
-    quellen: artikelErgebnis.quellen,
-    grund
-  };
+  const { artikel, event: artikelEvent } = artikelAusSpiegel(inhalt, { d: adresse.d });
+  if (!artikel || !artikelEvent) {
+    return {
+      ok: false, status: 404,
+      meldung: `Kein Beitrag mit d="${adresse.d}" von ${adresse.author.slice(0, 12)}… im Stand vom ${inhalt.stand.zeitpunkt}. Gefragt wurden: ${inhalt.stand.gefragteRelays.join(', ')}.`
+    };
+  }
 
-  // Ohne x-Tag am Artikel gibt es keinen Lookup: kein Hash, keine Frage
-  // (CLAUDE.md). Das ist eine fehlende Angabe, kein fehlender Nachweis.
-  const lizenzErgebnis = artikel.bildHash
-    ? await lizenzLaden({ hash: artikel.bildHash, relays: konfig.relays, holen })
-    : null;
+  const artikelAbfrage = abfrageAusStand(inhalt, konfig, artikelEvent);
+  const gesucht = artikel.bildHash ? nachweiseAusSpiegel(inhalt, artikel.bildHash) : null;
+  const nachweisEvent = gesucht?.nachweis ? (gesucht.events.find((e) => e.id === gesucht.nachweis?.id) ?? null) : null;
+  const lizenzAbfrage = artikel.bildHash ? abfrageAusStand(inhalt, konfig, nachweisEvent) : { ...NICHT_GEFRAGT };
+  const etag = etagAusSpiegel(inhalt, artikel.bildUrl);
+  const nachweis = gesucht?.nachweis ?? null;
+  const hosts = konfig.abgeloesteHosts;
 
-  const lizenzAbfrage = lizenzErgebnis
-    ? {
-        gefragteRelays: lizenzErgebnis.gefragteRelays,
-        fehler: lizenzErgebnis.fehler,
-        ohneTreffer: lizenzErgebnis.ohneTreffer,
-        quellen: lizenzErgebnis.quellen,
-        grund: lizenzErgebnis.grund
-      }
-    : { ...NICHT_GEFRAGT };
-
-  const etag =
-    artikel.bildUrl && /^https?:\/\//.test(artikel.bildUrl)
-      ? await etagHolen(artikel.bildUrl)
-      : undefined;
-
-  const nachweis = lizenzErgebnis?.nachweis ?? null;
-
-  const lizenz = lizenzPruefen({
-    bildUrl: artikel.bildUrl,
-    bildHash: artikel.bildHash,
-    nachweis,
-    etag
-  });
-
+  const lizenz = lizenzPruefen({ bildUrl: artikel.bildUrl, bildHash: artikel.bildHash, nachweis, etag, abgeloesteHosts: hosts });
   const { teile, entfernteBilder } = inhaltAufbereiten(artikel.inhalt);
 
   // Bilder im Fließtext mit Hash-URL (ADR-0023): je Hash einmal auflösen.
   // Zeigt der Text das Cover noch einmal — der Referenzfall —, ist das
-  // derselbe Hash und derselbe Nachweis; keine zweite Abfrage.
-  /** @type {Map<string, string>} Hash → erste URL, unter der er im Text steht */
-  const urlJeHash = new Map();
-  for (const teil of teile) {
-    if (teil.art === 'bild' && !urlJeHash.has(teil.hash)) urlJeHash.set(teil.hash, teil.url);
-  }
-
+  // derselbe Hash und derselbe Nachweis; keine zweite Auflösung.
   /** @type {Record<string, import('../models/lizenz.js').Ergebnis>} */
   const fliesstext = {};
-
-  if (artikel.bildHash && urlJeHash.has(artikel.bildHash)) {
-    const url = urlJeHash.get(artikel.bildHash) ?? '';
-    fliesstext[artikel.bildHash] = lizenzPruefen({
-      bildUrl: url,
-      bildHash: artikel.bildHash,
-      nachweis,
-      etag: url === artikel.bildUrl ? etag : await etagHolen(url)
+  /** @type {Set<string>} */
+  const gesehen = new Set();
+  for (const teil of teile) {
+    if (teil.art !== 'bild' || gesehen.has(teil.hash)) continue;
+    gesehen.add(teil.hash);
+    const eigener = teil.hash === artikel.bildHash ? nachweis : nachweiseAusSpiegel(inhalt, teil.hash).nachweis;
+    fliesstext[teil.hash] = lizenzPruefen({
+      bildUrl: teil.url, bildHash: teil.hash, nachweis: eigener,
+      etag: etagAusSpiegel(inhalt, teil.url), abgeloesteHosts: hosts
     });
-    urlJeHash.delete(artikel.bildHash);
   }
 
-  const offen = [...urlJeHash.keys()];
-  if (offen.length > 0) {
-    const geladen = await lizenzenLaden({ hashes: offen, relays: konfig.relays, holen });
-    for (const hash of offen) {
-      const url = urlJeHash.get(hash) ?? '';
-      fliesstext[hash] = lizenzPruefen({
-        bildUrl: url,
-        bildHash: hash,
-        nachweis: geladen.nachHash[hash]?.nachweis ?? null,
-        etag: await etagHolen(url)
-      });
-    }
-  }
-
-  return {
-    ok: true,
-    artikel,
-    artikelEvent,
-    artikelAbfrage,
-    lizenzEvents: lizenzErgebnis?.events ?? [],
-    lizenzAbfrage,
-    nachweis,
-    etag,
-    lizenz,
-    teile,
-    fliesstext,
-    entfernteBilder
-  };
+  return { ok: true, artikel, artikelEvent, artikelAbfrage, lizenzEvents: gesucht?.events ?? [], lizenzAbfrage, nachweis, etag, lizenz, teile, fliesstext, entfernteBilder };
 }

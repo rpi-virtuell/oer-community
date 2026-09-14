@@ -81,7 +81,7 @@ export const GRUND_TEXT = {
   relativ:
     'Der Bildverweis ist relativ und ließe sich nur gegen WordPress auflösen.',
   'abgeloester-host':
-    'Das Bild liegt auf einem Host, den dieser Hub ablöst — dort gibt es es bald nicht mehr. ' +
+    'Das Bild liegt auf einem Host, den dieser Hub ablöst — dort gibt es das Bild bald nicht mehr. ' +
     'Es gehört auf Blossom, mit Lizenznachweis (ADR-0030).',
   'kein-x-tag': 'Am Artikel fehlt das x-Tag — ohne Hash ist kein Nachweis auffindbar.',
   'kein-nachweis': 'Zu diesem Bild wurde auf keinem Relay ein kind:1063 gefunden.',

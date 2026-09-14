@@ -17,6 +17,10 @@ import { hashAusUrl } from '../models/lizenz.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
+// Re-Export: services/relay.js darf nur diese Datei importieren
+// (Architekturtest, Task 15). Wer die Konstanten braucht, holt sie hier.
+export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
+
 /** @typedef {import('./relay.js').Event} Event */
 /** @typedef {import('../konfig.js').Konfig} Konfig */
 /**

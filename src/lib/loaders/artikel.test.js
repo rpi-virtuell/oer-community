@@ -1,94 +1,45 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { abfrageAusStand, artikelAusSpiegel } from './artikel.js';
+import { leererInhalt } from '../services/spiegel.js';
 
-import { artikelLaden } from './artikel.js';
+const fixture = (/** @type {string} */ f) => JSON.parse(readFileSync(new URL(`../../../test/fixtures/${f}`, import.meta.url), 'utf8'));
+const ARTIKEL = fixture('artikel-30023-die-kraft-der-gemeinschaft-2026-09-07.json')[0];
+const RELAY = 'wss://relay.edufeed.org/';
+const RPI = 'wss://relay-rpi.edufeed.org/';
+const KONFIG = /** @type {any} */ ({ autor: ARTIKEL.pubkey, relays: [RELAY, RPI] });
 
-/**
- * Merkt sich, welche Relays gefragt wurden, und antwortet nie.
- *
- * @param {string[]} protokoll
- */
-function beobachter(protokoll) {
-  /** @type {typeof import('../services/relay.js').eventsHolen} */
-  return async (relayUrl) => {
-    protokoll.push(relayUrl);
-    // Antwortet, liefert aber nichts — so ist das Ergebnis belastbar leer.
-    return { events: [], erreicht: true };
-  };
-}
+const inhalt = {
+  ...leererInhalt(),
+  stand: { zeitpunkt: '2026-09-14T10:00:00Z', dauerMs: 5, gefragteRelays: [RELAY, RPI], nichtErreichbar: [RPI], anzahl: { artikel: 1, listen: 0, nachweise: 0, profil: 0 } },
+  artikel: [ARTIKEL],
+  quellen: { [ARTIKEL.id]: [RELAY] }
+};
 
-const KONFIGURIERT = ['wss://relay.edufeed.org/', 'wss://relay-rpi.edufeed.org/'];
-
-describe('artikelLaden — Relay-Hinweise aus dem naddr', () => {
-  it('fragt NUR die konfigurierten Relays, nie die aus dem naddr', async () => {
-    /** @type {string[]} */
-    const gefragt = [];
-    await artikelLaden({
-      adresse: {
-        kind: 30023,
-        author: 'a'.repeat(64),
-        d: 'egal',
-        // Ein Fremder kann hier alles hineinschreiben:
-        relays: ['wss://boeser-server.example/', 'wss://127.0.0.1:9999/']
-      },
-      relays: KONFIGURIERT,
-      holen: beobachter(gefragt)
-    });
-
-    expect(gefragt).toEqual(KONFIGURIERT);
-    expect(gefragt).not.toContain('wss://boeser-server.example/');
-    expect(gefragt).not.toContain('wss://127.0.0.1:9999/');
+describe('artikelAusSpiegel', () => {
+  it('findet den Artikel über d', () => {
+    const { artikel, event } = artikelAusSpiegel(inhalt, { d: 'die-kraft-der-gemeinschaft' });
+    expect(artikel?.titel).toContain('Kraft');
+    expect(event?.id).toBe(ARTIKEL.id);
   });
-
-  it('fragt die konfigurierten Relays auch ohne Hinweise im naddr', async () => {
-    /** @type {string[]} */
-    const gefragt = [];
-    await artikelLaden({
-      adresse: { kind: 30023, author: 'a'.repeat(64), d: 'egal', relays: [] },
-      relays: KONFIGURIERT,
-      holen: beobachter(gefragt)
-    });
-    expect(gefragt).toEqual(KONFIGURIERT);
+  it('liefert null für unbekanntes d und für die falsche Sprache', () => {
+    expect(artikelAusSpiegel(inhalt, { d: 'gibt-es-nicht' }).artikel).toBeNull();
+    expect(artikelAusSpiegel(inhalt, { d: 'die-kraft-der-gemeinschaft', sprache: 'en' }).artikel).toBeNull();
   });
 });
 
-describe('artikelLaden gibt das rohe Event und seine Herkunft mit heraus', () => {
-  const ARTIKEL_EVENT = JSON.parse(
-    readFileSync(
-      new URL(
-        '../../../test/fixtures/artikel-30023-die-kraft-der-gemeinschaft.json',
-        import.meta.url
-      ),
-      'utf8'
-    )
-  )[0];
-
-  it('liefert das unveraenderte Event neben dem aufbereiteten Artikel', async () => {
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    const holen = async () => ({ events: [ARTIKEL_EVENT], erreicht: true });
-
-    const ergebnis = await artikelLaden({
-      adresse: { kind: 30023, author: ARTIKEL_EVENT.pubkey, d: 'egal', relays: [] },
-      relays: ['wss://relay.edufeed.org/'],
-      holen
-    });
-
-    expect(ergebnis.event?.id).toBe(ARTIKEL_EVENT.id);
-    expect(ergebnis.event?.sig).toBe(ARTIKEL_EVENT.sig);
-    expect(ergebnis.quellen[ARTIKEL_EVENT.id]).toEqual(['wss://relay.edufeed.org/']);
+describe('abfrageAusStand', () => {
+  it('übersetzt den Stand in die Form der Entwickleransicht', () => {
+    const a = abfrageAusStand(inhalt, KONFIG, ARTIKEL);
+    expect(a).toEqual({ gefragteRelays: [RELAY, RPI], fehler: [RPI], ohneTreffer: [], quellen: { [ARTIKEL.id]: [RELAY] }, grund: null });
   });
-
-  it('liefert event: null, wenn nichts gefunden wurde', async () => {
-    /** @type {typeof import('../services/relay.js').eventsHolen} */
-    const holen = async () => ({ events: [], erreicht: true });
-
-    const ergebnis = await artikelLaden({
-      adresse: { kind: 30023, author: 'a'.repeat(64), d: 'fehlt', relays: [] },
-      relays: ['wss://relay.edufeed.org/'],
-      holen
-    });
-
-    expect(ergebnis.event).toBeNull();
-    expect(ergebnis.quellen).toEqual({});
+  it('ein Relay, das antwortete und das Event nicht hatte, steht in ohneTreffer', () => {
+    const beide = { ...inhalt, stand: { ...inhalt.stand, nichtErreichbar: [] } };
+    expect(abfrageAusStand(beide, KONFIG, ARTIKEL).ohneTreffer).toEqual([RPI]);
+  });
+  it('ohne Stand: alle Relays gefragt, keines erreichbar', () => {
+    const a = abfrageAusStand(leererInhalt(), KONFIG, null);
+    expect(a.grund).toBe('kein-relay-erreichbar');
+    expect(a.fehler).toEqual([RELAY, RPI]);
   });
 });

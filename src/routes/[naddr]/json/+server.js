@@ -24,6 +24,7 @@ import { konfigLesen } from '$lib/konfig.js';
 import { naddrDekodieren } from '$lib/naddr.js';
 import { beitragLaden } from '$lib/loaders/beitrag.js';
 import { befundErstellen } from '$lib/models/entwickleransicht.js';
+import { spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
 
@@ -38,7 +39,7 @@ export async function GET({ params }) {
     error(400, ursache instanceof Error ? ursache.message : 'Unlesbare Adresse.');
   }
 
-  const ergebnis = await beitragLaden({ adresse, konfig });
+  const ergebnis = await beitragLaden({ adresse, konfig, inhalt: spiegelHolen().lesen() });
 
   if (!ergebnis.ok) {
     error(ergebnis.status, ergebnis.meldung);

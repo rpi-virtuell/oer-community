@@ -4,6 +4,7 @@ import { konfigLesen } from '$lib/konfig.js';
 import { naddrDekodieren } from '$lib/naddr.js';
 import { beitragLaden } from '$lib/loaders/beitrag.js';
 import { befundErstellen } from '$lib/models/entwickleransicht.js';
+import { spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
 
@@ -21,7 +22,7 @@ export async function load({ params }) {
 
   // Adressprüfung, Relay-Abfrage und Lizenzauflösung liegen im Loader —
   // dieselbe Vorarbeit nutzt die Entwickleransicht (ADR-0016).
-  const ergebnis = await beitragLaden({ adresse, konfig });
+  const ergebnis = await beitragLaden({ adresse, konfig, inhalt: spiegelHolen().lesen() });
 
   if (!ergebnis.ok) {
     error(ergebnis.status, ergebnis.meldung);
