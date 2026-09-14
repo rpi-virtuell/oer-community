@@ -9,7 +9,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
 const appCss = readFileSync(new URL('../src/app.css', import.meta.url), 'utf8');
 
@@ -47,29 +48,65 @@ export function getoent(farbe, deckkraft, grund) {
   );
 }
 
+/**
+ * Alle .svelte-Dateien unter src/ sowie src/app.css, als [Pfad, Text].
+ * Eigene kleine Kopie der Idee aus architektur.test.js — zwei Testdateien
+ * teilen keinen Code.
+ * @returns {Array<[string, string]>}
+ */
+function quelldateienSvelte() {
+  const wurzel = new URL('..', import.meta.url).pathname;
+  /** @type {Array<[string, string]>} */
+  const gefunden = [];
+  /** @param {string} verzeichnis */
+  function durchsuchen(verzeichnis) {
+    for (const eintrag of readdirSync(verzeichnis)) {
+      if (eintrag === 'node_modules' || eintrag.startsWith('.')) continue;
+      const pfad = join(verzeichnis, eintrag);
+      if (statSync(pfad).isDirectory()) {
+        durchsuchen(pfad);
+      } else if (eintrag.endsWith('.svelte')) {
+        gefunden.push([relative(wurzel, pfad), readFileSync(pfad, 'utf8')]);
+      }
+    }
+  }
+  durchsuchen(join(wurzel, 'src'));
+  gefunden.push(['src/app.css', appCss]);
+  return gefunden;
+}
+
 const AA = 4.5;
 
-describe('Kontrast der Tokens (docs/designsystem.md, ADR-0018)', () => {
-  it('Fließtext-Links: --rpi auf Weiß (Punkt 1)', () => {
-    expect(kontrast(token('--rpi'), token('--rl-weiss'))).toBeGreaterThanOrEqual(AA);
+describe('Kontrast der FOERBICO-Palette (docs/designsystem.md, ADR-0031)', () => {
+  it('Fließtext und Überschriften auf Weiß und auf den Flächen', () => {
+    for (const grund of ['--fb-weiss', '--fb-flaeche', '--fb-flaeche-2']) {
+      expect(kontrast(token('--fb-text'), token(grund))).toBeGreaterThanOrEqual(AA);
+      expect(kontrast(token('--fb-ueberschrift'), token(grund))).toBeGreaterThanOrEqual(AA);
+      expect(kontrast(token('--fb-text-leise'), token(grund))).toBeGreaterThanOrEqual(AA);
+    }
   });
-
-  it('Amber-Marker: --marker-amber-text auf 16 % Amber (Punkt 2)', () => {
-    const flaeche = getoent(token('--amber'), 0.16, token('--rl-weiss'));
-    expect(kontrast(token('--marker-amber-text'), flaeche)).toBeGreaterThanOrEqual(AA);
+  it('Links: --fb-primaer auf Weiß und auf --fb-flaeche', () => {
+    expect(kontrast(token('--fb-primaer'), token('--fb-weiss'))).toBeGreaterThanOrEqual(AA);
+    expect(kontrast(token('--fb-primaer'), token('--fb-flaeche'))).toBeGreaterThanOrEqual(AA);
   });
-
-  it('Aufmacher: Weiß an beiden Enden des dunklen Verlaufs (Punkt 3)', () => {
-    expect(kontrast('#ffffff', token('--aufmacher-start'))).toBeGreaterThanOrEqual(AA);
-    expect(kontrast('#ffffff', token('--aufmacher-ende'))).toBeGreaterThanOrEqual(AA);
+  it('Text auf --fb-akzent ist --fb-ueberschrift; Weiß darauf wäre zu schwach', () => {
+    expect(kontrast(token('--fb-ueberschrift'), token('--fb-akzent'))).toBeGreaterThanOrEqual(AA);
+    expect(kontrast('#ffffff', token('--fb-akzent'))).toBeLessThan(AA);
   });
-
-  it('Fußzeile: --fuss-text auf --fau', () => {
-    expect(kontrast(token('--fuss-text'), token('--fau'))).toBeGreaterThanOrEqual(AA);
+  it('Fehlerfarbe auf Weiß und auf --fb-flaeche', () => {
+    expect(kontrast(token('--fb-fehler'), token('--fb-weiss'))).toBeGreaterThanOrEqual(AA);
+    expect(kontrast(token('--fb-fehler'), token('--fb-flaeche'))).toBeGreaterThanOrEqual(AA);
   });
-
-  it('aktive Zustände tragen --fau auf --relilab und --amber', () => {
-    expect(kontrast(token('--fau'), token('--relilab'))).toBeGreaterThanOrEqual(AA);
-    expect(kontrast(token('--fau'), token('--amber'))).toBeGreaterThanOrEqual(AA);
+  it('keine Komponente setzt Weiß auf --fb-akzent (ADR-0031)', () => {
+    // Grobe, aber mechanische Prüfung: keine CSS-Regel, die --fb-akzent als
+    // background und --fb-weiss als color im selben Block nennt.
+    const dateien = quelldateienSvelte();
+    for (const [pfad, css] of dateien) {
+      for (const block of css.match(/\{[^}]*\}/g) ?? []) {
+        const akzentGrund = /background(-color)?:\s*var\(--fb-akzent\)/.test(block);
+        const weissText = /(^|[^-])color:\s*var\(--fb-weiss\)/.test(block);
+        expect(akzentGrund && weissText, `${pfad}: Weiß auf Akzent`).toBe(false);
+      }
+    }
   });
 });

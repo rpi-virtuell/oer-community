@@ -172,13 +172,11 @@ describe('Gestaltungsregeln (ADR-0004, docs/designsystem.md)', () => {
   /** Alle @font-face-Blöcke aus app.css. */
   const fontFaces = appCss.match(/@font-face\s*\{[^}]*\}/g) ?? [];
 
-  it('deklariert die drei Schriften des Designsystems lokal', () => {
+  it('deklariert genau die Schrift des Designsystems lokal', () => {
     const familien = fontFaces
       .map((block) => block.match(/font-family:\s*['"]?([^;'"]+)/)?.[1].trim())
       .filter(Boolean);
-    expect(new Set(familien)).toEqual(
-      new Set(['Roboto', 'Roboto Condensed', 'Yanone Kaffeesatz'])
-    );
+    expect(new Set(familien)).toEqual(new Set(['Roboto Condensed']));
   });
 
   it('jede Schriftdatei aus @font-face liegt in static/', () => {
