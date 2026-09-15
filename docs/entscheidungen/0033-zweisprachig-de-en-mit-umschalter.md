@@ -39,7 +39,7 @@ weiß der Hub, welche deutsche Seite dazugehört?
 3. **Ein Umschalter DE | EN in der Kopfzeile**, nur wenn der Spiegel
    englische Inhalte hat. Ziel ist das Gegenstück der aktuellen Seite, sonst
    die Startseite der Sprache: `/` oder `/en`. `/en` zeigt die Seite
-   `en/<STARTSEITE_D>`; fehlt sie, leitet `/en` weiter auf `/`.
+   `en/<STARTSEITE_D>`; fehlt sie, leitet `/en` vorläufig (302) weiter auf `/`.
    Die Seite trägt `<link rel="alternate" hreflang>` auf ihr Gegenstück.
 4. **Menü und Fußzeile folgen der Sprache der Adresse:** Unter `/en/…`
    zeigt jeder Eintrag sein Gegenstück, wenn es eines gibt, sonst den

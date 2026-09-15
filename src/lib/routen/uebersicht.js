@@ -73,7 +73,10 @@ export async function startLaden({ konfig, inhalt, sprache = 'de' }) {
   leerOderWeiter(konfig, inhalt);
   if (sprache === 'en') {
     const { artikel: englisch } = artikelAusSpiegel(inhalt, { d: `en/${konfig.startseiteD}` });
-    if (!englisch) redirect(301, '/');
+    // 302, nicht 301: Die englische Startseite fehlt nur vorläufig — eine
+    // dauerhafte Weiterleitung bliebe in den Browser-Caches stehen, wenn sie
+    // erscheint (ADR-0033, Entscheidung 3).
+    if (!englisch) redirect(302, '/');
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: 'en', konfig, inhalt, istStartseite: true });
     return /** @type {const} */ ({ art: 'seite', seite });
   }

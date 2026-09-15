@@ -13,6 +13,8 @@ export const prerender = false;
  */
 export async function load() {
   const ergebnis = await startLaden({ konfig: konfigLesen(env), inhalt: spiegelHolen().lesen(), sprache: 'en' });
-  if (ergebnis.art !== 'seite') redirect(301, '/');
+  // Nur zur Typverengung: der englische Zweig liefert immer eine Seite oder
+  // weicht selbst aus — dann vorläufig (302), nie dauerhaft.
+  if (ergebnis.art !== 'seite') redirect(302, '/');
   return ergebnis.seite;
 }

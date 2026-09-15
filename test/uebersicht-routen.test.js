@@ -210,7 +210,7 @@ describe('/en (ADR-0033)', () => {
     const { inhalt, konfig } = inhaltDerTestquelle({ ohne: [{ kind: 30023, d: 'en/startseite' }] });
     await expect(
       lade('../src/routes/en/+page.server.js', {}, inhalt, konfig.autor)
-    ).rejects.toMatchObject({ status: 301, location: '/' });
+    ).rejects.toMatchObject({ status: 302, location: '/' });
   });
 
   it('/en/startseite leitet auf /en', async () => {
