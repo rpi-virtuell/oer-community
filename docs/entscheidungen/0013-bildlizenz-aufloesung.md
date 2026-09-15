@@ -1,6 +1,6 @@
 # ADR-0013: Bildlizenz über mehrere Relays auflösen; ohne Nachweis kein Bild
 
-**Status:** angenommen (2026-09-03)
+**Status:** angenommen (2026-09-03) · Punkte 2 und 3 ersetzt durch ADR-0022 (2026-09-07), Punkt 5 ergänzt durch ADR-0030 (2026-09-14); Punkte 1 und 4 gelten weiter
 **Beteiligte:** Jörg
 
 ## Kontext

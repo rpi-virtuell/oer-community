@@ -110,7 +110,7 @@ gerendert, nur nicht öffentlich.
 
 Drei Dinge fehlen, und alle drei brauchen einen Handgriff von aussen:
 
-1. **Ein DNS-Name** auf `46.225.82.96`, etwa `hub.relilab.org`. Ein
+1. **Ein DNS-Name** auf `46.225.82.96`, etwa `hub.oer.community`. Ein
    Zertifikat gibt es bei Let's Encrypt nicht auf eine nackte IP.
 2. **Port 80 und 443 freigeben** in der Hetzner-Konsole. Port 80 braucht
    Let's Encrypt für die Prüfung.
@@ -120,7 +120,7 @@ Drei Dinge fehlen, und alle drei brauchen einen Handgriff von aussen:
 
 Die Konfiguration in `/etc/caddy/Caddyfile` ist dann drei Zeilen:
 
-       hub.relilab.org {
+       hub.oer.community {
            reverse_proxy localhost:8080
        }
 

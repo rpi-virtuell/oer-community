@@ -40,8 +40,7 @@
 
 {#if zeigbar && quelle}
   <!-- Redaktionelle Bilder liegen auf Blossom in voller Größe (ADR-0010):
-       volle Breite ist richtig. Die 150px-Thumbnails des relilab-Altbestands
-       wären ein anderer Fall — der ist hier noch nicht in Betrieb. -->
+       volle Breite ist richtig. -->
   <figure class="bild">
     <div class="rahmen">
       <img src={quelle} {alt} />

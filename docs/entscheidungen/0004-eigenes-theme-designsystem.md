@@ -1,6 +1,6 @@
 # ADR-0004: Eigenes Theme nach dem Designsystem FOERBICO × rpi-virtuell
 
-**Status:** angenommen (2026-09-01)
+**Status:** angenommen (2026-09-01) · Designsystem ersetzt durch ADR-0031 (FOERBICO, 2026-09-14); der Grundsatz „eigenes Theme, keine Bibliothek“ gilt weiter
 **Beteiligte:** Jörg
 
 ## Entscheidung

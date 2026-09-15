@@ -1,6 +1,6 @@
 # ADR-0015: Bilder im Fließtext werden ausnahmslos entfernt
 
-**Status:** angenommen (2026-09-03)
+**Status:** angenommen (2026-09-03) · eingeschränkt durch ADR-0023 (2026-09-07): Bilder mit Hash-URL werden aufgelöst, nur die übrigen entfernt
 **Beteiligte:** Jörg
 
 ## Kontext
