@@ -29,13 +29,14 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {number} dauerMs
  * @property {string[]} gefragteRelays
  * @property {string[]} nichtErreichbar
- * @property {{ artikel: number, listen: number, nachweise: number, profil: number }} anzahl
+ * @property {{ artikel: number, listen: number, nachweise: number, profil: number, termine: number }} anzahl
  */
 /**
  * @typedef {object} Inhalt
  * @property {Stand|null} stand
  * @property {Event[]} artikel
  * @property {Event[]} listen
+ * @property {Event[]} termine  Termine der Community, kind 31922/31923 (ADR-0034)
  * @property {Event|null} profil
  * @property {Event[]} nachweise
  * @property {Record<string, string[]>} quellen
@@ -89,7 +90,7 @@ function istInhalt(x) {
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
-  return { stand: null, artikel: [], listen: [], profil: null, nachweise: [], quellen: {}, etags: {} };
+  return { stand: null, artikel: [], listen: [], termine: [], profil: null, nachweise: [], quellen: {}, etags: {} };
 }
 
 /** @param {string[][]} tags @param {string} name */
@@ -99,18 +100,37 @@ const tagWert = (tags, name) => tags.find((t) => t[0] === name && t.length > 1)?
 const neuer = (a, b) => (b.created_at !== a.created_at ? b.created_at - a.created_at : a.id.localeCompare(b.id));
 
 /**
- * Ersetzbare Events: je d nur das neueste.
+ * Ersetzbare Events zusammenführen: je Schlüssel nur das neueste.
+ * @param {Event[]} events @param {(e: Event) => string} schluessel @returns {Event[]}
+ */
+function neuestesJe(events, schluessel) {
+  /** @type {Map<string, Event>} */
+  const nachSchluessel = new Map();
+  for (const e of events) {
+    const k = schluessel(e);
+    const bisher = nachSchluessel.get(k);
+    if (!bisher || neuer(bisher, e) > 0) nachSchluessel.set(k, e);
+  }
+  return [...nachSchluessel.values()];
+}
+
+/**
+ * Ersetzbare Events eines Kinds: je d nur das neueste.
  * @param {Event[]} events @returns {Event[]}
  */
 export function neuestesJeD(events) {
-  /** @type {Map<string, Event>} */
-  const nachD = new Map();
-  for (const e of events) {
-    const d = tagWert(e.tags ?? [], 'd') ?? '';
-    const bisher = nachD.get(d);
-    if (!bisher || neuer(bisher, e) > 0) nachD.set(d, e);
-  }
-  return [...nachD.values()];
+  return neuestesJe(events, (e) => tagWert(e.tags ?? [], 'd') ?? '');
+}
+
+/**
+ * Ersetzbare Events verschiedener Kinds: je kind und d nur das neueste.
+ * Nötig, seit `listen` sowohl kind:30004 (Menü, Fußzeile) als auch
+ * kind:30000 (Redaktionskreis, ADR-0034) enthält — zwei Listen mit demselben
+ * `d` sind verschiedene Events und dürfen einander nicht verdrängen.
+ * @param {Event[]} events @returns {Event[]}
+ */
+export function neuestesJeKindUndD(events) {
+  return neuestesJe(events, (e) => `${e.kind}:${tagWert(e.tags ?? [], 'd') ?? ''}`);
 }
 
 /**
@@ -169,7 +189,18 @@ export function spiegelErstellen({
     const nachAutor = (/** @type {number} */ kind) =>
       eventsVonAllen(relays, { kinds: [kind], authors: [konfig.autor] }, { holen });
 
-    const [a, l, p] = await Promise.all([nachAutor(30023), nachAutor(30004), nachAutor(0)]);
+    // Termine kommen aus der Community, nicht vom Autor (ADR-0034). Ohne
+    // konfigurierte Community wird gar nicht erst gefragt.
+    const [a, l, r, p, t] = await Promise.all([
+      nachAutor(30023), nachAutor(30004), nachAutor(30000), nachAutor(0),
+      konfig.community
+        ? eventsVonAllen(relays, { kinds: [31922, 31923], '#h': [konfig.community] }, { holen })
+        : Promise.resolve(
+            /** @type {import('./relay.js').Sammelergebnis} */ ({
+              events: [], gefragt: relays, fehler: [], ohneTreffer: [], quellen: {}, grund: null
+            })
+          )
+    ]);
 
     if (a.grund !== null) {
       fehlschlag = { zeitpunkt: new Date(jetzt()).toISOString(), gefragteRelays: a.gefragt };
@@ -178,9 +209,9 @@ export function spiegelErstellen({
 
     const artikel = neuestesJeD(a.events);
     /** @type {Record<string, string[]>} */
-    const quellen = { ...a.quellen, ...l.quellen, ...p.quellen };
+    const quellen = { ...a.quellen, ...l.quellen, ...r.quellen, ...p.quellen, ...t.quellen };
     /** @type {Set<string>} */
-    const nichtErreichbar = new Set([...a.fehler, ...l.fehler, ...p.fehler]);
+    const nichtErreichbar = new Set([...a.fehler, ...l.fehler, ...r.fehler, ...p.fehler, ...t.fehler]);
 
     /** @type {Map<string, Event>} */
     const nachweise = new Map();
@@ -206,7 +237,10 @@ export function spiegelErstellen({
 
     // `neuer` sortiert schon neuestes zuerst — nicht noch einmal umdrehen.
     const profil = [...p.events].sort(neuer)[0] ?? null;
-    const listen = neuestesJeD(l.events);
+    // kind:30004 und kind:30000 liegen gemeinsam in `listen` — je kind und d
+    // zusammenführen, sonst verdrängte "redaktion" ein gleichnamiges Menü.
+    const listen = neuestesJeKindUndD([...l.events, ...r.events]);
+    const termine = neuestesJeKindUndD(t.events);
 
     inhalt = {
       stand: {
@@ -214,9 +248,12 @@ export function spiegelErstellen({
         dauerMs: jetzt() - start,
         gefragteRelays: a.gefragt,
         nichtErreichbar: [...nichtErreichbar],
-        anzahl: { artikel: artikel.length, listen: listen.length, nachweise: nachweise.size, profil: profil ? 1 : 0 }
+        anzahl: {
+          artikel: artikel.length, listen: listen.length, nachweise: nachweise.size,
+          profil: profil ? 1 : 0, termine: termine.length
+        }
       },
-      artikel, listen, profil,
+      artikel, listen, termine, profil,
       nachweise: [...nachweise.values()],
       quellen, etags
     };
@@ -238,7 +275,7 @@ export function spiegelErstellen({
     try {
       const geparst = JSON.parse(text);
       if (!istInhalt(geparst)) return false;
-      // Eine ältere oder knappe Datei kennt listen/quellen/etags noch nicht;
+      // Eine ältere oder knappe Datei kennt listen/termine/quellen/etags noch nicht;
       // die Leerform auffüllen, statt später an fehlenden Feldern zu werfen.
       inhalt = { ...leererInhalt(), ...geparst };
       return true;

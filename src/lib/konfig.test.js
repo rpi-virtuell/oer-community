@@ -89,3 +89,29 @@ describe('konfigLesen: Struktur-Kennungen (ADR-0027)', () => {
     expect(k.fusszeileD).toBe('footer');
   });
 });
+
+describe('konfigLesen: Kalender aus der Community (ADR-0034)', () => {
+  const GUELTIG = { QUELLE_AUTOR: 'a'.repeat(64), RELAYS: 'wss://relay.edufeed.org/', BLOSSOM_URL: 'https://blossom.edufeed.org/' };
+
+  it('nimmt rpi-virtuell und die dev-edufeed-Adresse als Standard', () => {
+    const k = konfigLesen(GUELTIG);
+    expect(k.community).toBe('ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2');
+    expect(k.edufeedUrl).toBe('https://dev.edufeed.org');
+  });
+
+  it('leeres COMMUNITY_PUBKEY schaltet den Kalender ab', () => {
+    expect(konfigLesen({ ...GUELTIG, COMMUNITY_PUBKEY: '' }).community).toBe(null);
+  });
+
+  it('bricht ab, wenn COMMUNITY_PUBKEY kein 64-stelliger Hex ist', () => {
+    expect(() => konfigLesen({ ...GUELTIG, COMMUNITY_PUBKEY: 'abc' })).toThrow(/COMMUNITY_PUBKEY/);
+  });
+
+  it('schneidet Schrägstriche am Ende der EDUFEED_URL ab', () => {
+    expect(konfigLesen({ ...GUELTIG, EDUFEED_URL: 'https://app.edufeed.org//' }).edufeedUrl).toBe('https://app.edufeed.org');
+  });
+
+  it('bricht ab, wenn EDUFEED_URL nicht https ist', () => {
+    expect(() => konfigLesen({ ...GUELTIG, EDUFEED_URL: 'http://app.edufeed.org' })).toThrow(/EDUFEED_URL/);
+  });
+});

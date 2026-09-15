@@ -11,6 +11,8 @@
  * @property {string} startseiteD             Kennung (d) der Startseite; Konvention mit Standard (ADR-0027)
  * @property {string} navigationD             Kennung (d) der Navigation; Konvention mit Standard (ADR-0027)
  * @property {string} fusszeileD              Kennung (d) der Fußzeile; Konvention mit Standard (ADR-0027)
+ * @property {string|null} community          Community, deren Termine der Hub zeigt (ADR-0034); null = kein Kalender
+ * @property {string} edufeedUrl              Wohin „Im Kalender öffnen" führt (ADR-0034)
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -90,8 +92,21 @@ export function konfigLesen(quelle) {
     quelle.SPIEGEL_STARTWARTEZEIT_S, 20, 'SPIEGEL_STARTWARTEZEIT_S'
   );
 
+  // ADR-0034: Standard ist die Community rpi-virtuell. Ein leerer Wert
+  // schaltet den Kalender bewusst ab — leer ist nicht "nicht gesetzt".
+  const rohCommunity = quelle.COMMUNITY_PUBKEY === undefined
+    ? 'ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2'
+    : quelle.COMMUNITY_PUBKEY.trim().toLowerCase();
+  if (rohCommunity !== '' && !HEX64.test(rohCommunity)) {
+    throw new Error('COMMUNITY_PUBKEY muss leer oder ein 64-stelliger Hex-Schlüssel sein.');
+  }
+  const community = rohCommunity === '' ? null : rohCommunity;
+  const edufeedUrl = ((quelle.EDUFEED_URL ?? '').trim() || 'https://dev.edufeed.org').replace(/\/+$/, '');
+  if (!edufeedUrl.startsWith('https://')) throw new Error('EDUFEED_URL muss mit https:// beginnen.');
+
   const rohHTag = (quelle.QUELLE_H_TAG ?? '').trim();
   return {
+    community, edufeedUrl,
     autor, hTag: rohHTag === '' ? null : rohHTag, relays, blossomUrl,
     abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS,
     startseiteD: kennung(quelle.STARTSEITE_D, 'startseite'),

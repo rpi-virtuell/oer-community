@@ -38,7 +38,7 @@ function inhaltMitArtikeln() {
       dauerMs: 3,
       gefragteRelays: [RELAY, RPI],
       nichtErreichbar: [],
-      anzahl: { artikel: artikelEvents.length, listen: 0, nachweise: 0, profil: 0 }
+      anzahl: { artikel: artikelEvents.length, listen: 0, nachweise: 0, profil: 0, termine: 0 }
     },
     artikel: artikelEvents
   };

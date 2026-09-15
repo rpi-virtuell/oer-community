@@ -10,7 +10,7 @@ const BESTAND = JSON.parse(
 
 describe('Feste Segmente der ersten Pfadebene (ADR-0029)', () => {
   it('hält die Liste fest', () => {
-    expect([...FESTE_SEGMENTE]).toEqual(['blog', 'themen', 'en', 'feed.xml', 'sitemap.xml']);
+    expect([...FESTE_SEGMENTE]).toEqual(['blog', 'themen', 'termine', 'en', 'feed.xml', 'sitemap.xml']);
   });
 
   it('kein d des Bestands kollidiert mit einem festen Segment', () => {

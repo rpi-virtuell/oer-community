@@ -22,7 +22,7 @@ export function inhaltDerTestquelle(lage = {}) {
   return {
     inhalt: {
       ...leererInhalt(),
-      stand: { zeitpunkt: '2026-09-14T10:00:00Z', dauerMs: 1, gefragteRelays: ['wss://r/'], nichtErreichbar: [], anzahl: { artikel: 0, listen: 0, nachweise: 0, profil: 0 } },
+      stand: { zeitpunkt: '2026-09-14T10:00:00Z', dauerMs: 1, gefragteRelays: ['wss://r/'], nichtErreichbar: [], anzahl: { artikel: 0, listen: 0, nachweise: 0, profil: 0, termine: 0 } },
       artikel: bleibt.filter((e) => e.kind === 30023),
       listen: bleibt.filter((e) => e.kind === 30004),
       profil: bleibt.find((e) => e.kind === 0) ?? null
@@ -30,7 +30,8 @@ export function inhaltDerTestquelle(lage = {}) {
     konfig: /** @type {import('../../../src/lib/konfig.js').Konfig} */ ({
       autor: pubkey, hTag: null, relays: ['wss://r/'], blossomUrl: 'https://blossom.example/', abgeloesteHosts: [],
       spiegelPfad: 'x', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
-      startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile'
+      startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
+      community: null, edufeedUrl: 'https://dev.edufeed.org'
     })
   };
 }

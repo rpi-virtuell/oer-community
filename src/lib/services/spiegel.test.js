@@ -19,7 +19,8 @@ const KONFIG = {
   autor: ARTIKEL_ALT.pubkey, hTag: null, relays: [RELAY, RPI],
   blossomUrl: 'https://blossom.edufeed.org/', abgeloesteHosts: ['oer.community'],
   spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
-  startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile'
+  startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
+  community: null, edufeedUrl: 'https://dev.edufeed.org'
 };
 
 /**
@@ -114,7 +115,7 @@ describe('spiegelErstellen().auffrischen', () => {
     expect(gueltig).toBe(true);
     expect(inhalt.stand?.nichtErreichbar).toEqual([RPI]);
     expect(inhalt.nachweise).toEqual([]);
-    expect(inhalt.stand?.anzahl).toEqual({ artikel: 1, listen: 0, nachweise: 0, profil: 1 });
+    expect(inhalt.stand?.anzahl).toEqual({ artikel: 1, listen: 0, nachweise: 0, profil: 1, termine: 0 });
   });
 
   it('fragt Nachweise in Blöcken zu höchstens 50 Hashes', async () => {
@@ -246,5 +247,79 @@ describe('Singleton', () => {
     await spiegelBereit();
     expect(a.letzterFehlschlag()?.gefragteRelays).toEqual([]);
     spiegelZuruecksetzenFuerTests();
+  });
+});
+
+describe('Termine und Redaktionsliste (ADR-0034)', () => {
+  const TERMIN = fixture('termine-31922-community.json')[0];
+  const REDAKTION = fixture('liste-30000-redaktion.json')[0];
+  const COMMUNITY = 'ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2';
+
+  /**
+   * Relay-Attrappe für den Kalender: Artikel, Termine und die Redaktionsliste.
+   * Notiert nebenbei jeden gestellten Filter.
+   * @param {object[]} filterProtokoll
+   * @returns {import('./relay.js').eventsHolen}
+   */
+  const kalenderRelays = (filterProtokoll) => async (url, filter) => {
+    if (url === RELAY) filterProtokoll.push(filter);
+    if (url !== RELAY) return { events: [], erreicht: true };
+    const kinds = /** @type {number[]} */ (filter.kinds);
+    if (kinds.includes(30023)) return { events: [ARTIKEL_NEU], erreicht: true };
+    if (kinds.includes(30000)) return { events: [REDAKTION], erreicht: true };
+    if (kinds.includes(31922)) return { events: [TERMIN], erreicht: true };
+    return { events: [], erreicht: true };
+  };
+
+  it('holt Termine der Community und die kind:30000-Liste des Autors', async () => {
+    /** @type {any[]} */
+    const gestellt = [];
+    const s = spiegelErstellen({
+      konfig: { ...KONFIG, community: COMMUNITY },
+      holen: kalenderRelays(gestellt), etagHolen: async () => undefined, speicher: speicherAttrappe()
+    });
+    const { gueltig, inhalt } = await s.auffrischen();
+    expect(gueltig).toBe(true);
+    expect(gestellt).toContainEqual({ kinds: [31922, 31923], '#h': [COMMUNITY] });
+    expect(gestellt).toContainEqual({ kinds: [30000], authors: [KONFIG.autor] });
+    expect(inhalt.termine.map((e) => e.id)).toEqual([TERMIN.id]);
+    expect(inhalt.listen.map((e) => e.id)).toContain(REDAKTION.id);
+    expect(inhalt.stand?.anzahl.termine).toBe(1);
+  });
+
+  it('ohne community wird kein Termin-Filter gestellt', async () => {
+    /** @type {any[]} */
+    const gestellt = [];
+    const s = spiegelErstellen({
+      konfig: { ...KONFIG, community: null },
+      holen: kalenderRelays(gestellt), etagHolen: async () => undefined, speicher: speicherAttrappe()
+    });
+    const { inhalt } = await s.auffrischen();
+    expect(gestellt.some((f) => f.kinds.includes(31922))).toBe(false);
+    expect(inhalt.termine).toEqual([]);
+    expect(inhalt.stand?.anzahl.termine).toBe(0);
+  });
+
+  it('gruppiert je kind und d: kind:30000 verdrängt kein kind:30004 mit gleichem d', async () => {
+    const liste30004 = { ...REDAKTION, kind: 30004, id: 'c'.repeat(64), created_at: REDAKTION.created_at + 10 };
+    /** @type {import('./relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      if (url !== RELAY) return { events: [], erreicht: true };
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(30023)) return { events: [ARTIKEL_NEU], erreicht: true };
+      if (kinds.includes(30004)) return { events: [liste30004], erreicht: true };
+      if (kinds.includes(30000)) return { events: [REDAKTION], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+    const s = spiegelErstellen({ konfig: { ...KONFIG, community: null }, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const { inhalt } = await s.auffrischen();
+    expect(inhalt.listen.map((e) => e.id).sort()).toEqual([REDAKTION.id, liste30004.id].sort());
+  });
+
+  it('eine Datei ohne termine lädt trotzdem', async () => {
+    const knapp = JSON.stringify({ stand: null, artikel: [ARTIKEL_NEU], nachweise: [] });
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe(knapp) });
+    expect(await s.ausDateiLaden()).toBe(true);
+    expect(s.lesen().termine).toEqual([]);
   });
 });
