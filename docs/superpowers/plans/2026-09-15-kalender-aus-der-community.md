@@ -4,9 +4,9 @@
 
 **Goal:** Der Hub zeigt die Termine der Community rpi-virtuell (NIP-52, `kind:31922`/`31923` mit `h`-Tag der Community), eingereicht von Mitgliedern des Redaktionskreises — als Terminseite `/termine` und als Block „Nächste Termine" auf der Startseite. Die Abschlusstagung (Phillips Event) ist der erste Eintrag.
 
-**Architecture:** Der Spiegel holt zusätzlich alle Termin-Events mit dem `h`-Tag der Community und die Redaktionsliste (`kind:30000`, `d = redaktion`) des FOERBICO-Keys. Das Modell `models/termin.js` liest die NIP-52-Felder über `applesauce-common/helpers`. Der Loader `loaders/termine.js` filtert auf Autoren aus dem Redaktionskreis (plus FOERBICO und Community-Key), teilt in kommend/vergangen und sortiert wie CLAUDE.md es vorgibt. Routen-Schicht `routen/termine.js`, Route `/termine`, Komponenten `Termin.svelte` und `Termine.svelte`; die Startseite bekommt den Block unter dem Text; der Menüpunkt „Termine" erscheint nur, wenn es Termine gibt.
+**Architecture:** Der Spiegel holt zusätzlich alle Termin-Events mit dem `h`-Tag der Community und die Redaktionsliste (`kind:30000`, `d = redaktion`) des FOERBICO-Keys. Das Modell `models/termin.js` liest die NIP-52-Felder aus den Tags. Der Loader `loaders/termine.js` filtert auf Autoren aus dem Redaktionskreis (plus FOERBICO und Community-Key), teilt in kommend/vergangen und sortiert wie CLAUDE.md es vorgibt. Routen-Schicht `routen/termine.js`, Route `/termine`, Komponenten `Termin.svelte` und `Termine.svelte`; die Startseite bekommt den Block unter dem Text; der Menüpunkt „Termine" erscheint nur, wenn es Termine gibt.
 
-**Tech Stack:** SvelteKit 2, Svelte 5 Runes, JSDoc `checkJs`+`strict`, Vitest mit `svelte/server`, `applesauce-common/helpers` (NIP-52), `nostr-tools/nip19` (naddr für den Link in die edufeed-app).
+**Tech Stack:** SvelteKit 2, Svelte 5 Runes, JSDoc `checkJs`+`strict`, Vitest mit `svelte/server`, `nostr-tools/nip19` (naddr für den Link in die edufeed-app); keine neue Abhängigkeit.
 
 **Spec:** `docs/entscheidungen/0034-kalender-aus-der-community.md` (Task 1; hält die Besprechung vom 15.09. mit Gina und Ludger fest). Ergänzt ADR-0012 (Quelle je Inhaltsart) und nimmt für Termine die Ausnahme aus ADR-0026 zurück.
 
@@ -14,7 +14,7 @@
 
 - Deutsch für Bezeichner, Kommentare, Commits; Nostr-Namen (`kind`, `d`, `h`, `start`, `end`, `location`) englisch. Chrome-Texte nur über `src/lib/sprache.js` (de und en).
 - Datenschicht importiert nichts aus routes/components/$app; nur `services/spiegel.js` importiert `services/relay.js`; `.svelte` importiert zur Laufzeit nichts aus `lib/routen|loaders|services`; nur `routen/*.js` wirft `error()/redirect()`; kein `nostr-tools` für Relay-Kommunikation (`nip19` zum Kodieren ist erlaubt).
-- NIP-52-Felder über `applesauce-common/helpers` lesen (`getCalendarEventTitle`, `getCalendarEventStart`, `getCalendarEventEnd`, `getCalendarEventLocations`, `getCalendarEventSummary`), nicht von Hand aus den Tags (ADR-0009). Erst prüfen, welche davon in der installierten Version exportiert sind (`grep -o "export function getCalendarEvent[A-Za-z]*" node_modules/applesauce-common/dist/helpers/calendar*.js`); fehlt eine, den Tag selbst lesen und das im Report nennen.
+- NIP-52-Felder liest das Modell direkt aus den Tags (`title`, `start`, `end`, `location`, `summary`, `image`, `h`): `applesauce-common` ist im Hub **nicht** installiert (nur `nostr-tools`), und für sieben Tags kommt keine Abhängigkeit dazu (Ruling 15.09.; der CLAUDE.md-Satz zu `applesauce-common/helpers` ist falsch und wird in Task 3 korrigiert). Regeln: `kind:31922` trägt `start`/`end` als `YYYY-MM-DD` (UTC-Mitternacht), `kind:31923` als Unix-Sekunden; `location` kann mehrfach vorkommen.
 - Zwei Kriterien für Community-Inhalte (ADR-0012): `#h` der Community **und** Autor aus dem Redaktionskreis (`kind:30000`, `d = redaktion`, `p`-Tags) oder FOERBICO-Key oder Community-Key. Der Spiegel speichert alle Events mit `#h` roh; der Loader filtert.
 - Konfiguration: `COMMUNITY_PUBKEY` (64 Hex, Standard `ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2`, leer schaltet den Kalender ab), `EDUFEED_URL` (Standard `https://dev.edufeed.org`, ohne Schrägstrich am Ende). Bestehendes `QUELLE_H_TAG`/`hTag` bleibt unberührt.
 - Sortierung (CLAUDE.md): kommend `start` aufsteigend, vergangen `start` absteigend. „Kommend" heißt: `end` (oder `start`, wenn kein `end`) liegt nicht vor heute 00:00 Uhr Europe/Berlin.
@@ -220,10 +220,6 @@ Die Test-Konfigurationen (`test/fixtures/testquelle/laden.js`, `test/uebersicht-
  * YYYY-MM-DD), kind 31923 zeitgebunden (Unix-Sekunden). Die Felder liest
  * applesauce-common (ADR-0009); die Community steht im h-Tag.
  */
-import {
-  getCalendarEventEnd, getCalendarEventLocations, getCalendarEventStart,
-  getCalendarEventSummary, getCalendarEventTitle
-} from 'applesauce-common/helpers';
 import { naddrEncode } from 'nostr-tools/nip19';
 
 /** @typedef {import('./artikel.js').Event} Event */
@@ -248,22 +244,36 @@ import { naddrEncode } from 'nostr-tools/nip19';
 /** @param {string[][]} tags @param {string} name */
 const tagWert = (tags, name) => tags.find((t) => t[0] === name && t.length > 1)?.[1] ?? null;
 
+/**
+ * Zeitpunkt aus start/end: ganztägig `YYYY-MM-DD` (UTC-Mitternacht), sonst
+ * Unix-Sekunden. Unlesbares ergibt null.
+ * @param {string|null} wert @param {boolean} ganztaegig @returns {Date|null}
+ */
+function zeitpunkt(wert, ganztaegig) {
+  if (!wert) return null;
+  if (ganztaegig) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(wert.trim());
+    return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : null;
+  }
+  const s = Number(wert);
+  return Number.isFinite(s) ? new Date(s * 1000) : null;
+}
+
 /** @param {Event} event @returns {Termin} */
 export function terminAusEvent(event) {
   const tags = event.tags ?? [];
-  const ev = /** @type {any} */ (event);
-  const start = getCalendarEventStart(ev);
-  const ende = getCalendarEventEnd(ev);
+  const ganztaegig = event.kind === 31922;
+  const d = tagWert(tags, 'd') ?? '';
   return {
-    id: event.id, autor: event.pubkey, d: tagWert(tags, 'd') ?? '',
-    kind: event.kind === 31922 ? 31922 : 31923,
-    titel: getCalendarEventTitle(ev) ?? tagWert(tags, 'd') ?? '',
-    zusammenfassung: getCalendarEventSummary(ev) ?? '',
+    id: event.id, autor: event.pubkey, d,
+    kind: ganztaegig ? 31922 : 31923,
+    titel: tagWert(tags, 'title') ?? d,
+    zusammenfassung: tagWert(tags, 'summary') ?? '',
     inhalt: event.content ?? '',
-    start: new Date((start ?? event.created_at) * 1000),
-    ende: ende === undefined ? null : new Date(ende * 1000),
-    ganztaegig: event.kind === 31922,
-    orte: getCalendarEventLocations(ev),
+    start: zeitpunkt(tagWert(tags, 'start'), ganztaegig) ?? new Date(event.created_at * 1000),
+    ende: zeitpunkt(tagWert(tags, 'end'), ganztaegig),
+    ganztaegig,
+    orte: tags.filter((t) => t[0] === 'location' && t.length > 1 && t[1].trim() !== '').map((t) => t[1].trim()),
     bildUrl: tagWert(tags, 'image'),
     bildHash: tagWert(tags, 'x'),
     community: tagWert(tags, 'h')
@@ -276,7 +286,7 @@ export function naddrFuerTermin(termin, relays) {
 }
 ```
 
-Falls `getCalendarEventStart` für `kind:31922` kein Unix-Datum liefert (Datum als `YYYY-MM-DD` im Tag), das Datum als UTC-Mitternacht selbst parsen (`Date.UTC`) und das im Report nennen; die Tests erwarten für die Tagung `2027-02-02` bzw. `2027-02-03` in UTC.
+Die Tests erwarten für die Tagung `2027-02-02` bzw. `2027-02-03` in UTC.
 
 `src/lib/models/feste-segmente.js`: `'termine'` aufnehmen (die Liste ist alphabetisch nicht nötig; nach `themen`).
 
@@ -535,7 +545,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 - [ ] **Step 4: Menü und Sitemap** — `struktur.js`: `hubAnsichten(sprache, { termine = false } = {})` stellt `Termine` voran, wenn `termine`; `strukturFuerLayout` berechnet `const termineVorhanden = termineListe(inhalt, konfig).kommend.length + …vergangen.length > 0` (Import aus `../loaders/termine.js`). `sitemap.js`: `/termine` unter derselben Bedingung.
 
-- [ ] **Step 5: Doku** — CLAUDE.md: Abschnitt „Daten": Filter-Block um Termine ergänzen (`{ kinds: [31922, 31923], "#h": ["ae6199bb…"] }` plus Autor im Redaktionskreis, ADR-0034), Kind-Liste um `31922`/`31923`, „Sortierung" um die Terminregel, Zuschnitt-Satz „Termine sind nicht im Zuschnitt (ADR-0026)" → „Termine kommen aus der Community (ADR-0034)". `docs/betrieb.md`: `COMMUNITY_PUBKEY`, `EDUFEED_URL` in der `.env`-Tabelle. STATUS-Eintrag „2026-09-15 — Kalender aus der Community (ADR-0034)" mit Befund (Phillips Tagung, Redaktionskreis-Kriterium, Startseitenblock, Menü nur mit Terminen) und den Besprechungsentscheidungen (Quelle je Inhaltsart, Umbenennung zu oer-community, Community-Hub später).
+- [ ] **Step 5: Doku** — CLAUDE.md: im Abschnitt „Technik" den Halbsatz zu `applesauce-common/helpers` für NIP-23/NIP-52-Felder streichen (das Paket ist nicht installiert; die Felder liest das Modell aus den Tags — ADR-0034). Abschnitt „Daten": Filter-Block um Termine ergänzen (`{ kinds: [31922, 31923], "#h": ["ae6199bb…"] }` plus Autor im Redaktionskreis, ADR-0034), Kind-Liste um `31922`/`31923`, „Sortierung" um die Terminregel, Zuschnitt-Satz „Termine sind nicht im Zuschnitt (ADR-0026)" → „Termine kommen aus der Community (ADR-0034)". `docs/betrieb.md`: `COMMUNITY_PUBKEY`, `EDUFEED_URL` in der `.env`-Tabelle. STATUS-Eintrag „2026-09-15 — Kalender aus der Community (ADR-0034)" mit Befund (Phillips Tagung, Redaktionskreis-Kriterium, Startseitenblock, Menü nur mit Terminen) und den Besprechungsentscheidungen (Quelle je Inhaltsart, Umbenennung zu oer-community, Community-Hub später).
 
 - [ ] **Step 6: Tests, Check, Build** — `pnpm check && pnpm test && pnpm build`.
 
