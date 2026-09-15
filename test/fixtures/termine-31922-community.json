@@ -1,0 +1,44 @@
+[
+  {
+    "kind": 31922,
+    "id": "495b3d835aeaf3923a9b13e4f4f9274907d1dbef111045ce0efdbd2480a84cf6",
+    "pubkey": "43415482fc9893454693aed3913acfda950a06eb4c072457a9df7390db56faf1",
+    "created_at": 1784115787,
+    "tags": [
+      [
+        "d",
+        "event-1784115786770-514zxlkhy"
+      ],
+      [
+        "h",
+        "ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2"
+      ],
+      [
+        "title",
+        "“Offen. Vernetzt. Zukunft.” - FOERBICO Tagung Frankfurt"
+      ],
+      [
+        "start",
+        "2027-02-02"
+      ],
+      [
+        "end",
+        "2027-02-03"
+      ],
+      [
+        "image",
+        "https://assets.uni-frankfurt.de/.imaging/default/dam/faculty-7/religionspaedagogik-mediendidaktik/Logos/Bildschirmfoto-2026-06-24-um-14.27.51.png/jcr:content"
+      ],
+      [
+        "location",
+        "Frankfurt, Hesse, Germany"
+      ],
+      [
+        "client",
+        "Edufeed"
+      ]
+    ],
+    "content": "Die Tagung bringt OER-Communities und Akteur:innen aus Wissenschaft, Bildungspraxis, Kirche und Zivilgesellschaft zusammen, um über die Zukunft von Open Education zu diskutieren. Dabei werden Erfahrungen aus dem FOERBICO-Projekt ebenso aufgegriffen wie Perspektiven aus bestehenden Initiativen und Praxisfeldern. Gemeinsam diskutieren wir, wie offene Bildungsökosysteme wachsen und Open Education nachhaltig wirksam werden können.",
+    "sig": "622b295bd6bdbfe5b52de03a4c7f23621f913a02cb9ae7f8d62582dfa07902d93980575e8b091f9086693eb56a30bff52a8411b605a7cea5f43df052ead17b5a"
+  }
+]
