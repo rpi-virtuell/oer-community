@@ -29,9 +29,9 @@
 
 {#if lizenz.ok}
   <span class="pille bekannt" title={titel}>
-    {#if ki}<KiMarke text={ki} /><span class="trenner" aria-hidden="true">·</span>{/if}
+    {#if ki}<KiMarke text={ki} /><span aria-hidden="true">·</span>{/if}
     <span class="lizenz">{label}</span>
-    {#if credit}<span class="trenner" aria-hidden="true">·</span><span class="urheber">{credit}</span>{/if}
+    {#if credit}<span aria-hidden="true">·</span><span class="urheber">{credit}</span>{/if}
   </span>
 {:else}
   <span class="pille ungeklaert" title={titel}>
@@ -58,6 +58,7 @@
     padding: 2px 10px;
     border: 1px solid var(--fb-rahmen);
     border-radius: 999px;
+    background: var(--fb-weiss); /* Rückfall ohne color-mix: deckend statt unsichtbar */
     background: color-mix(in srgb, var(--fb-weiss) 90%, transparent);
     backdrop-filter: blur(4px);
     color: var(--fb-text);

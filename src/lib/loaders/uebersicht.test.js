@@ -48,6 +48,15 @@ describe('artikelListe', () => {
     expect(karten.filter((k) => k.cover)).toHaveLength(4);
   });
 
+  it('ohne Nachweis im Spiegel fällt das Cover auf die Adresse des Artikels zurück (kein-nachweis)', () => {
+    const ohneNachweise = { ...inhalt, nachweise: [] };
+    const karten = [1, 2, 3, 4, 5].flatMap((seite) => artikelListe(ohneNachweise, KONFIG, { seite, tabelle: TABELLE }).karten);
+    const referenz = karten.find((k) => k.d === 'die-kraft-der-gemeinschaft');
+    const bildUrl = REFERENZ.tags.find((/** @type {string[]} */ t) => t[0] === 'image')?.[1];
+    expect(referenz?.cover?.lizenz).toEqual({ ok: false, grund: 'kein-nachweis' });
+    expect(referenz?.cover?.url).toBe(bildUrl);
+  });
+
   it('filtert nach Themen-Slug und normalisiert die Themen der Karten', () => {
     const oer = artikelListe(inhalt, KONFIG, { themaSlug: 'open-educational-resources-oer', tabelle: TABELLE });
     expect(oer.thema).toBe('Open Educational Resources (OER)');

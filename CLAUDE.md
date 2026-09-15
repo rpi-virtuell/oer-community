@@ -157,12 +157,13 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   Nachweis aufgelöst, steht die Attributionszeile nach `bildattribution.md`
   darunter — `[title](sourceUrl), [author](authorUrl), [licence](licenceUrl),
   modification`, nur Kommas —, sonst „Lizenz ungeklärt" mit Grund. Der
-  Alt-Text kommt aus dem `alt`-Tag des Nachweises, nicht aus `title`. **Das gilt auch für die Übersicht** (ADR-0032): Die Karte zeigt jedes
+  Alt-Text kommt aus dem `alt`-Tag des Nachweises, nicht aus `title`.
+  **Das gilt auch für die Übersicht** (ADR-0032): Die Karte zeigt jedes
   zeigbare Cover mit der **Lizenzpille** (KI-Marke · Kürzel · Credit, sonst
   „Lizenz ungeklärt"); die Artikelseite zeigt Pille **und**
   Attributionszeile. Was sich nicht zeigen lässt, steht in `NICHT_ZEIGBAR`
-  (`src/lib/models/lizenz.js`) — an keiner anderen Stelle.
-  Redaktionell eingestellte Bilder liegen auf Blossom,
+  (`src/lib/models/lizenz.js`) — an keiner anderen Stelle. Redaktionell
+  eingestellte Bilder liegen auf Blossom,
   in voller Größe, mit Lizenznachweis — im FOERBICO-Bestand ist das derzeit
   **eines von 86**. Für relilab-Altbestand gilt: 150×150-Thumbnails,
   zentriert darstellen, nicht auf Kartenbreite ziehen.
