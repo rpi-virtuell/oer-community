@@ -7,9 +7,9 @@ import { inhaltAufbereiten } from '../inhalt.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { strukturLaden } from '../loaders/struktur.js';
 import { englischVorhanden, gegenstueck } from '../loaders/uebersetzungen.js';
-import { beitragsPfad } from '../models/artikel.js';
+import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { basisUrlBestimmen, kanonisch } from '../kanonisch.js';
-import { t } from '../sprache.js';
+import { startPfad, t } from '../sprache.js';
 
 export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';
 
@@ -18,12 +18,6 @@ export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';
 /** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'], basisUrl: string,
  *   sprache: 'de'|'en', zweisprachig: boolean }} Layoutstruktur */
 
-/** Ansichten des Hubs, keine Seiten — deshalb ohne d. @type {Eintrag[]} */
-export const HUB_ANSICHTEN = [
-  { titel: 'Blog', pfad: '/blog', d: '' },
-  { titel: 'Themen', pfad: '/themen', d: '' }
-];
-
 /** Ansichten des Hubs in der Sprache der Adresse (ADR-0033). @param {'de'|'en'} sprache @returns {Eintrag[]} */
 export function hubAnsichten(sprache) {
   return [
@@ -31,6 +25,9 @@ export function hubAnsichten(sprache) {
     { titel: t(sprache, 'themen'), pfad: '/themen', d: '' }
   ];
 }
+
+/** Ansichten des Hubs auf Deutsch, keine Seiten — deshalb ohne d. @type {Eintrag[]} */
+export const HUB_ANSICHTEN = hubAnsichten('de');
 
 /** Bis ein Profil mit Namen da ist (ersetzt die Vorläufigkeit aus ADR-0019 durch einen Rückfall). */
 export const WORTMARKE_RUECKFALL = 'Community-Hub';
@@ -65,7 +62,15 @@ export function strukturFuerLayout({ konfig, inhalt, origin, sprache = 'de' }) {
     for (const e of eintraege) {
       const { artikel } = artikelAusSpiegel(inhalt, { d: e.d });
       const g = artikel ? gegenstueck(inhalt, artikel) : null;
-      const eintrag = g && g.sprache === sprache ? { titel: g.titel, pfad: beitragsPfad(g), d: g.d } : e;
+      // Die Startseite wohnt unter / bzw. /en, nicht unter ihrem d (ADR-0029).
+      const eintrag =
+        g && g.sprache === sprache
+          ? {
+              titel: g.titel,
+              pfad: istStartseitenD(g.d, konfig.startseiteD) ? startPfad(g.sprache) : beitragsPfad(g),
+              d: g.d
+            }
+          : e;
       if (!aus.some((x) => x.pfad === eintrag.pfad)) aus.push(eintrag);
     }
     return aus;

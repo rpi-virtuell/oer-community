@@ -148,3 +148,16 @@ export function beitragsPfad(beitrag) {
   if (d.startsWith('en/')) return `/en/${encodeURIComponent(d.slice(3))}`;
   return beitrag.sprache === 'en' ? `/en/${encodeURIComponent(d)}` : `/${encodeURIComponent(d)}`;
 }
+
+/**
+ * Ist dieses d die Startseite einer Sprache? Sie wohnt unter / bzw. /en und
+ * nicht unter ihrem d (ADR-0029, ADR-0033) — englische Startseiten tragen
+ * dasselbe d mit dem Präfix `en/`.
+ *
+ * @param {string} d
+ * @param {string} startseiteD
+ * @returns {boolean}
+ */
+export function istStartseitenD(d, startseiteD) {
+  return d === startseiteD || d === `en/${startseiteD}`;
+}

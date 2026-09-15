@@ -8,7 +8,7 @@ import { beitragLaden } from '../loaders/beitrag.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { gegenstueck } from '../loaders/uebersetzungen.js';
 import { adressePruefen } from '../models/adresse.js';
-import { beitragsPfad } from '../models/artikel.js';
+import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { befundErstellen } from '../models/entwickleransicht.js';
 import { leerstandMeldung } from '../models/leerstand.js';
 import { naddrDekodieren } from '../naddr.js';
@@ -34,15 +34,6 @@ export function naddrWeiterleitung(segment, konfig, inhalt) {
 }
 
 /**
- * Ist dieses d die Startseite einer Sprache? Sie wohnt unter / bzw. /en und
- * nicht unter ihrem d (ADR-0029, ADR-0033).
- * @param {string} d @param {import('../konfig.js').Konfig} konfig
- */
-function istStartseitenD(d, konfig) {
-  return d === konfig.startseiteD || d === `en/${konfig.startseiteD}`;
-}
-
-/**
  * @param {object} e
  * @param {string} e.d
  * @param {'de'|'en'} e.sprache
@@ -60,6 +51,10 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
   // denselben Text wären eine zu viel. Die JSON-Route bleibt erreichbar: sie
   // ist die Entwickleransicht, keine zweite Leseadresse.
   if (d === konfig.startseiteD && !anhang && !istStartseite) redirect(301, startPfad(sprache));
+
+  // /en/en/<d>: das Präfix gehört ins d, nicht in die Adresse — sonst stünde
+  // derselbe Beitrag unter zwei Adressen (ADR-0033).
+  if (sprache === 'en' && d.startsWith('en/')) redirect(301, beitragsPfad({ d, sprache: 'en' }) + anhang);
 
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);
@@ -82,7 +77,7 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
   const gegen = gegenstueck(inhalt, artikel);
   const uebersetzung = gegen
     ? {
-        pfad: istStartseitenD(gegen.d, konfig) ? startPfad(gegen.sprache) : beitragsPfad(gegen),
+        pfad: istStartseitenD(gegen.d, konfig.startseiteD) ? startPfad(gegen.sprache) : beitragsPfad(gegen),
         sprache: gegen.sprache
       }
     : null;
@@ -107,6 +102,9 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
       lizenz: ergebnis.lizenz, teile: ergebnis.teile, fliesstext: ergebnis.fliesstext,
       entfernteBilder: ergebnis.entfernteBilder, befund,
       pfad: beitragsPfad(artikel),
+      // Das d, das wirklich gerendert wurde — unter /en/ kann das Präfix
+      // hinzugekommen sein; die Entwickleransicht meldet dieses (ADR-0033).
+      d: gefunden,
       sprache: artikel.sprache,
       uebersetzung,
       stand: inhalt.stand ? { zeitpunkt: inhalt.stand.zeitpunkt, nichtErreichbar: inhalt.stand.nichtErreichbar } : null

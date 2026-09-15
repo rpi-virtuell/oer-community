@@ -140,6 +140,17 @@ async function jsonMitAttrappe(eingabe) {
   return GET(/** @type {any} */ ({ params: { d: eingabe.d }, url: new URL('http://test/' + eingabe.d + '/json') }));
 }
 
+/**
+ * Die JSON-Route unter /en/[d]/json frisch laden.
+ * @param {{ d: string, inhalt?: unknown, autor?: string }} eingabe
+ */
+async function jsonEnglischMitAttrappe(eingabe) {
+  await spiegelUnterschieben(eingabe.inhalt ?? inhaltNachstellen());
+  if (eingabe.autor) vi.doMock('$env/dynamic/private', () => ({ env: { ...UMGEBUNG, QUELLE_AUTOR: eingabe.autor } }));
+  const { GET } = await import('../src/routes/en/[d]/json/+server.js');
+  return GET(/** @type {any} */ ({ params: { d: eingabe.d }, url: new URL('http://test/en/' + eingabe.d + '/json') }));
+}
+
 describe('Detailansicht laedt den Artikel serverseitig', () => {
   it('gibt Titel, Datum, Inhalt und die geprüfte Lizenz zurück', async () => {
     const daten = await ladeMitAttrappe();
@@ -297,5 +308,15 @@ describe('Die Startseite wohnt unter /, nicht unter /[d]', () => {
     const { inhalt } = inhaltDerTestquelle();
     const antwort = await jsonMitAttrappe({ d: 'startseite', inhalt, autor: testquelle().pubkey });
     expect(antwort.status).toBe(200);
+  });
+
+  // Die Entwickleransicht soll sagen, was sie *gerendert* hat: unter /en/ wird
+  // aus dem angefragten „startseite" der Beitrag „en/startseite" (ADR-0033).
+  it('die JSON-Ansicht meldet das aufgelöste d, nicht das angefragte', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const antwort = await jsonEnglischMitAttrappe({ d: 'startseite', inhalt, autor: testquelle().pubkey });
+    expect(antwort.status).toBe(200);
+    const koerper = await antwort.json();
+    expect(koerper.adresse).toEqual({ d: 'en/startseite', pfad: '/en/startseite' });
   });
 });

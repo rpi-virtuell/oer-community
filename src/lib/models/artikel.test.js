@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { artikelAusEvent, beitragsPfad, dNormalisieren } from './artikel.js';
+import { artikelAusEvent, beitragsPfad, dNormalisieren, istStartseitenD } from './artikel.js';
 
 const referenz = JSON.parse(
   readFileSync(
@@ -121,6 +121,13 @@ describe('Übersetzungen und Adressen (ADR-0033)', () => {
       ['a', `30142:${PK}:tagungen`, 'wss://amb/', 'amb-metadata'],
       ['a', `30023:${PK}:ohne-marker`]]));
     expect(a.uebersetzungen).toEqual(['en/conference']);
+  });
+
+  it('istStartseitenD: das d der Startseite, mit und ohne en/-Präfix', () => {
+    expect(istStartseitenD('startseite', 'startseite')).toBe(true);
+    expect(istStartseitenD('en/startseite', 'startseite')).toBe(true);
+    expect(istStartseitenD('our-team', 'startseite')).toBe(false);
+    expect(istStartseitenD('en/our-team', 'startseite')).toBe(false);
   });
 
   it('beitragsPfad: en/-Präfix wird zur /en/-Adresse, Sprache en ohne Präfix ebenso, sonst /d', () => {
