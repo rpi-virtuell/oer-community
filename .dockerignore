@@ -5,6 +5,5 @@ build
 .env
 .env.sicherung-*
 docs
-mockup
 test
 *.test.js

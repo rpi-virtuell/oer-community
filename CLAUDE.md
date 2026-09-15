@@ -1,11 +1,12 @@
 # community-hub
 
 Lesender Client, der oer.community vollständig aus Nostr-Events rendert
-(ADR-0026). Begonnen als relilab-Schaufenster; relilab ist dokumentierte,
-nicht betriebene Quelle.
+(ADR-0026). Begonnen als relilab-Schaufenster; relilab ist seit ADR-0026
+nur noch Herkunft und dokumentierte, nicht betriebene Quelle (ADR-0012).
 
 **Warum eine Regel gilt, steht in `docs/entscheidungen/` (ADR)** — eine
-Entscheidung, eine Datei, mit Status. Die Spec
+Entscheidung, eine Datei, mit Status; Einstieg ist die Tabelle in
+`docs/entscheidungen/README.md`. Die Spec
 `docs/superpowers/specs/2026-08-31-community-hub-schaufenster-design.md`
 bleibt das Gesamtbild; ihre vier Entscheidungen sind ADR-0001 bis ADR-0004.
 Die Spec vom 14.09.
@@ -116,13 +117,9 @@ für einen redaktionellen Account (ADR-0012), keine neue Regel.
 
 **Für Bot-Quellen gilt weiter: beide Kriterien zusammen, nie eines allein.**
 `authors` allein zöge künftige Bot-Inhalte anderer Mandanten mit; `#h` allein
-ließe jeden herein, der auf den Community-Key taggt. Die relilab-Quelle ist
-dokumentiert, aber **nicht in Betrieb**:
-
-- relilab-Bot (Absender):
-  `f6c14ab7add65d61cf9311a8685575c3f2de0ca540bc4ddf916f76f089f1aa43`
-- relilab-Community (`h`-Tag):
-  `48706e894e64be57a250d3cd1f4c8a0f69ca900937936f8bd11a1329cd3c97e3`
+ließe jeden herein, der auf den Community-Key taggt. Die frühere
+relilab-Quelle (Bot-Key und Community-`h`-Tag) steht in ADR-0012; sie ist
+**nicht in Betrieb** und kein Zuschnitt dieses Vorhabens (ADR-0026).
 
 Kinds: `30023` Artikel und Seiten (NIP-23) · `30004` Kuratierungslisten
 für Menü und Fußzeile (NIP-51) · `0` Profil der Quelle · `1063`
@@ -144,11 +141,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   (meist echte Zitate, **nicht** automatisch Autorenzeilen), 5 absolute
   Site-Pfade `](/…`, 3-mal Roh-HTML (`<br>`). Nicht blind auf Blockquotes
   losgehen — erst prüfen, was dort steht.
-  Für relilab-Altbestand gilt weiter: Autorenzeile nicht verwerfen, sondern
-  als „von X, ursprünglich auf relilab.org" auswerten.
 - **Themen normalisieren.** Bei FOERBICO 43 `t`-Tags auf nur 25 von 86
   Artikeln, mit Dubletten (`OER` neben `Open Educational Resources (OER)`,
-  `OER-Community` neben `OER-Communities`); der relilab-Bot hatte 195. Die
+  `OER-Community` neben `OER-Communities`). Die
   Normalisierungstabelle in `daten/themen.json` (gelesen von
   `src/lib/themen.js`) ist Redaktionsarbeit und muss ohne Entwickler
   änderbar bleiben. Nicht filterbare Themen bleiben am Artikel sichtbar.
@@ -165,8 +160,7 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   (`src/lib/models/lizenz.js`) — an keiner anderen Stelle. Redaktionell
   eingestellte Bilder liegen auf Blossom,
   in voller Größe, mit Lizenznachweis — im FOERBICO-Bestand ist das derzeit
-  **eines von 86**. Für relilab-Altbestand gilt: 150×150-Thumbnails,
-  zentriert darstellen, nicht auf Kartenbreite ziehen.
+  **eines von 86**.
 - **Relative Bildpfade im Markdown werden nicht aufgelöst** (ADR-0013).
   `![](nosTr-schrein.jpg)` löst nur gegen WordPress auf — das wäre
   WordPress als Voraussetzung. Entfernen und zählen; die Zahl ist die

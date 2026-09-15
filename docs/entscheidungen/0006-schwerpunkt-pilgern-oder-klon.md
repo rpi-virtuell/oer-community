@@ -1,6 +1,6 @@
 # ADR-0006: Schwerpunkt Pilgern-MVP (Edufeed-Light) oder Relilab-Klon
 
-**Status:** offen
+**Status:** überholt durch ADR-0026 (2026-09-14): Das Vorhaben ist oer.community, weder Pilgern-MVP noch Relilab-Klon
 **Beteiligte:** Jörg, Corinna (nichts fest vereinbart, „nur" Idee), Greg (UX Pilgern-MVP)
 
 ## Kontext

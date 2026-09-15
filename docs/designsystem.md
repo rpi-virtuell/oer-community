@@ -3,10 +3,10 @@
 **Grundlage:** `Website/Design/styleguide.md` (FOERBICO-Styleguide) und das
 PaperMod-Theme von oer.community, dessen CSS
 (`zz001-foerbico-theme.css`) die tatsächlich genutzten Werte zeigt —
-Stand 14.09.2026. **ADR-0031 ersetzt ADR-0018.** Die Farbkarte
-FOERBICO × rpi-virtuell und `mockup/index.html` sind der relilab-Stand vom
-04.09.2026 und nicht mehr maßgeblich — sie bleiben im Repository als
-Beleg dieses früheren Stands, nicht als Quelle für neue Werte.
+Stand 14.09.2026. **ADR-0031 ersetzt ADR-0018 und ADR-0004.** Der
+relilab-Stand vom 04.09.2026 (Farbkarte FOERBICO × rpi-virtuell,
+`mockup/index.html`) ist am 15.09.2026 aus dem Arbeitsstand entfernt worden
+und nur noch in der Git-Historie nachzulesen (siehe „Frühere Stände“).
 
 **Stand:** 14.09.2026 · Umsetzung: `src/app.css` (Tokens, Grundschrift,
 Bausteine) · Begründung: ADR-0031 · Kontrastentscheidungen: ADR-0031,
@@ -180,18 +180,19 @@ Wiederkehrende Klassen aus `src/app.css`:
 
 ## Frühere Stände
 
-`mockup/index.html` und die Farbkarte FOERBICO × rpi-virtuell
-(`--relilab`, `--magenta`, `--verlauf`, `--fau` und Verwandte) sind der
-relilab-Stand vom 04.09.2026. Sie bleiben im Repository, sind aber seit
-ADR-0031 **nicht mehr maßgeblich** — der Gestaltungsstand im laufenden
-Client ist `src/app.css` mit den FOERBICO-Werten oben. ADR-0018
-(die drei Kontrastpunkte der relilab-Palette) ist durch ADR-0031 ersetzt
-und bleibt nur als Geschichte stehen.
+Der relilab-Stand vom 04.09.2026 — `mockup/index.html` und die Farbkarte
+FOERBICO × rpi-virtuell (`--relilab`, `--magenta`, `--verlauf`, `--fau` und
+Verwandte) — ist seit ADR-0031 nicht mehr maßgeblich und am 15.09.2026 aus
+dem Repository entfernt; wer ihn braucht, findet ihn in der Git-Historie
+vor diesem Datum (`git log --all -- mockup/index.html`). ADR-0004 und
+ADR-0018 sind durch ADR-0031 ersetzt und bleiben als Geschichte stehen.
+`test/oberflaeche.test.js` verbietet die alten Token weiterhin mechanisch,
+damit sie nicht über eine Kopie zurückkommen.
 
-Ebenso historisch: die geplante relilab-Seitenstruktur für die Startseite
-(Intro-Titel, animiertes GIF, vier Kästen, Newsletter-Knopf) wurde nie im
-Hub gebaut und entfällt mit ADR-0026/ADR-0027 — die Startseite ist die
-Seite `d = startseite` aus Nostr, kein festverdrahtetes relilab-Markup.
+Die geplante relilab-Seitenstruktur für die Startseite (Intro-Titel,
+animiertes GIF, vier Kästen, Newsletter-Knopf) wurde nie gebaut und entfällt
+mit ADR-0026/ADR-0027 — die Startseite ist die Seite `d = startseite` aus
+Nostr.
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-0018: Die drei Kontrastpunkte des Designsystems sind entschieden
 
-**Status:** angenommen (2026-09-04)
+**Status:** ersetzt durch ADR-0031 (2026-09-14) — relilab-Palette nicht mehr in Betrieb
 **Beteiligte:** Jörg
 
 ## Kontext

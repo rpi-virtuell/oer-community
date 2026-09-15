@@ -130,7 +130,7 @@
     margin: 0 0 1.5rem;
   }
 
-  /* Fließtext des Beitrags — Regeln aus mockup/index.html, .inhalt */
+  /* Fließtext des Beitrags — Regeln nach docs/designsystem.md */
   .inhalt {
     font-size: 1.02rem;
   }

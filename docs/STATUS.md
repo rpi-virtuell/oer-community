@@ -9,6 +9,30 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-15 — Aufräumen: relilab-Reste raus, ADR-Stati nachgetragen, ADR-Index
+
+**Passiert:** CLAUDE.md nennt relilab nur noch als Herkunft und verweist
+für Bot-Key und `h`-Tag auf ADR-0012; die Regeln für den relilab-Altbestand
+(Autorenzeile, 150×150-Thumbnails) sind gestrichen, weil er kein Zuschnitt
+mehr ist (ADR-0026). `mockup/index.html` (relilab-Stand vom 04.09.) ist
+gelöscht, `docs/designsystem.md` verweist auf die Git-Historie;
+`test/oberflaeche.test.js` verbietet die alten Token weiterhin. Statuszeilen
+nachgetragen: ADR-0004 und ADR-0018 durch ADR-0031 ersetzt, ADR-0006 durch
+ADR-0026 überholt, ADR-0013 (Punkte 2, 3, 5) und ADR-0015 durch ADR-0022,
+ADR-0030 und ADR-0023 eingeschränkt. Neu: `docs/entscheidungen/README.md`
+als Index mit Status je ADR. Der Beispielname in `docs/betrieb.md` heißt
+jetzt `hub.oer.community`.
+
+**Wo steht das Projekt:** Verbleibende relilab-Nennungen sind Geschichte
+(STATUS, Specs, Pläne, angenommene ADRs) — die werden nicht umgeschrieben.
+ADR-0021 (Redaktion nur in Nostr) und ADR-0024 (eigener Key zuerst) bleiben
+offen beziehungsweise ohne Umsetzung; ADR-0021 hat einen ungespeicherten
+Nachtrag von Jörg (Entwürfe als 30024), der in der Teamrunde am 15.09.
+bestätigt werden soll.
+
+**Nächster Schritt:** Zweisprachigkeit DE/EN mit Umschalter (ADR-0033),
+danach die offenen Redaktionspunkte aus der Teamrunde.
+
 ## 2026-09-15 — Lizenzpille: Lizenzstand als Overlay, Cover in der Übersicht auch ohne Nachweis
 
 **Passiert:** ADR-0032. Neue Komponente `Lizenzpille.svelte` (zwei
