@@ -33,8 +33,10 @@ beginnt dort und endet mit einem Eintrag dort.
 
 ## Zuschnitt
 
-Nur Lesen: Artikel, Seiten, Detailansicht, Themenfilter. Termine sind
-nicht im Zuschnitt (ADR-0026).
+Nur Lesen: Artikel, Seiten, Detailansicht, Themenfilter. **Termine kommen
+aus der Community** (ADR-0034, erweitert ADR-0026): Der Hub zeigt sie unter
+`/termine` und nennt die nächsten auf der Startseite; eingetragen und
+zugesagt wird in der edufeed-app, nicht hier.
 
 **Nicht Teil dieses Vorhabens:** Anmeldung, Autorenwerkzeuge, Communities,
 Wiki, Nachrichten, Verwaltung. **Was es nicht gibt, wird auch nicht
@@ -81,7 +83,10 @@ letzte Lauf, nennt die Fußzeile das Alter des angezeigten Stands
 Menü und Fußzeile sind Kuratierungslisten `kind:30004` (`d = navigation`,
 `d = fusszeile`), die Startseite ist die Seite `d = startseite`; alle drei
 Kennungen sind Konfiguration mit Standard (`NAVIGATION_D`, `FUSSZEILE_D`,
-`STARTSEITE_D`). Fehlt etwas, zeigt die Fußzeile im Debug-Modus den
+`STARTSEITE_D`). Der Redaktionskreis ist die Personenliste `kind:30000`
+`d = redaktion` (`REDAKTION_D`); welche Community der Kalender zeigt und
+wohin „Im Kalender öffnen" führt, steht in `COMMUNITY_PUBKEY` und
+`EDUFEED_URL` (ADR-0034). Fehlt etwas, zeigt die Fußzeile im Debug-Modus den
 Struktur-Befund.
 
 ## Serverseitig rendern, nicht clientseitig
@@ -121,8 +126,23 @@ ließe jeden herein, der auf den Community-Key taggt. Die frühere
 relilab-Quelle (Bot-Key und Community-`h`-Tag) steht in ADR-0012; sie ist
 **nicht in Betrieb** und kein Zuschnitt dieses Vorhabens (ADR-0026).
 
+**Termine filtern zwei Kriterien** (ADR-0034): das `h`-Tag der Community
+**und** ein Autor aus dem Redaktionskreis (`kind:30000`, `d = redaktionD`,
+plus FOERBICO und der Community-Key selbst).
+
+```json
+{ "kinds": [31922, 31923],
+  "#h": ["ae6199bb…"] }
+```
+
+Anders als bei den Artikeln steht hier ein fremder Personenschlüssel hinter
+dem Event — deshalb gilt hier die Regel „beide Kriterien zusammen" ohne
+Ausnahme. Ist `COMMUNITY_PUBKEY` leer, ist der Kalender abgeschaltet.
+
 Kinds: `30023` Artikel und Seiten (NIP-23) · `30004` Kuratierungslisten
-für Menü und Fußzeile (NIP-51) · `0` Profil der Quelle · `1063`
+für Menü und Fußzeile (NIP-51) · `30000` Redaktionskreis, Personenliste
+(NIP-51, ADR-0021/ADR-0034) · `31922` ganztägige und `31923` zeitgebundene
+Termine (NIP-52, ADR-0034) · `0` Profil der Quelle · `1063`
 Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
 über die Hauptabfrage).
 
@@ -202,6 +222,11 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   übersprungen**: zwei Einträge mit demselben Pfad brächen die Hydration
   des Layouts (`each_key_duplicate`) — auch im Produktionsbau, allein
   durch Redaktionsdaten.
+- **Menüpunkt „Termine" und Startseitenblock nur mit Terminen** (ADR-0034).
+  Beides hängt an derselben Frage — gibt es kommende oder vergangene
+  Termine? —, ebenso `/termine` in der Sitemap. Ein leerer Kalender im Menü
+  deutete eine Funktion an, die nichts zeigt (Zuschnitt). `/termine` selbst
+  antwortet immer und erklärt die leere Liste.
 - **Die Startseite hat eine Adresse: `/`.** `/[d]` mit dem `d` der
   Startseite leitet dauerhaft dorthin; nur `/[d]/json` bleibt als
   Entwickleransicht erreichbar. Die englische Startseite ist
@@ -217,6 +242,13 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 ### Sortierung
 
 Artikel `published_at` absteigend.
+
+**Termine nach `start`** (ADR-0034): kommende aufsteigend — der nächste zuerst
+—, vergangene absteigend. Die Grenze ist der **Beginn des heutigen Tages in
+Europe/Berlin**, nicht der Augenblick: ein Termin von heute Vormittag steht
+den ganzen Tag über bei den kommenden. Ein ganztägiger Termin zählt bis zum
+Ende seines letzten Tages (`ende + 24 h`), damit beide Lesarten von NIP-52
+`end` überleben.
 
 ## Warum ein Bild fehlt: die Entwickleransicht
 
@@ -282,9 +314,10 @@ SvelteKit 2 + Svelte 5 (Runes) · TailwindCSS 4 + DaisyUI 5 · JavaScript mit
 JSDoc, `checkJs` **und** `strict` über `svelte-check` · pnpm ·
 `@sveltejs/adapter-node` · Docker + Traefik.
 
-`nostr-tools` für `naddr`-Kodierung und Signaturprüfung,
-`applesauce-common/helpers` für NIP-23/NIP-52-Felder. Die Relay-Abfrage selbst
-ist eigener, schlanker Servercode.
+`nostr-tools` für `naddr`-Kodierung und Signaturprüfung. Die Relay-Abfrage
+selbst ist eigener, schlanker Servercode; NIP-23- und NIP-52-Felder liest das
+jeweilige Modell direkt aus den Tags — `applesauce-common` ist nicht
+installiert, und für eine Handvoll Tags lohnt keine Abhängigkeit (ADR-0034).
 
 Feed (`/feed.xml`, RSS 2.0, 20 Artikel) und Sitemap (`/sitemap.xml`) werden
 aus dem Spiegel gebaut; kanonische URLs kommen aus `kind:0 website`,

@@ -17,6 +17,7 @@
 <script>
   import Bildbereich from './Bildbereich.svelte';
   import { t } from '$lib/sprache.js';
+  import { zeitraumText } from '$lib/termin-anzeige.js';
 
   /**
    * Ein Termin der Community (ADR-0034). Der Hub ist lesend: er zeigt den
@@ -27,42 +28,7 @@
    */
   let { karte, sprache = 'de' } = $props();
 
-  const locale = $derived(t(sprache, 'datumsformat'));
-
-  /** Ganztägig: reines Datum (die Zeitzone steckt nicht im Event). @param {Date} d */
-  const tag = (d) => d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-  /** Zeitgebunden: Datum und Uhrzeit in Berliner Zeit. @param {Date} d */
-  const zeit = (d) =>
-    d.toLocaleString(locale, {
-      day: 'numeric', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin'
-    });
-  /** Nur die Uhrzeit — für das Ende am selben Tag. @param {Date} d */
-  const uhrzeit = (d) =>
-    d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
-  /** Berliner Kalendertag, um „selber Tag" zu entscheiden. @param {Date} d */
-  const berlinerTag = (d) =>
-    new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-
-  /**
-   * Der Zeitraum als eine Zeile. Gleicher Tag heißt ein Datum; bei
-   * ganztägigen Terminen nennt die erste Angabe nur den Tag
-   * („2.–3. Februar 2027"), weil Monat und Jahr sich nicht ändern.
-   */
-  const zeitraum = $derived.by(() => {
-    const { start, ende, ganztaegig } = karte.termin;
-    if (!ende || ende.getTime() === start.getTime()) return ganztaegig ? tag(start) : zeit(start);
-    if (ganztaegig) {
-      const gleicherMonat =
-        start.getUTCFullYear() === ende.getUTCFullYear() && start.getUTCMonth() === ende.getUTCMonth();
-      return gleicherMonat ? `${start.getUTCDate()}.–${tag(ende)}` : `${tag(start)} – ${tag(ende)}`;
-    }
-    // Endet der Termin am selben Tag, genügt die Uhrzeit — das Datum zweimal
-    // zu nennen liest sich wie zwei Termine.
-    return berlinerTag(start) === berlinerTag(ende)
-      ? `${zeit(start)} – ${uhrzeit(ende)}`
-      : `${zeit(start)} – ${zeit(ende)}`;
-  });
+  const zeitraum = $derived(zeitraumText(karte.termin, sprache));
 
   const absaetze = $derived(
     (karte.termin.zusammenfassung || karte.termin.inhalt)

@@ -193,6 +193,17 @@ Neue Werte in `.env` (siehe `.env.example`):
   geht, Standard 20.
 - `ABGELOESTE_HOSTS` — Hosts, deren Bilder wie relative Pfade behandelt
   werden (ADR-0030), Standard `oer.community`.
+- `COMMUNITY_PUBKEY` — Community, deren Termine der Hub zeigt (ADR-0034).
+  Standard ist `ae6199bb…`, die Communikey-Community **rpi-virtuell** — der
+  Wert muss für den Betrieb also **nicht** in die `.env`. **Gesetzt und leer** schaltet
+  den Kalender dagegen ab (kein Menüpunkt, kein Startseitenblock,
+  `/termine` mit Hinweis); leer ist nicht dasselbe wie nicht gesetzt.
+- `EDUFEED_URL` — wohin „Im edufeed-Kalender öffnen" führt, Standard
+  `https://dev.edufeed.org`. Eintragen und zusagen geschieht dort, nicht im
+  Hub (ADR-0034).
+- `REDAKTION_D` — Kennung (`d`) der Personenliste `kind:30000`, deren
+  `p`-Tags Termine einreichen dürfen (ADR-0021, ADR-0034), Standard
+  `redaktion`.
 
 Eine Änderung an `daten/themen.json` wirkt **erst nach einem Neustart**: die
 Normalisierungstabelle wird je Prozess einmal gelesen (`src/lib/themen.js`).

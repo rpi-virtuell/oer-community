@@ -1,13 +1,14 @@
 /**
  * sitemap.xml: alle Beiträge und Seiten mit lastmod aus dem Spiegel, dazu
- * die zwei Ansichten des Hubs selbst (/blog, /themen).
+ * die Ansichten des Hubs selbst (/blog, /themen — /termine nur, wenn es
+ * Termine gibt, ADR-0034).
  */
 import { error } from '@sveltejs/kit';
 import { artikelAusEvent, beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { FESTE_SEGMENTE } from '../models/feste-segmente.js';
 import { leerstandMeldung } from '../models/leerstand.js';
 import { startPfad } from '../sprache.js';
-import { kanonisch } from './struktur.js';
+import { kanonisch, termineVorhanden } from './struktur.js';
 import { xmlEscape } from './xml.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
@@ -42,6 +43,9 @@ export function sitemapXml({ konfig, inhalt, basisUrl }) {
     { loc: kanonisch(basisUrl, '/blog'), lastmod: stand },
     { loc: kanonisch(basisUrl, '/themen'), lastmod: stand }
   );
+  // /termine antwortet immer, steht aber nur in der Sitemap, wenn dort etwas
+  // zu lesen ist — dieselbe Bedingung wie im Menü (ADR-0034).
+  if (termineVorhanden(inhalt, konfig)) eintraege.push({ loc: kanonisch(basisUrl, '/termine'), lastmod: stand });
   const urls = eintraege
     .map((u) => `  <url>\n    <loc>${xmlEscape(u.loc)}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n  </url>`)
     .join('\n');

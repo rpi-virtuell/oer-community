@@ -16,5 +16,7 @@ export async function load() {
   // Nur zur Typverengung: der englische Zweig liefert immer eine Seite oder
   // weicht selbst aus — dann vorläufig (302), nie dauerhaft.
   if (ergebnis.art !== 'seite') redirect(302, '/');
-  return ergebnis.seite;
+  // Unter /en sind die Seitendaten selbst `data` (Detail.svelte bekommt sie
+  // direkt, nicht data.seite) — die Termine treten daneben (ADR-0034).
+  return { ...ergebnis.seite, naechste: ergebnis.naechste };
 }

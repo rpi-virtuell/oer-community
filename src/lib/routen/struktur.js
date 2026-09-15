@@ -1,11 +1,12 @@
 /**
  * Struktur für das Layout: Wortmarke, Logo, Menü, Fußzeile (ADR-0027).
  * Hier — und nicht im Loader — kommen die Ansichten dazu, die der Hub selbst
- * besitzt („Blog", „Themen"): Sie sind keine Seiten der Redaktion.
+ * besitzt („Termine", „Blog", „Themen"): Sie sind keine Seiten der Redaktion.
  */
 import { inhaltAufbereiten } from '../inhalt.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { strukturLaden } from '../loaders/struktur.js';
+import { termineListe } from '../loaders/termine.js';
 import { englischVorhanden, gegenstueck } from '../loaders/uebersetzungen.js';
 import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { basisUrlBestimmen, kanonisch } from '../kanonisch.js';
@@ -18,9 +19,15 @@ export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';
 /** @typedef {{ wortmarke: string, logoUrl: string|null, menue: Eintrag[], fusszeilenLinks: Eintrag[], fusstextHtml: string|null, befund: Struktur['befund'], basisUrl: string,
  *   sprache: 'de'|'en', zweisprachig: boolean }} Layoutstruktur */
 
-/** Ansichten des Hubs in der Sprache der Adresse (ADR-0033). @param {'de'|'en'} sprache @returns {Eintrag[]} */
-export function hubAnsichten(sprache) {
+/**
+ * Ansichten des Hubs in der Sprache der Adresse (ADR-0033). „Termine" steht
+ * vor „Blog" — und nur, wenn es Termine gibt: Was es nicht gibt, wird auch
+ * nicht angedeutet (CLAUDE.md, ADR-0034).
+ * @param {'de'|'en'} sprache @param {{ termine?: boolean }} [lage] @returns {Eintrag[]}
+ */
+export function hubAnsichten(sprache, { termine = false } = {}) {
   return [
+    ...(termine ? [{ titel: t(sprache, 'termine'), pfad: '/termine', d: '' }] : []),
     { titel: t(sprache, 'blog'), pfad: '/blog', d: '' },
     { titel: t(sprache, 'themen'), pfad: '/themen', d: '' }
   ];
@@ -28,6 +35,18 @@ export function hubAnsichten(sprache) {
 
 /** Ansichten des Hubs auf Deutsch, keine Seiten — deshalb ohne d. @type {Eintrag[]} */
 export const HUB_ANSICHTEN = hubAnsichten('de');
+
+/**
+ * Hat die Community überhaupt Termine — kommende oder vergangene? Menü und
+ * Sitemap nennen /termine nur dann (ADR-0034); ohne Community ist der
+ * Kalender abgeschaltet und die Frage erübrigt sich.
+ * @param {import('../services/spiegel.js').Inhalt} inhalt
+ * @param {import('../konfig.js').Konfig} konfig @param {(() => Date)} [jetzt]
+ */
+export function termineVorhanden(inhalt, konfig, jetzt) {
+  const liste = termineListe(inhalt, konfig, { jetzt });
+  return liste.kommend.length + liste.vergangen.length > 0;
+}
 
 /** Bis ein Profil mit Namen da ist (ersetzt die Vorläufigkeit aus ADR-0019 durch einen Rückfall). */
 export const WORTMARKE_RUECKFALL = 'Community-Hub';
@@ -43,9 +62,15 @@ export function fusstextHtml(markdown) {
   return html === '' ? null : html;
 }
 
-/** @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt, origin: string, sprache?: 'de'|'en' }} e @returns {Layoutstruktur} */
-export function strukturFuerLayout({ konfig, inhalt, origin, sprache = 'de' }) {
+/**
+ * @param {{ konfig: import('../konfig.js').Konfig, inhalt: import('../services/spiegel.js').Inhalt,
+ *   origin: string, sprache?: 'de'|'en', jetzt?: () => Date }} e
+ * @returns {Layoutstruktur}
+ */
+export function strukturFuerLayout({ konfig, inhalt, origin, sprache = 'de', jetzt }) {
   const s = strukturLaden(inhalt, konfig);
+  // Kommend oder vergangen: ein Kalender mit Vergangenem ist nicht leer.
+  const termineDa = termineVorhanden(inhalt, konfig, jetzt);
 
   /**
    * Unter /en/ steht jeder Eintrag durch sein Gegenstück, wenn es eines gibt
@@ -79,7 +104,7 @@ export function strukturFuerLayout({ konfig, inhalt, origin, sprache = 'de' }) {
   return {
     wortmarke: s.profil?.name ?? WORTMARKE_RUECKFALL,
     logoUrl: s.profil?.logoUrl ?? null,
-    menue: [...inSprache(s.menue), ...hubAnsichten(sprache)],
+    menue: [...inSprache(s.menue), ...hubAnsichten(sprache, { termine: termineDa })],
     fusszeilenLinks: inSprache(s.fusszeile),
     fusstextHtml: fusstextHtml(s.profil?.fusstext ?? null),
     befund: s.befund,

@@ -18,12 +18,14 @@ const artikelEvents = JSON.parse(
 );
 
 const FOERBICO_AUTOR = '5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf';
+const COMMUNITY = 'ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2';
 
-/** @param {string} autor */
-const umgebung = (autor) => ({
+/** @param {string} autor @param {Record<string, string>} [zusatz] */
+const umgebung = (autor, zusatz = {}) => ({
   QUELLE_AUTOR: autor,
   RELAYS: 'wss://relay.edufeed.org/,wss://relay-rpi.edufeed.org/',
-  BLOSSOM_URL: 'https://blossom.edufeed.org/'
+  BLOSSOM_URL: 'https://blossom.edufeed.org/',
+  ...zusatz
 });
 
 const RELAY = 'wss://relay.edufeed.org/';
@@ -50,13 +52,14 @@ function inhaltMitArtikeln() {
  * @param {Record<string, string>} params
  * @param {unknown} [inhalt] Standard: gültiger Bestand aus der Fixture
  * @param {string} [autor] QUELLE_AUTOR in der gemockten Umgebung; Standard: FOERBICO
+ * @param {Record<string, string>} [zusatz] weitere Umgebungswerte, z. B. COMMUNITY_PUBKEY
  */
-async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR) {
+async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR, zusatz = {}) {
   vi.resetModules();
 
   // $env/dynamic/private gibt es nur im SvelteKit-Lauf; im Test steht die
   // Umgebung als Attrappe daneben — je Aufruf neu, wegen resetModules().
-  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor) }));
+  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor, zusatz) }));
 
   vi.doMock('$lib/services/spiegel.js', async () => {
     const echt = await import('../src/lib/services/spiegel.js');
@@ -75,10 +78,11 @@ async function lade(modulpfad, params, inhalt = inhaltMitArtikeln(), autor = FOE
  * @param {string} pfad z. B. 'https://hub.example/feed.xml'
  * @param {unknown} [inhalt] Standard: gültiger Bestand aus der Fixture
  * @param {string} [autor] QUELLE_AUTOR in der gemockten Umgebung; Standard: FOERBICO
+ * @param {Record<string, string>} [zusatz] weitere Umgebungswerte, z. B. COMMUNITY_PUBKEY
  */
-async function ladeServer(modulpfad, pfad, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR) {
+async function ladeServer(modulpfad, pfad, inhalt = inhaltMitArtikeln(), autor = FOERBICO_AUTOR, zusatz = {}) {
   vi.resetModules();
-  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor) }));
+  vi.doMock('$env/dynamic/private', () => ({ env: umgebung(autor, zusatz) }));
   vi.doMock('$lib/services/spiegel.js', async () => {
     const echt = await import('../src/lib/services/spiegel.js');
     return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
@@ -194,6 +198,26 @@ describe('/', () => {
     const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
     expect(daten.art).toBe('blog');
     expect(daten.hinweis).toContain('startseite');
+  });
+
+  it('liefert die nächsten Termine — in beiden Zweigen (ADR-0034)', async () => {
+    const mitKalender = { COMMUNITY_PUBKEY: COMMUNITY, EDUFEED_URL: 'https://dev.edufeed.org' };
+    const { inhalt } = inhaltDerTestquelle({ mitTerminen: true });
+    const seite = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey, mitKalender);
+    expect(seite.art).toBe('seite');
+    expect(seite.naechste).toHaveLength(1);
+    expect(seite.naechste[0].termin.titel).toContain('Tagung');
+
+    const { inhalt: ohneStart } = inhaltDerTestquelle({ mitTerminen: true, ohne: [{ kind: 30023, d: 'startseite' }] });
+    const blog = await lade('../src/routes/+page.server.js', {}, ohneStart, testquelle().pubkey, mitKalender);
+    expect(blog.art).toBe('blog');
+    expect(blog.naechste).toHaveLength(1);
+  });
+
+  it('ohne Termine ist der Block leer, nicht undefined', async () => {
+    const { inhalt } = inhaltDerTestquelle();
+    const daten = await lade('../src/routes/+page.server.js', {}, inhalt, testquelle().pubkey);
+    expect(daten.naechste).toEqual([]);
   });
 });
 

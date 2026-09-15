@@ -165,3 +165,31 @@ describe('strukturFuerLayout je Sprache (ADR-0033)', () => {
     expect(de.menue.map((e) => e.titel)).toContain('Themen');
   });
 });
+
+describe('Menüpunkt Termine (ADR-0034)', () => {
+  it('steht vor „Blog", sobald Termine da sind — auf Englisch „Events"', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle({ mitTerminen: true });
+    const de = strukturFuerLayout({ konfig, inhalt, origin: 'http://x' });
+    expect(de.menue.map((e) => e.pfad)).toContain('/termine');
+    expect(de.menue.find((e) => e.pfad === '/termine')?.titel).toBe('Termine');
+    // Erst die Termine, dann Blog und Themen.
+    expect(de.menue.indexOf(/** @type {any} */ (de.menue.find((e) => e.pfad === '/termine')))).toBeLessThan(
+      de.menue.findIndex((e) => e.pfad === '/blog')
+    );
+    const en = strukturFuerLayout({ konfig, inhalt, origin: 'http://x', sprache: 'en' });
+    expect(en.menue.find((e) => e.pfad === '/termine')?.titel).toBe('Events');
+  });
+
+  it('fehlt ohne Termine — was es nicht gibt, wird nicht angedeutet (CLAUDE.md)', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const s = strukturFuerLayout({ konfig, inhalt, origin: 'http://x' });
+    expect(s.menue.some((e) => e.pfad === '/termine')).toBe(false);
+  });
+
+  it('auch vergangene Termine genügen: der Kalender ist dann nicht leer', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle({ mitTerminen: true });
+    // Die Tagung liegt Februar 2027 — von 2028 aus gesehen vergangen.
+    const s = strukturFuerLayout({ konfig, inhalt, origin: 'http://x', jetzt: () => new Date('2028-01-01T00:00:00Z') });
+    expect(s.menue.some((e) => e.pfad === '/termine')).toBe(true);
+  });
+});
