@@ -38,7 +38,7 @@
   );
 </script>
 
-<article class="termin" id={karte.termin.d}>
+<article class="termin" id={encodeURIComponent(karte.termin.d)}>
   <h3>{karte.termin.titel}</h3>
   <p class="metazeile">
     <time datetime={karte.termin.start.toISOString()}>{zeitraum}</time>

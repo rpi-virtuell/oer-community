@@ -26,7 +26,7 @@
     <ul>
       {#each karten as karte (karte.termin.d)}
         <li>
-          <a href="/termine#{karte.termin.d}">{karte.termin.titel}</a>
+          <a href="/termine#{encodeURIComponent(karte.termin.d)}">{karte.termin.titel}</a>
           <span class="metazeile">
             <time datetime={karte.termin.start.toISOString()}>{zeitraumText(karte.termin, sprache)}</time>
           </span>

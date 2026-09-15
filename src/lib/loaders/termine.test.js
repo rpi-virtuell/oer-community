@@ -27,6 +27,16 @@ describe('tagesbeginnBerlin', () => {
     // 22:00:00Z ist in Berlin schon der 2. Juli 00:00 → Tagesbeginn 1.7.
     expect(tagesbeginnBerlin(new Date('2026-07-01T22:00:00Z')).toISOString()).toBe('2026-07-01T22:00:00.000Z');
   });
+  it('Umstellungstag auf Sommerzeit (29.3.2026): der Versatz gilt am Kandidaten, nicht an `jetzt`', () => {
+    // 2026-03-29T01:30:00Z ist in Berlin noch Winterzeit (+1h) = 02:30 —
+    // Tagesbeginn ist der 28.3., dessen Mitternacht selbst noch Winterzeit ist.
+    expect(tagesbeginnBerlin(new Date('2026-03-29T01:30:00Z')).toISOString()).toBe('2026-03-28T23:00:00.000Z');
+  });
+  it('Umstellungstag auf Winterzeit (25.10.2026): der Versatz gilt am Kandidaten, nicht an `jetzt`', () => {
+    // 2026-10-25T01:30:00Z ist in Berlin noch Sommerzeit (+2h) = 03:30 —
+    // Tagesbeginn ist der 25.10., dessen Mitternacht selbst noch Sommerzeit ist.
+    expect(tagesbeginnBerlin(new Date('2026-10-25T01:30:00Z')).toISOString()).toBe('2026-10-24T22:00:00.000Z');
+  });
 });
 
 describe('zugelasseneAutoren', () => {

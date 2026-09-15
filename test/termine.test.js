@@ -12,6 +12,7 @@ import { termineListe } from '../src/lib/loaders/termine.js';
 import { naechsteTermine } from '../src/lib/routen/termine.js';
 import Termine from '../src/lib/komponenten/Termine.svelte';
 import Termin from '../src/lib/komponenten/Termin.svelte';
+import NaechsteTermine from '../src/lib/komponenten/NaechsteTermine.svelte';
 
 /** @type {any[]} */
 const artikelEvents = JSON.parse(
@@ -61,10 +62,11 @@ function inhaltMitTerminen(ab = {}) {
 /**
  * Lädt ein Routenmodul frisch, mit gemocktem Spiegel und gemockter Umgebung.
  * @param {string} modulpfad @param {Record<string, string>} params @param {unknown} [inhalt]
+ * @param {Partial<ReturnType<typeof umgebung>>} [umgebungAb]
  */
-async function lade(modulpfad, params, inhalt = inhaltMitTerminen()) {
+async function lade(modulpfad, params, inhalt = inhaltMitTerminen(), umgebungAb = {}) {
   vi.resetModules();
-  vi.doMock('$env/dynamic/private', () => ({ env: umgebung() }));
+  vi.doMock('$env/dynamic/private', () => ({ env: { ...umgebung(), ...umgebungAb } }));
   vi.doMock('$lib/services/spiegel.js', async () => {
     const echt = await import('../src/lib/services/spiegel.js');
     return { ...echt, spiegelHolen: () => ({ lesen: () => inhalt, letzterFehlschlag: () => null }) };
@@ -97,6 +99,17 @@ describe('/termine (ADR-0034)', () => {
     const stand = { ...inhaltMitTerminen().stand, nichtErreichbar: [RPI] };
     const daten = await lade('../src/routes/termine/+page.server.js', {}, inhaltMitTerminen({ termine: [], stand }));
     expect(daten.hinweis).toContain(RPI);
+  });
+
+  it('COMMUNITY_PUBKEY leer: Hinweis nennt „abgeschaltet", nicht „publiziert"', async () => {
+    const daten = await lade(
+      '../src/routes/termine/+page.server.js', {},
+      inhaltMitTerminen({ termine: [] }), { COMMUNITY_PUBKEY: '' }
+    );
+    expect(daten.kommend).toEqual([]);
+    expect(daten.vergangen).toEqual([]);
+    expect(daten.hinweis).toContain('abgeschaltet');
+    expect(daten.hinweis).not.toContain('publiziert');
   });
 
   it('Leerstand des Spiegels → 503', async () => {
@@ -189,6 +202,20 @@ describe('Termine.svelte / Termin.svelte', () => {
     // Absätze als Text, kein {@html}.
     expect(body).toContain('<p class="svelte');
     expect(body).toContain('Zweiter Absatz');
+  });
+
+  it('Anker sind kodiert: Start-Link und Karten-id stimmen auch bei Sonderzeichen im d überein', () => {
+    const karte = /** @type {any} */ ({
+      bild: null, kalenderUrl: 'https://dev.edufeed.org/calendar/event/naddr1x',
+      termin: {
+        d: 'a#b', titel: 'Sonderzeichen-Termin', zusammenfassung: '', inhalt: 'Text',
+        start: new Date('2027-02-02T09:00:00Z'), ende: null, ganztaegig: true, orte: []
+      }
+    });
+    const start = render(NaechsteTermine, { props: { karten: [karte] } });
+    expect(start.body).toContain('href="/termine#a%23b"');
+    const eintrag = render(Termin, { props: { karte } });
+    expect(eintrag.body).toContain('id="a%23b"');
   });
 
   it('zeigt den Hinweis, wenn nichts da ist — nie eine leere Liste ohne Erklärung', () => {

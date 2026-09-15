@@ -37,6 +37,17 @@ describe('strukturLaden', () => {
       'navigation: \u201een/startseite\u201c steht nicht im Men\u00fc \u2014 das Logo verlinkt dorthin'
     );
   });
+  it('eine kind:30000-Liste mit gleichem d verdrängt die echte Navigation nicht', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
+    const fremd = { ...nav, kind: 30000, id: 'c'.repeat(64), tags: [['d', 'navigation']] };
+    inhalt.listen.unshift(/** @type {any} */ (fremd));
+    const s = strukturLaden(inhalt, konfig);
+    expect(s.menue).toEqual([
+      { titel: 'Unser Team', pfad: '/unser-team', d: 'unser-team' },
+      { titel: 'Artikel A', pfad: '/artikel-a', d: 'artikel-a' }
+    ]);
+  });
   it('ein Ziel, das schon in der Liste steht, kommt nur einmal vor', () => {
     const { inhalt, konfig } = inhaltDerTestquelle();
     const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));

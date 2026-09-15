@@ -18,12 +18,18 @@ export function termineLaden({ konfig, inhalt, jetzt, sprache = 'de' }) {
   /** @type {string|null} */
   let hinweis = null;
   if (liste.kommend.length + liste.vergangen.length === 0) {
-    hinweis = t(sprache, 'keineTermine', konfig.community ? `${konfig.community.slice(0, 12)}…` : '(nicht konfiguriert)');
-    // Ein leerer Kalender kann auch an der Verbindung liegen. Ohne diesen
-    // Zusatz sähe „noch nichts publiziert" genauso aus wie „ein Relay hat
-    // geschwiegen" — nie eine leere Liste ohne Erklärung (CLAUDE.md).
-    const stumm = inhalt.stand?.nichtErreichbar ?? [];
-    if (stumm.length > 0) hinweis += ` ${t(sprache, 'relaysNichtErreichbar', stumm)}`;
+    if (!konfig.community) {
+      // Abgeschaltet ist kein „noch nichts publiziert": ein Relay-Satz wäre
+      // hier irreführend, es gibt nichts zu erreichen (CLAUDE.md).
+      hinweis = t(sprache, 'kalenderAbgeschaltet');
+    } else {
+      hinweis = t(sprache, 'keineTermine', `${konfig.community.slice(0, 12)}…`);
+      // Ein leerer Kalender kann auch an der Verbindung liegen. Ohne diesen
+      // Zusatz sähe „noch nichts publiziert" genauso aus wie „ein Relay hat
+      // geschwiegen" — nie eine leere Liste ohne Erklärung (CLAUDE.md).
+      const stumm = inhalt.stand?.nichtErreichbar ?? [];
+      if (stumm.length > 0) hinweis += ` ${t(sprache, 'relaysNichtErreichbar', stumm)}`;
+    }
   }
   return { ...liste, ueberschrift: t(sprache, 'termine'), hinweis, basis: '/termine' };
 }

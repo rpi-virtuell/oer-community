@@ -15,28 +15,46 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 /** @typedef {{ termin: Termin, bild: { url: string, alt: string, lizenz: Ergebnis }|null, naddr: string, kalenderUrl: string }} Terminkarte */
 
 /**
+ * Berliner Versatz zu UTC in Millisekunden, gemessen *an diesem Zeitpunkt*
+ * (nicht an `jetzt`) — an den zwei Umstellungstagen im Jahr weicht der
+ * Versatz um Mitternacht sonst von dem am Kandidaten selbst ab.
+ * @param {Date} zeitpunkt
+ */
+function berlinVersatzMs(zeitpunkt) {
+  const teile = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Berlin', hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(zeitpunkt);
+  /** @param {string} name */
+  const zahl = (name) => Number(teile.find((t) => t.type === name)?.value ?? '0');
+  const wanduhr = Date.UTC(zahl('year'), zahl('month') - 1, zahl('day'), zahl('hour'), zahl('minute'), zahl('second'));
+  // Sekundengenau: der Zeitpunkt selbst kann Millisekunden tragen, die
+  // Wanduhrzeit nicht — sonst wäre der Versatz keine volle Stunde.
+  return wanduhr - Math.floor(zeitpunkt.getTime() / 1000) * 1000;
+}
+
+/**
  * Beginn des heutigen Tages in Europe/Berlin, als UTC-Zeitpunkt.
  *
  * Bewusst ohne `toLocaleString`-Rückparsen: dessen Ergebnis wird in der
  * Zeitzone des *Hosts* gelesen, das Ergebnis stimmte also nur bei TZ=UTC.
  * Hier liefert `formatToParts` die Berliner Wanduhrzeit, aus der Differenz
  * zum Zeitpunkt folgt der Versatz — das rechnet auf jedem Host gleich.
+ *
+ * Zweischrittig: Der erste Versatz (an `jetzt`) liefert nur das Kalenderdatum
+ * in Berlin. Der Versatz für die eigentliche Umrechnung wird danach am
+ * *Kandidaten* (Mitternacht dieses Datums) neu gelesen — an den zwei
+ * Umstellungstagen im Jahr unterscheidet er sich vom Versatz an `jetzt`.
  * @param {Date} jetzt
  */
 export function tagesbeginnBerlin(jetzt) {
-  const teile = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Berlin', hourCycle: 'h23',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  }).formatToParts(jetzt);
-  /** @param {string} name */
-  const zahl = (name) => Number(teile.find((t) => t.type === name)?.value ?? '0');
-  const [jahr, monat, tag] = [zahl('year'), zahl('month'), zahl('day')];
-  const wanduhr = Date.UTC(jahr, monat - 1, tag, zahl('hour'), zahl('minute'), zahl('second'));
-  // Sekundengenau: der Zeitpunkt selbst kann Millisekunden tragen, die
-  // Wanduhrzeit nicht — sonst wäre der Versatz keine volle Stunde.
-  const versatz = wanduhr - Math.floor(jetzt.getTime() / 1000) * 1000;
-  return new Date(Date.UTC(jahr, monat - 1, tag) - versatz);
+  const versatzAnJetzt = berlinVersatzMs(jetzt);
+  const naeherung = new Date(jetzt.getTime() + versatzAnJetzt);
+  const [jahr, monat, tag] = [naeherung.getUTCFullYear(), naeherung.getUTCMonth() + 1, naeherung.getUTCDate()];
+  const kandidat = new Date(Date.UTC(jahr, monat - 1, tag));
+  const versatzAmKandidaten = berlinVersatzMs(kandidat);
+  return new Date(Date.UTC(jahr, monat - 1, tag) - versatzAmKandidaten);
 }
 
 /**
