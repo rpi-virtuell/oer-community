@@ -97,6 +97,10 @@ describe('Kontrast der FOERBICO-Palette (docs/designsystem.md, ADR-0031)', () =>
     expect(kontrast(token('--fb-fehler'), token('--fb-weiss'))).toBeGreaterThanOrEqual(AA);
     expect(kontrast(token('--fb-fehler'), token('--fb-flaeche'))).toBeGreaterThanOrEqual(AA);
   });
+  it('Lizenzpille: --fb-text auf 90 % Weiß trägt auch über einem schwarzen Bild (ADR-0032)', () => {
+    const grund = getoent(token('--fb-weiss'), 0.9, '#000000');
+    expect(kontrast(token('--fb-text'), grund)).toBeGreaterThanOrEqual(AA);
+  });
   it('keine Komponente setzt Weiß auf --fb-akzent (ADR-0031)', () => {
     // Grobe, aber mechanische Prüfung: keine CSS-Regel, die --fb-akzent als
     // background und --fb-weiss als color im selben Block nennt.

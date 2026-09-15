@@ -9,6 +9,30 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-15 — Lizenzpille: Lizenzstand als Overlay, Cover in der Übersicht auch ohne Nachweis
+
+**Passiert:** ADR-0032. Neue Komponente `Lizenzpille.svelte` (zwei
+Zustände: bekannt mit KI-Marke · Kürzel · Credit, ungeklärt mit Grund im
+`title`), `KiMarke.svelte` als gemeinsames EU-AI-Zeichen für Zeile und
+Pille. Der Übersichts-Loader liefert das Cover jetzt mit seinem `Ergebnis`
+statt nur bei `ok`; `NICHT_ZEIGBAR` (`kein-bild`, `relativ`,
+`abgeloester-host`) liegt im Modell und gilt für Karte und Bildbereich
+gleich. Die Karte trägt die Pille neben dem aria-hidden Cover-Link statt
+der Textzeile; der Bildbereich trägt Pille **und** Unterschrift.
+Kontrast der Pille über Schwarz nachgerechnet (10,1:1),
+`docs/designsystem.md` um den Baustein ergänzt. Vorbild: edufeeds
+`ImageLicenseOverlay.svelte`, bewusst ohne Popover (ohne JavaScript lesbar).
+
+**Wo steht das Projekt:** Im Fixture-Bestand haben 4 statt 1 Karten ein
+Cover (1 mit Nachweis, 3 Blossom-Bilder ohne `x`-Tag); die 74 Bilder auf
+`oer.community` bleiben unsichtbar, bis sie auf Blossom liegen
+(`bildmigration.md`).
+
+**Nächster Schritt:** Live prüfen, wie viele Karten im Blog jetzt ein
+Cover mit „Lizenz ungeklärt" tragen — das ist die Redaktionsliste für die
+`x`-Tags. Offen aus dem Vortag: Profil-`about`, Seitenbeschreibungen,
+doppelte Überschrift der Startseite, Umschalttag.
+
 ## 2026-09-14 (spät nachts) — Stufe 3 und 4: Gestaltung, Feed, Sitemap, kanonische URLs
 
 **Passiert:** Stufe 3 und 4 der Spec vom 14.09. sind umgesetzt (ADR-0031,

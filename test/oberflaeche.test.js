@@ -275,6 +275,21 @@ describe('Artikelseite', () => {
     expect(body).toContain(GRUND_TEXT['kein-nachweis']);
   });
 
+  it('legt die Lizenzpille über das Cover — bekannt wie ungeklärt — und behält die Unterschrift (ADR-0032)', () => {
+    const ohne = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } }).body;
+    expect(ohne).toContain('class="pille ungeklaert');
+    expect(ohne.indexOf('class="pille')).toBeGreaterThan(ohne.indexOf('<img'));
+    expect(ohne.indexOf('class="pille')).toBeLessThan(ohne.indexOf('<figcaption'));
+
+    const mit = render(Artikelseite, {
+      props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }), wortmarke: 'T' }
+    }).body;
+    expect(mit).toContain('class="pille bekannt');
+    // Die Pille ist Marke, die Unterschrift bleibt die Attribution nach bildattribution.md.
+    expect(mit).toContain('<figcaption');
+    expect(mit).toContain('rel="license');
+  });
+
   /** @param {Record<string, unknown>} felder */
   function mitNachweis(felder) {
     return seitendaten({
@@ -305,9 +320,12 @@ describe('Artikelseite', () => {
       props: { data: mitNachweis({ titel: 'nosTr-schrein', credit: 'Comenius-Institut' }), wortmarke: 'Testquelle' }
     });
     // Reihenfolge normativ: Titel, Urheber, Lizenz — nur Kommas, keine Wörter.
-    const titel = body.indexOf('nosTr-schrein</span>');
-    const urheber = body.indexOf('Comenius-Institut</span>');
-    const lizenz = body.indexOf('CC0 (Public Domain)</a>');
+    // Gesucht wird erst ab der Bildunterschrift: die Lizenzpille über dem
+    // Bild nennt Titel und Urheber ebenfalls (ADR-0032), aber vor ihr.
+    const start = body.indexOf('<figcaption');
+    const titel = body.indexOf('nosTr-schrein</span>', start);
+    const urheber = body.indexOf('Comenius-Institut</span>', start);
+    const lizenz = body.indexOf('CC0 (Public Domain)</a>', start);
     expect(titel).toBeGreaterThan(-1);
     expect(urheber).toBeGreaterThan(titel);
     expect(lizenz).toBeGreaterThan(urheber);

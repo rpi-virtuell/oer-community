@@ -8,6 +8,7 @@ import BlogPage from '../src/routes/blog/+page.svelte';
 import ThemaPage from '../src/routes/themen/[thema]/+page.svelte';
 import { strukturFuerLayout } from '../src/lib/routen/struktur.js';
 import { inhaltDerTestquelle } from './fixtures/testquelle/laden.js';
+import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 
 const NACHWEIS = /** @type {any} */ ({ id: 'n', hash: 'h', url: 'https://blossom.edufeed.org/h.jpg', titel: 'Schrein', license: 'https://creativecommons.org/publicdomain/zero/1.0/', credit: 'Comenius-Institut', beschreibung: null, quelle: null, alt: 'Ein Schrein', urheberUrl: null, bearbeitung: null, ki: null, mime: 'image/jpeg' });
 const karte = (/** @type {Partial<any>} */ ab = {}) => ({
@@ -23,12 +24,25 @@ describe('Karte', () => {
     expect(body).toContain('19. Dezember 2024');
     expect(body).toContain('href="/themen/lizenzen"');
   });
-  it('zeigt das Cover mit Lizenzzeile, wenn eines da ist, sonst kein <img>', () => {
-    const mit = render(Karte, { props: { karte: karte({ cover: { url: NACHWEIS.url, alt: 'Ein Schrein', nachweis: NACHWEIS } }) } }).body;
+  it('zeigt das Cover mit Lizenzpille statt Textzeile; ohne Cover kein <img> (ADR-0032)', () => {
+    const mit = render(Karte, { props: { karte: karte({ cover: { url: NACHWEIS.url, alt: 'Ein Schrein', lizenz: { ok: true, nachweis: NACHWEIS } } }) } }).body;
     expect(mit).toContain('<img');
     expect(mit).toContain('alt="Ein Schrein"');
+    expect(mit).toContain('CC0 (Public Domain)');
     expect(mit).toContain('Comenius-Institut');
+    expect(mit).not.toContain('bildnachweis');
+    // Die Pille steht neben dem Cover-Link, nicht darin — der Link ist aria-hidden.
+    expect(mit.indexOf('class="pille')).toBeGreaterThan(mit.indexOf('</a>'));
     expect(render(Karte, { props: { karte: karte() } }).body).not.toContain('<img');
+  });
+
+  it('zeigt ein Cover ohne Nachweis mit der Pille „Lizenz ungeklärt" (ADR-0032)', () => {
+    const body = render(Karte, {
+      props: { karte: karte({ cover: { url: 'https://blossom.edufeed.org/x.jpg', alt: 'Canva für OER', lizenz: { ok: false, grund: 'kein-x-tag' } } }) }
+    }).body;
+    expect(body).toContain('src="https://blossom.edufeed.org/x.jpg"');
+    expect(body).toContain('Lizenz ungeklärt');
+    expect(body).toContain(GRUND_TEXT['kein-x-tag']);
   });
 });
 

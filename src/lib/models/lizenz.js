@@ -90,6 +90,16 @@ export const GRUND_TEXT = {
   'hash-widerspruch': 'Der Hash des ausgelieferten Bildes passt nicht zum Nachweis.'
 };
 
+/**
+ * Gründe, bei denen es nichts Anzeigbares gibt: keine Adresse, eine nur
+ * gegen WordPress auflösbare (ADR-0013, Punkt 5) oder eine auf einem Host,
+ * den dieser Hub ablöst (ADR-0030). Jeder andere Grund liefert das Bild mit
+ * seinem Lizenzstand aus — in der Detailansicht wie in der Übersicht
+ * (ADR-0022, ADR-0032).
+ * @type {readonly Grund[]}
+ */
+export const NICHT_ZEIGBAR = ['kein-bild', 'relativ', 'abgeloester-host'];
+
 /** Hash-URL (Blossom, BUD-01): letztes Pfadsegment ist der SHA-256, Endung optional. */
 const HASH_IM_PFAD = /\/([0-9a-f]{64})(?:\.[a-z0-9]+)?$/i;
 
