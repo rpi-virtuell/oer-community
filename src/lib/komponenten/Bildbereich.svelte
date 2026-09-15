@@ -2,6 +2,7 @@
   import { GRUND_TEXT, NICHT_ZEIGBAR } from '$lib/models/lizenz.js';
   import Lizenzzeile from './Lizenzzeile.svelte';
   import Lizenzpille from './Lizenzpille.svelte';
+  import { t } from '$lib/sprache.js';
 
   /**
    * Eine Bildfigur mit Lizenzstand — für das Cover wie für Bilder im Text
@@ -14,10 +15,18 @@
    *   titel: string,
    *   bildUrl?: string|null,
    *   altVorrang?: string|null,
-   *   unterschrift?: string|null
+   *   unterschrift?: string|null,
+   *   sprache?: 'de'|'en'
    * }}
    */
-  let { lizenz, titel, bildUrl = null, altVorrang = null, unterschrift = null } = $props();
+  let {
+    lizenz,
+    titel,
+    bildUrl = null,
+    altVorrang = null,
+    unterschrift = null,
+    sprache = 'de'
+  } = $props();
 
   // Seit ADR-0022 wird das Bild auch ohne auflösbaren Nachweis ausgeliefert;
   // der Lizenzstand steht daran. Bei Erfolg kommt die Adresse aus dem
@@ -44,14 +53,14 @@
   <figure class="bild">
     <div class="rahmen">
       <img src={quelle} {alt} />
-      <Lizenzpille {lizenz} />
+      <Lizenzpille {lizenz} {sprache} />
     </div>
     <figcaption class="metazeile">
       {#if lizenz.ok}
         <Lizenzzeile nachweis={lizenz.nachweis} />
       {:else}
         <span class="ohne-nachweis">
-          <strong>Lizenz ungeklärt.</strong>
+          <strong>{t(sprache, 'lizenzUngeklaert')}.</strong>
           {GRUND_TEXT[lizenz.grund]}
         </span>
         {#if unterschrift}
@@ -64,7 +73,7 @@
   </figure>
 {:else if lizenz.ok === false && (lizenz.grund === 'relativ' || lizenz.grund === 'abgeloester-host')}
   <p class="hinweis">
-    <strong>Bild nicht angezeigt.</strong>
+    <strong>{t(sprache, 'bildNichtAngezeigt')}</strong>
     {GRUND_TEXT[lizenz.grund]}
   </p>
 {/if}

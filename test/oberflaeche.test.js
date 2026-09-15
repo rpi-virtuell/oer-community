@@ -37,8 +37,10 @@ function seitendaten(abweichung = {}) {
       themen: ['OER', 'Community'],
       // Zu 'kein-nachweis' gehört eine Bildadresse — ohne sie wäre der Grund
       // 'kein-bild'. Seit ADR-0022 wird das Bild damit auch ausgeliefert.
-      bildUrl: 'https://blossom.edufeed.org/abc.jpeg'
+      bildUrl: 'https://blossom.edufeed.org/abc.jpeg',
+      sprache: 'de'
     },
+    uebersetzung: null,
     lizenz: { ok: false, grund: 'kein-nachweis' },
     teile: [{ art: 'html', html: '<p>Absatz.</p>' }],
     fliesstext: {},
@@ -100,6 +102,17 @@ describe('Kopfzeile', () => {
     });
     expect(body).not.toContain('<img');
     expect(body).toContain('Community-Hub');
+  });
+
+  it('zeigt den Umschalter DE | EN nur zweisprachig; die aktuelle Sprache ist kein Link (ADR-0033)', () => {
+    const de = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, zweisprachig: true, sprache: 'de', wechselPfad: '/en/our-team' } }).body;
+    expect(de).toMatch(/<a[^>]+href="\/en\/our-team"[^>]+hreflang="en"[^>]*>EN<\/a>/);
+    expect(de).toMatch(/aria-current="true"[^>]*>DE</);
+    const en = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, zweisprachig: true, sprache: 'en', wechselPfad: '/' } }).body;
+    expect(en).toMatch(/<a[^>]+href="\/"[^>]+hreflang="de"[^>]*>DE<\/a>/);
+    expect(en).toContain('aria-label="Language"');
+    const einsprachig = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN } }).body;
+    expect(einsprachig).not.toContain('hreflang=');
   });
 });
 
@@ -469,12 +482,32 @@ describe('Artikelseite', () => {
     expect(body).toContain('Comenius-Institut');
   });
 
+  it('englischer Beitrag: Datum englisch, Lizenzpille englisch, hreflang auf das Gegenstück (ADR-0033)', () => {
+    const { body, head } = render(Artikelseite, {
+      props: {
+        data: seitendaten({
+          artikel: { ...seitendaten().artikel, sprache: 'en' },
+          uebersetzung: { pfad: '/die-kraft-der-gemeinschaft', sprache: 'de' },
+          pfad: '/en/the-power-of-community'
+        }),
+        wortmarke: 'T'
+      }
+    });
+    expect(body).toContain('Licence unclear');
+    expect(body).not.toContain('Lizenz ungeklärt');
+    expect(body).toMatch(/<time[^>]*>\d{1,2} September 2026<\/time>/);
+    expect(head).toContain('<link rel="alternate" hreflang="de" href="/die-kraft-der-gemeinschaft"');
+    const de = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } });
+    expect(de.head).not.toContain('hreflang=');
+    expect(de.body).toContain('Lizenz ungeklärt');
+  });
+
   it('erklärt die aus dem Fließtext entfernten Bildverweise', () => {
     const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toContain('nosTr-schrein.jpg');
     // Der Grund ist ADR-0015 (kein Nachweis), nicht der Pfad: absolute
     // Blossom-Verweise werden genauso entfernt wie relative.
-    expect(body).toContain('keinen Lizenznachweis');
+    expect(body).toContain('ohne Lizenznachweis');
     expect(body).not.toContain('alten Website');
   });
 

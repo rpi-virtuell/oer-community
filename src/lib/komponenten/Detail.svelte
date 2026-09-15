@@ -2,6 +2,7 @@
   import Bildbereich from './Bildbereich.svelte';
   import DebugBereich from './DebugBereich.svelte';
   import { einstellungen } from '../einstellungen.svelte.js';
+  import { t } from '$lib/sprache.js';
 
   /**
    * Die Seitendaten aus `routen/detail.js` (`seite`) — hier lokal typisiert,
@@ -17,6 +18,8 @@
    *     entfernteBilder: string[],
    *     befund: import('../models/entwickleransicht.js').Befund,
    *     pfad: string,
+   *     sprache?: 'de'|'en',
+   *     uebersetzung?: { pfad: string, sprache: 'de'|'en' }|null,
    *     stand: { zeitpunkt: string, nichtErreichbar: string[] }|null
    *   },
    *   wortmarke: string,
@@ -28,7 +31,7 @@
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
   const datum = $derived(
-    new Date(data.artikel.veroeffentlicht).toLocaleDateString('de-DE', {
+    new Date(data.artikel.veroeffentlicht).toLocaleDateString(t(data.artikel.sprache, 'datumsformat'), {
       day: '2-digit',
       month: 'long',
       year: 'numeric'
@@ -43,6 +46,10 @@
   <title>{nurWortmarke ? wortmarke : `${data.artikel.titel} · ${wortmarke}`}</title>
   {#if data.artikel.zusammenfassung}
     <meta name="description" content={data.artikel.zusammenfassung} />
+  {/if}
+  <!-- Das Gegenstück in der anderen Sprache (ADR-0033). -->
+  {#if data.uebersetzung}
+    <link rel="alternate" hreflang={data.uebersetzung.sprache} href={data.uebersetzung.pfad} />
   {/if}
 </svelte:head>
 
@@ -68,6 +75,7 @@
       lizenz={data.lizenz}
       titel={data.artikel.titel}
       bildUrl={data.artikel.bildUrl}
+      sprache={data.artikel.sprache}
     />
 
     {#if data.artikel.zusammenfassung}
@@ -90,6 +98,7 @@
           bildUrl={teil.url}
           altVorrang={teil.alt}
           unterschrift={teil.unterschrift}
+          sprache={data.artikel.sprache}
         />
       {/if}
     {/each}
@@ -97,12 +106,8 @@
 
   {#if data.entfernteBilder.length > 0}
     <p class="hinweis">
-      <strong>
-        {data.entfernteBilder.length} Bildverweis{data.entfernteBilder.length === 1 ? '' : 'e'}
-        im Text nicht angezeigt.
-      </strong>
-      Bilder im Fließtext tragen keinen Lizenznachweis und werden deshalb nicht
-      ausgeliefert (ADR-0015): {data.entfernteBilder.join(', ')}
+      {t(data.artikel.sprache, 'entfernteBilder', data.entfernteBilder.length)}
+      {data.entfernteBilder.join(', ')}
     </p>
   {/if}
 

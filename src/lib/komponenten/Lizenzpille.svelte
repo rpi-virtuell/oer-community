@@ -2,6 +2,7 @@
   import { GRUND_TEXT } from '$lib/models/lizenz.js';
   import { KI_TEXT, attributionsGlieder } from '$lib/attribution.js';
   import { lizenzLabel } from '$lib/lizenzlabel.js';
+  import { t } from '$lib/sprache.js';
   import KiMarke from './KiMarke.svelte';
 
   /**
@@ -11,9 +12,9 @@
    * kein Popover (ohne JavaScript lesbar): die volle Attribution bzw. der
    * Grund stehen im title, ausführlich auf der Artikelseite.
    * Der Aufrufer setzt `position: relative` am Bildcontainer.
-   * @type {{ lizenz: import('$lib/models/lizenz.js').Ergebnis }}
+   * @type {{ lizenz: import('$lib/models/lizenz.js').Ergebnis, sprache?: 'de'|'en' }}
    */
-  let { lizenz } = $props();
+  let { lizenz, sprache = 'de' } = $props();
 
   const label = $derived(
     lizenz.ok ? lizenzLabel(lizenz.nachweis.license) || lizenz.nachweis.license : ''
@@ -23,7 +24,7 @@
   const titel = $derived(
     lizenz.ok
       ? (attributionsGlieder(lizenz.nachweis) ?? []).map((g) => g.text).join(', ')
-      : `Lizenz ungeklärt. ${GRUND_TEXT[lizenz.grund]}`
+      : `${t(sprache, 'lizenzUngeklaert')}. ${GRUND_TEXT[lizenz.grund]}`
   );
 </script>
 
@@ -40,7 +41,7 @@
       <path d="M12 16v-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
       <circle cx="12" cy="8" r=".9" fill="currentColor" />
     </svg>
-    Lizenz ungeklärt
+    {t(sprache, 'lizenzUngeklaert')}
   </span>
 {/if}
 

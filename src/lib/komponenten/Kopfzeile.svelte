@@ -1,4 +1,6 @@
 <script>
+  import { t } from '$lib/sprache.js';
+
   /**
    * Kopfzeile: Logo und Wortmarke aus kind:0, Menü aus kind:30004 plus die
    * Ansichten des Hubs (ADR-0027). Nichts hier ist hart verdrahtet außer dem
@@ -6,9 +8,18 @@
    * Komponenten unter src/lib nichts aus $app importieren (ADR-0014).
    *
    * @type {{ wortmarke: string, logoUrl?: string|null,
-   *   menue: import('$lib/loaders/struktur.js').Eintrag[], aktuellerPfad?: string }}
+   *   menue: import('$lib/loaders/struktur.js').Eintrag[], aktuellerPfad?: string,
+   *   sprache?: 'de'|'en', zweisprachig?: boolean, wechselPfad?: string }}
    */
-  let { wortmarke, logoUrl = null, menue, aktuellerPfad = '/' } = $props();
+  let {
+    wortmarke,
+    logoUrl = null,
+    menue,
+    aktuellerPfad = '/',
+    sprache = 'de',
+    zweisprachig = false,
+    wechselPfad = '/'
+  } = $props();
   /** @param {string} pfad */
   const aktuell = (pfad) => aktuellerPfad === pfad || aktuellerPfad.startsWith(`${pfad}/`);
 </script>
@@ -22,17 +33,34 @@
 
 <header class="kopf">
   <div class="innen">
-    <a href="/" class="marke" aria-label="{wortmarke} — zur Startseite">
+    <a href="/" class="marke" aria-label="{wortmarke} — {t(sprache, 'zurStartseite')}">
       {#if logoUrl}<img src={logoUrl} alt="" class="logo" />{/if}
       <span>{wortmarke}</span>
     </a>
-    <nav aria-label="Hauptnavigation" class="nav">
+    <nav aria-label={t(sprache, 'hauptnavigation')} class="nav">
       {#each menue as eintrag (eintrag.pfad)}
         <a href={eintrag.pfad} aria-current={aktuell(eintrag.pfad) ? 'page' : undefined}
           >{eintrag.titel}</a
         >
       {/each}
     </nav>
+    {#if zweisprachig}
+      <!-- Umschalter (ADR-0033): die aktuelle Sprache ist Text, die andere ein Link
+           auf das Gegenstück oder die Startseite der Sprache. -->
+      <nav aria-label={t(sprache, 'sprache')} class="sprachen">
+        {#if sprache === 'de'}<span aria-current="true" lang="de">DE</span>{:else}<a
+            href={wechselPfad}
+            hreflang="de"
+            lang="de">DE</a
+          >{/if}
+        <span aria-hidden="true">|</span>
+        {#if sprache === 'en'}<span aria-current="true" lang="en">EN</span>{:else}<a
+            href={wechselPfad}
+            hreflang="en"
+            lang="en">EN</a
+          >{/if}
+      </nav>
+    {/if}
   </div>
 </header>
 
@@ -68,6 +96,25 @@
   .nav a[aria-current] {
     text-decoration: underline;
     text-underline-offset: 0.3em;
+    color: var(--fb-ueberschrift);
+  }
+  .sprachen {
+    display: flex;
+    gap: 8px;
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    color: var(--fb-text-leise);
+  }
+  .sprachen a {
+    color: var(--fb-primaer);
+    text-decoration: none;
+  }
+  .sprachen a:hover {
+    text-decoration: underline;
+    color: var(--fb-ueberschrift);
+  }
+  .sprachen [aria-current] {
+    font-weight: 700;
     color: var(--fb-ueberschrift);
   }
   .marke {

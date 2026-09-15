@@ -50,4 +50,9 @@ describe('Lizenzpille (ADR-0032)', () => {
     expect(body).not.toContain('CC ');
     expect(body).not.toContain('<a ');
   });
+
+  it('spricht Englisch, wenn die Seite es tut', () => {
+    const { body } = render(Lizenzpille, { props: { lizenz: { ok: false, grund: 'kein-nachweis' }, sprache: 'en' } });
+    expect(body).toContain('Licence unclear');
+  });
 });
