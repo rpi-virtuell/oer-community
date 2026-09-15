@@ -10,4 +10,4 @@
  *
  * @type {readonly string[]}
  */
-export const FESTE_SEGMENTE = Object.freeze(['blog', 'themen', 'en', 'feed.xml', 'sitemap.xml']);
+export const FESTE_SEGMENTE = Object.freeze(['blog', 'themen', 'termine', 'en', 'feed.xml', 'sitemap.xml']);

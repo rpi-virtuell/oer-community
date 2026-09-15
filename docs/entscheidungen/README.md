@@ -10,7 +10,8 @@ Statuszeile in der Datei ist maßgeblich.
 Nostr (0026), Seitenstruktur aus Nostr (0027), Spiegel statt Relay-Zugriff
 (0028), Adressen sind `d` (0029), FOERBICO-Designsystem (0031), Bildlizenz
 wie edufeed mit eigener Attribution (0022, 0023, 0025, 0030, 0032),
-Redaktion nur in Nostr (0021, offen).
+Redaktion nur in Nostr (0021, offen). Zweisprachig (0033, offen), Termine
+aus der Community (0034).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -46,3 +47,5 @@ Redaktion nur in Nostr (0021, offen).
 | [0030](0030-abgeloeste-bild-hosts-gelten-als-unaufgeloest.md) | Bilder von Hosts, die der Hub ablöst, gelten als unaufgelöst | angenommen |
 | [0031](0031-foerbico-designsystem.md) | Das FOERBICO-Designsystem ersetzt die relilab-Werte | angenommen |
 | [0032](0032-lizenzpille-lizenzstand-als-overlay.md) | Lizenzpille — der Lizenzstand liegt auf jedem Bild, auch in der Übersicht | angenommen |
+| [0033](0033-zweisprachig-de-en-mit-umschalter.md) | Zweisprachig — Englisch als zweite Sprache mit Umschalter | offen |
+| [0034](0034-kalender-aus-der-community.md) | Termine kommen aus der Community — Quelle je Inhaltsart | angenommen |

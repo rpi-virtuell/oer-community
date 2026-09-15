@@ -9,6 +9,54 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-15 — Kalender aus der Community (ADR-0034)
+
+**Passiert:** Die Besprechung (Jörg, Gina, Ludger) hat drei Dinge
+festgelegt: **Quelle je Inhaltsart** — Artikel, Seiten, Listen und Profil
+kommen weiter vom FOERBICO-Key, Termine (später Material, Lesezeichen,
+Sammlungen) von der Communikey-Community **rpi-virtuell**; das Repository
+und die Adresse werden zu **oer-community** umbenannt (Ludger); der
+eigentliche **Community-Hub kommt später**, auf den Erfahrungen dieses
+Schaufensters.
+
+Damit ist ADR-0026 („Termine entfallen") für Termine zurückgenommen.
+Erster Termin ist Phillips Abschlusstagung „Offen. Vernetzt. Zukunft."
+(2.–3. Februar 2027, Frankfurt), `kind:31922` aus der edufeed-app. Gebaut:
+Konfiguration (`COMMUNITY_PUBKEY`, `EDUFEED_URL`, `REDAKTION_D`), der
+Spiegel holt `kind:31922`/`31923` mit `#h` und die Redaktionsliste
+`kind:30000`, Modell `Termin`, Seite `/termine` mit kommenden und
+vergangenen Terminen, Block „Nächste Termine" unter beiden Startseiten,
+Menüpunkt „Termine"/„Events" und `/termine` in der Sitemap.
+
+Drei Regeln haben sich im Bauen bewährt:
+
+- **Zwei Kriterien**, wie ADR-0012 es für Bot-Quellen verlangt: `h`-Tag der
+  Community **und** Autor im Redaktionskreis (plus FOERBICO und der
+  Community-Key selbst). Der `h`-Tag allein ließe jeden herein, der ihn setzt.
+- **Startseitenblock und Menüpunkt nur, wenn es Termine gibt** — kommende
+  oder vergangene. Was es nicht gibt, wird nicht angedeutet; `/termine`
+  selbst antwortet immer und erklärt die leere Liste.
+- **Tagesgrenze Europe/Berlin, host-unabhängig.** Der erste Versuch las
+  `toLocaleString` in der Zeitzone des Hosts zurück und stimmte nur bei
+  `TZ=UTC`; jetzt liefert `formatToParts` die Berliner Wanduhrzeit, aus der
+  Differenz folgt der Versatz. Ein Termin von heute Vormittag steht den
+  ganzen Tag bei den kommenden.
+
+**Wo steht das Projekt:** Im Hub fertig, `pnpm check` 0 Fehler, 422 Tests
+grün, `pnpm build` läuft. Die Zeitraumzeile liegt als reines Modul
+`src/lib/termin-anzeige.js` (`zeitraumText`) und wird von `Termin.svelte`
+und `NaechsteTermine.svelte` geteilt — zweimal geschrieben liefe sie
+auseinander. `applesauce-common` ist **nicht** installiert; NIP-23- und
+NIP-52-Felder liest das jeweilige Modell direkt aus den Tags, CLAUDE.md
+sagt das jetzt auch.
+
+**Nächster Schritt:** Live prüfen, sobald der Spiegel gelaufen ist — das
+Bild der Tagung liegt auf einem Fremdhost und muss mit „Lizenz ungeklärt"
+erscheinen (ADR-0022, ADR-0032). Ludger muss `COMMUNITY_PUBKEY` **nicht**
+setzen: rpi-virtuell ist der Standard, nur ein *gesetzter leerer* Wert
+schaltet den Kalender ab. ADR-0033 und ADR-0034 in der nächsten Besprechung
+bestätigen lassen.
+
 ## 2026-09-15 — Zweisprachig: Umschalter DE | EN, /en als englische Startseite
 
 **Passiert:** ADR-0033. Englische Inhalte tragen ihr `d` mit Präfix `en/`

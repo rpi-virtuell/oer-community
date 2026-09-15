@@ -14,6 +14,7 @@ import Artikelseite from '../src/lib/komponenten/Detail.svelte';
 import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 import { HUB_ANSICHTEN } from '../src/lib/routen/struktur.js';
+import NaechsteTermine from '../src/lib/komponenten/NaechsteTermine.svelte';
 
 /** @type {any} */
 const ARTIKEL = JSON.parse(
@@ -590,6 +591,40 @@ function komponentenQuellen() {
   durchsuchen(join(wurzel, 'src', 'routes'));
   return gefunden;
 }
+
+describe('NaechsteTermine (Startseitenblock, ADR-0034)', () => {
+  /** @param {Partial<any>} ab */
+  const karte = (ab = {}) => ({
+    termin: {
+      d: 'event-1', titel: 'FOERBICO Tagung Frankfurt',
+      start: new Date(Date.UTC(2027, 1, 2)), ende: new Date(Date.UTC(2027, 1, 3)),
+      ganztaegig: true, orte: ['Frankfurt']
+    },
+    ...ab
+  });
+
+  it('nennt Überschrift, Titel, Datum, Anker auf /termine und den Weg zur ganzen Liste', () => {
+    const { body } = render(NaechsteTermine, { props: { karten: [karte()] } });
+    expect(body).toMatch(/<h2[^>]*>Nächste Termine<\/h2>/);
+    expect(body).toContain('FOERBICO Tagung Frankfurt');
+    expect(body).toContain('2.–3. Februar 2027');
+    expect(body).toContain('href="/termine#event-1"');
+    expect(body).toContain('href="/termine"');
+    expect(body).toContain('Alle Termine');
+  });
+
+  it('rendert auf Englisch die englischen Texte', () => {
+    const { body } = render(NaechsteTermine, { props: { karten: [karte()], sprache: 'en' } });
+    expect(body).toContain('Upcoming events');
+    expect(body).toContain('All events');
+    expect(body).toContain('2–3 February 2027');
+  });
+
+  it('ohne Termine rendert es nichts — kein leerer Block auf der Startseite', () => {
+    const { body } = render(NaechsteTermine, { props: { karten: [] } });
+    expect(body.replace(/<!--[\s\S]*?-->/g, '').trim()).toBe('');
+  });
+});
 
 describe('FOERBICO-Token in Komponenten (ADR-0031)', () => {
   it('kein Alt-Token und kein Hex-Farbwert in Komponenten (ADR-0031)', () => {

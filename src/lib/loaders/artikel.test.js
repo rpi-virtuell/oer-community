@@ -11,7 +11,7 @@ const KONFIG = /** @type {any} */ ({ autor: ARTIKEL.pubkey, relays: [RELAY, RPI]
 
 const inhalt = {
   ...leererInhalt(),
-  stand: { zeitpunkt: '2026-09-14T10:00:00Z', dauerMs: 5, gefragteRelays: [RELAY, RPI], nichtErreichbar: [RPI], anzahl: { artikel: 1, listen: 0, nachweise: 0, profil: 0 } },
+  stand: { zeitpunkt: '2026-09-14T10:00:00Z', dauerMs: 5, gefragteRelays: [RELAY, RPI], nichtErreichbar: [RPI], anzahl: { artikel: 1, listen: 0, nachweise: 0, profil: 0, termine: 0 } },
   artikel: [ARTIKEL],
   quellen: { [ARTIKEL.id]: [RELAY] }
 };

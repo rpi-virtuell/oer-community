@@ -1,5 +1,6 @@
 <script>
   import Detail from '$lib/komponenten/Detail.svelte';
+  import NaechsteTermine from '$lib/komponenten/NaechsteTermine.svelte';
   import Uebersicht from '$lib/komponenten/Uebersicht.svelte';
   import { kanonisch } from '$lib/kanonisch.js';
   /** @type {{ data: import('./$types').PageData }} */
@@ -26,3 +27,7 @@
 {:else}
   <Uebersicht karten={data.karten} seite={data.seitennummer} seiten={data.seiten} basis={data.basis} ueberschrift={data.ueberschrift} hinweis={data.hinweis} />
 {/if}
+
+<!-- Die nächsten Termine unter dem Inhalt, in beiden Zweigen (ADR-0034);
+     ohne Termine rendert der Block nichts. -->
+<NaechsteTermine karten={data.naechste} sprache={data.struktur.sprache} />

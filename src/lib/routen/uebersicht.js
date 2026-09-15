@@ -9,6 +9,7 @@ import { artikelListe, themenListe } from '../loaders/uebersicht.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
 import { leerstandMeldung } from '../models/leerstand.js';
 import { detailLaden } from './detail.js';
+import { naechsteTermine } from './termine.js';
 
 /** @typedef {import('../konfig.js').Konfig} Konfig */
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
@@ -67,10 +68,15 @@ export function themenLaden({ konfig, inhalt }) {
  * Hinweis da, welches Event erwartet wird (ADR-0027); fehlt die englische,
  * geht es nach / — eine leere englische Startseite wäre eine Sackgasse
  * (ADR-0033).
- * @param {{ konfig: Konfig, inhalt: Inhalt, sprache?: 'de'|'en' }} e
+ *
+ * Beide Zweige tragen `naechste`: den Block der kommenden Termine unter dem
+ * Inhalt (ADR-0034). Ohne Termine ist er leer, und die Komponente zeigt
+ * nichts — nicht `undefined`, sonst müsste jede Startseite selbst prüfen.
+ * @param {{ konfig: Konfig, inhalt: Inhalt, sprache?: 'de'|'en', jetzt?: () => Date }} e
  */
-export async function startLaden({ konfig, inhalt, sprache = 'de' }) {
+export async function startLaden({ konfig, inhalt, sprache = 'de', jetzt }) {
   leerOderWeiter(konfig, inhalt);
+  const naechste = naechsteTermine({ konfig, inhalt, jetzt });
   if (sprache === 'en') {
     const { artikel: englisch } = artikelAusSpiegel(inhalt, { d: `en/${konfig.startseiteD}` });
     // 302, nicht 301: Die englische Startseite fehlt nur vorläufig — eine
@@ -78,17 +84,17 @@ export async function startLaden({ konfig, inhalt, sprache = 'de' }) {
     // erscheint (ADR-0033, Entscheidung 3).
     if (!englisch) redirect(302, '/');
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: 'en', konfig, inhalt, istStartseite: true });
-    return /** @type {const} */ ({ art: 'seite', seite });
+    return /** @type {const} */ ({ art: 'seite', seite, naechste });
   }
   const { artikel } = artikelAusSpiegel(inhalt, { d: konfig.startseiteD });
   if (artikel) {
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt, istStartseite: true });
-    return /** @type {const} */ ({ art: 'seite', seite });
+    return /** @type {const} */ ({ art: 'seite', seite, naechste });
   }
   const blog = blogLaden({ konfig, inhalt, seite: 1 });
   const { seite: blogSeite, ...rest } = blog;
   return /** @type {const} */ ({
-    art: 'blog', ...rest, seitennummer: blogSeite, ueberschrift: 'Beiträge',
+    art: 'blog', ...rest, naechste, seitennummer: blogSeite, ueberschrift: 'Beiträge',
     hinweis: `Es ist noch keine Startseite publiziert: erwartet wird ein kind:30023 mit d = "${konfig.startseiteD}" unter dem Autor dieser Quelle. Bis dahin steht hier der Blog.`
   });
 }

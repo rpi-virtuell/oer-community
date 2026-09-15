@@ -34,7 +34,10 @@ import { artikelAusSpiegel } from './artikel.js';
  * @returns {{ eintraege: Eintrag[], vorhanden: Vorhanden }}
  */
 function eintraegeAufloesen(inhalt, konfig, listenD, uebersprungen) {
-  const liste = listeFinden(inhalt.listen, listenD);
+  // Gesucht wird nach kind UND d — `listen` hält kind:30004 und kind:30000
+  // (Redaktionskreis, ADR-0034) nebeneinander; ohne Filter könnte eine
+  // Personenliste mit gleichem d ein Menü verdrängen (wie loaders/termine.js).
+  const liste = listeFinden(inhalt.listen.filter((e) => e.kind === 30004), listenD);
   if (!liste) return { eintraege: [], vorhanden: 'fehlt' };
   /** @type {Eintrag[]} */
   const eintraege = [];

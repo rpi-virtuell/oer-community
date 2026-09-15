@@ -5,7 +5,7 @@
  */
 /** @typedef {import('../services/relay.js').Event} Event */
 /** @typedef {{ kind: number, pubkey: string, d: string, roh: string }} Listenziel */
-/** @typedef {{ d: string, titel: string|null, ziele: Listenziel[] }} Liste */
+/** @typedef {{ d: string, titel: string|null, ziele: Listenziel[], personen: string[] }} Liste */
 
 /** @param {string[][]} tags @param {string} name */
 const tagWert = (tags, name) => tags.find((t) => t[0] === name && t.length > 1)?.[1] ?? null;
@@ -32,7 +32,12 @@ export function listeAusEvent(event) {
     const ziel = zielAusKoordinate(t[1]);
     if (ziel) ziele.push(ziel);
   }
-  return { d: tagWert(tags, 'd') ?? '', titel: tagWert(tags, 'title'), ziele };
+  // p-Tags: Personenlisten (kind:30000) wie der Redaktionskreis (ADR-0034).
+  // Menü- und Fußzeilenlisten haben keine — dann bleibt das Feld leer.
+  const personen = tags
+    .filter((t) => t[0] === 'p' && typeof t[1] === 'string' && /^[0-9a-f]{64}$/i.test(t[1]))
+    .map((t) => t[1].toLowerCase());
+  return { d: tagWert(tags, 'd') ?? '', titel: tagWert(tags, 'title'), ziele, personen };
 }
 
 /** @param {Event[]} listen @param {string} d @returns {Liste|null} */

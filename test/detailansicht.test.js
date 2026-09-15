@@ -81,7 +81,8 @@ function inhaltNachstellen(lage = {}) {
         artikel: lage.ohneArtikel ? 0 : 1,
         listen: 0,
         nachweise: lage.ohneNachweis ? 0 : 1,
-        profil: 0
+        profil: 0,
+        termine: 0
       }
     },
     artikel: lage.ohneArtikel ? [] : [artikelEvent],

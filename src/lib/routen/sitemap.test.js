@@ -47,6 +47,14 @@ describe('sitemapXml', () => {
     expect(xml).not.toContain('qualit%25C3%25A4t');
   });
 
+  it('nennt /termine, sobald Termine da sind — sonst gar nicht (ADR-0034)', () => {
+    const mit = inhaltDerTestquelle({ mitTerminen: true });
+    const xml = sitemapXml({ ...mit, basisUrl: 'https://t' });
+    expect((xml.match(/<loc>https:\/\/t\/termine<\/loc>/g) ?? []).length).toBe(1);
+    const ohne = inhaltDerTestquelle();
+    expect(sitemapXml({ ...ohne, basisUrl: 'https://t' })).not.toContain('<loc>https://t/termine</loc>');
+  });
+
   it('leerer Spiegel: 503', () => {
     expect(() =>
       sitemapXml({ konfig: inhaltDerTestquelle().konfig, inhalt: leererInhalt(), basisUrl: 'https://t' })

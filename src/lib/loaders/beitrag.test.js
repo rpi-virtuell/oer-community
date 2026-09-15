@@ -25,7 +25,10 @@ const KONFIG = {
   spiegelStartwartezeitS: 20,
   startseiteD: 'startseite',
   navigationD: 'navigation',
-  fusszeileD: 'fusszeile'
+  fusszeileD: 'fusszeile',
+  redaktionD: 'redaktion',
+  community: null,
+  edufeedUrl: 'https://dev.edufeed.org'
 };
 
 const ADRESSE = {
@@ -47,7 +50,7 @@ function inhaltWieEcht({ ohneNachweis = false, etag = undefined } = {}) {
       dauerMs: 3,
       gefragteRelays: KONFIG.relays,
       nichtErreichbar: [],
-      anzahl: { artikel: 1, listen: 0, nachweise: ohneNachweis ? 0 : 1, profil: 0 }
+      anzahl: { artikel: 1, listen: 0, nachweise: ohneNachweis ? 0 : 1, profil: 0, termine: 0 }
     },
     artikel: [ARTIKEL],
     nachweise: ohneNachweis ? [] : [NACHWEIS],
@@ -185,7 +188,7 @@ describe('beitragLaden löst Fließtextbilder mit Hash-URL auf (ADR-0023)', () =
         dauerMs: 3,
         gefragteRelays: KONFIG.relays,
         nichtErreichbar: [],
-        anzahl: { artikel: 1, listen: 0, nachweise: 1, profil: 0 }
+        anzahl: { artikel: 1, listen: 0, nachweise: 1, profil: 0, termine: 0 }
       },
       artikel: [ARTIKEL_NEU],
       nachweise: [NACHWEIS],
