@@ -10,6 +10,10 @@ describe('sitemapXml', () => {
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
     expect(xml).toContain('<loc>https://t/</loc>');
     expect(xml).not.toContain('<loc>https://t/startseite</loc>');
+    // Die englische Startseite wohnt unter /en (ADR-0033) — ihr d gehört
+    // nicht in die Sitemap, es leitete nur weiter.
+    expect((xml.match(/<loc>https:\/\/t\/en<\/loc>/g) ?? []).length).toBe(1);
+    expect(xml).not.toContain('<loc>https://t/en/startseite</loc>');
     expect(xml).toContain('<loc>https://t/impressum</loc>');
     expect(xml).toContain('<loc>https://t/en/our-team</loc>');
     expect(xml).toContain('<loc>https://t/artikel-a</loc>');

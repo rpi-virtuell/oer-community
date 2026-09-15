@@ -4,7 +4,7 @@
  * Erklärung (CLAUDE.md). Kennt die Oberfläche nicht: liefert Einträge,
  * keine Links; „Blog" und „Themen" hängt die Routen-Schicht an.
  */
-import { beitragsPfad } from '../models/artikel.js';
+import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { FESTE_SEGMENTE } from '../models/feste-segmente.js';
 import { listeFinden } from '../models/liste.js';
 import { profilAusEvent } from '../models/profil.js';
@@ -56,7 +56,7 @@ function eintraegeAufloesen(inhalt, konfig, listenD, uebersprungen) {
       uebersprungen.push(`${listenD}: „${ziel.d}“ ist ein fester Pfad des Hubs`);
       continue;
     }
-    if (ziel.d === konfig.startseiteD) {
+    if (istStartseitenD(ziel.d, konfig.startseiteD)) {
       uebersprungen.push(`${listenD}: „${ziel.d}“ steht nicht im Menü — das Logo verlinkt dorthin`);
       continue;
     }

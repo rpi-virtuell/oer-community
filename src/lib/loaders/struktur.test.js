@@ -27,6 +27,16 @@ describe('strukturLaden', () => {
     if (nav) nav.tags.push(['a', `30023:${konfig.autor}:our-team`]);
     expect(strukturLaden(inhalt, konfig).menue.at(-1)).toEqual({ titel: 'Our team', pfad: '/en/our-team', d: 'our-team' });
   });
+  it('die englische Startseite steht ebenso wenig im Menü wie die deutsche', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
+    if (nav) nav.tags.push(['a', `30023:${konfig.autor}:en/startseite`]);
+    const s = strukturLaden(inhalt, konfig);
+    expect(s.menue.some((e) => e.d === 'en/startseite')).toBe(false);
+    expect(s.befund.uebersprungen).toContain(
+      'navigation: \u201een/startseite\u201c steht nicht im Men\u00fc \u2014 das Logo verlinkt dorthin'
+    );
+  });
   it('ein Ziel, das schon in der Liste steht, kommt nur einmal vor', () => {
     const { inhalt, konfig } = inhaltDerTestquelle();
     const nav = inhalt.listen.find((e) => e.tags.some((t) => t[1] === 'navigation'));
