@@ -36,8 +36,16 @@ die neue `content/en/startseite/index.md`; offline gegen den mdparser
 geprüft (acht Events, `d` und `translation`-Tags wie geplant). Contract
 `event-tag-mapping.md` im oer-orchestrator ergänzt (lokal, kein Remote).
 
-**Nächster Schritt:** FOERBICO-Branch nach `main` pushen (Action
-publiziert), dann `/en`, `/en/conference` und den Umschalter live prüfen.
+**Nachtrag (15.09., mittags):** FOERBICO 8fc3f39 nach `main` gepusht, die
+GitHub-Action hat publiziert, Pipeline 14 grün; nach dem nächsten
+Spiegel-Lauf live geprüft: `/en` zeigt die englische Startseite
+(`<html lang="en">`, Umschalter „DE" → `/`), `/tagungen` trägt „EN" →
+`/en/conference` und beide `hreflang`-Links absolut, `/en/conference`
+kanonisch auf `https://oer.community/en/conference`, Sitemap mit `/en`,
+`/en/conference`, `/en/oer-and-oep`, `/en/our-team`.
+
+**Nächster Schritt:** ADR-0033 im Team bestätigen (Status „offen");
+Redaktion prüft die englischen Beschreibungen (aus dem Text abgeleitet).
 
 ## 2026-09-15 — Aufräumen: relilab-Reste raus, ADR-Stati nachgetragen, ADR-Index
 
