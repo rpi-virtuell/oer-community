@@ -35,6 +35,14 @@ export function startPfad(sprache) {
  * @property {string} zurStartseite
  * @property {string} hauptnavigation
  * @property {string} datumsformat  BCP-47-Locale für toLocaleDateString
+ * @property {string} termine
+ * @property {string} naechsteTermine
+ * @property {string} alleTermine
+ * @property {string} vergangen
+ * @property {string} ganztaegig
+ * @property {string} imKalender
+ * @property {(community: string) => string} keineTermine
+ * @property {(relays: string[]) => string} relaysNichtErreichbar
  */
 
 /** @type {Record<Sprache, Texte>} */
@@ -49,7 +57,17 @@ export const TEXTE = {
     sprache: 'Sprache',
     zurStartseite: 'zur Startseite',
     hauptnavigation: 'Hauptnavigation',
-    datumsformat: 'de-DE'
+    datumsformat: 'de-DE',
+    termine: 'Termine',
+    naechsteTermine: 'Nächste Termine',
+    alleTermine: 'Alle Termine',
+    vergangen: 'Vergangene Termine',
+    ganztaegig: 'ganztägig',
+    imKalender: 'Im edufeed-Kalender öffnen',
+    keineTermine: (community) =>
+      `Es sind noch keine Termine publiziert: erwartet werden kind:31922 oder kind:31923 mit dem h-Tag der Community ${community} von Mitgliedern des Redaktionskreises.`,
+    relaysNichtErreichbar: (relays) =>
+      `Beim letzten Lauf antworteten diese Relays nicht: ${relays.join(', ')} — es kann also auch an der Verbindung liegen.`
   },
   en: {
     blog: 'Blog',
@@ -61,7 +79,17 @@ export const TEXTE = {
     sprache: 'Language',
     zurStartseite: 'to the start page',
     hauptnavigation: 'Main navigation',
-    datumsformat: 'en-GB'
+    datumsformat: 'en-GB',
+    termine: 'Events',
+    naechsteTermine: 'Upcoming events',
+    alleTermine: 'All events',
+    vergangen: 'Past events',
+    ganztaegig: 'all day',
+    imKalender: 'Open in the edufeed calendar',
+    keineTermine: (community) =>
+      `No events published yet: expected are kind:31922 or kind:31923 with the h tag of community ${community}, submitted by members of the editorial board.`,
+    relaysNichtErreichbar: (relays) =>
+      `These relays did not answer during the last run: ${relays.join(', ')} — so the connection may be to blame.`
   }
 };
 

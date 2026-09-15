@@ -191,6 +191,12 @@ export function spiegelErstellen({
 
     // Termine kommen aus der Community, nicht vom Autor (ADR-0034). Ohne
     // konfigurierte Community wird gar nicht erst gefragt.
+    //
+    // Scheitert der Termin-Abruf, bricht der Lauf nicht ab: Der Hub steht und
+    // fällt mit den Artikeln (nur `a.grund` ist das Tor), der Kalender ist
+    // Beiwerk. Die stummen Relays landen wie alle anderen in
+    // `nichtErreichbar` — die Terminseite nennt sie, wenn die Liste leer
+    // bleibt, damit „noch nichts publiziert" nicht wie eine Störung aussieht.
     const [a, l, redaktion, p, t] = await Promise.all([
       nachAutor(30023), nachAutor(30004), nachAutor(30000), nachAutor(0),
       konfig.community

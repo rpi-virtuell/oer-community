@@ -21,4 +21,14 @@ describe('sprache.js (ADR-0033)', () => {
     // Jeder deutsche Schlüssel hat ein englisches Gegenstück.
     expect(Object.keys(TEXTE.en).sort()).toEqual(Object.keys(TEXTE.de).sort());
   });
+  it('kennt die Termintexte (ADR-0034); keineTermine nennt die Community', () => {
+    expect(t('de', 'termine')).toBe('Termine');
+    expect(t('en', 'termine')).toBe('Events');
+    expect(t('en', 'vergangen')).toBe('Past events');
+    expect(t('de', 'keineTermine', 'ae6199bb435d…')).toContain('ae6199bb435d…');
+    expect(t('de', 'keineTermine', 'ae6199bb435d…')).toContain('kind:31922');
+    expect(t('en', 'keineTermine', 'ae6199bb435d…')).toContain('kind:31922');
+    expect(t('de', 'relaysNichtErreichbar', ['wss://a/', 'wss://b/'])).toContain('wss://a/');
+    expect(t('en', 'relaysNichtErreichbar', ['wss://a/'])).toContain('wss://a/');
+  });
 });
