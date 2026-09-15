@@ -6,7 +6,7 @@
     "content": "{\"name\":\"Testquelle\",\"display_name\":\"TQ\",\"picture\":\"https://blossom.example/logo.png\",\"about\":\"CC BY **Testquelle** — [Impressum](https://example.org/impressum)\",\"website\":\"https://test.example\"}",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "5ac8b5cf09c69f64140021edb3b20d40c27f365309e2dd07e336f4c179ee845f",
-    "sig": "e35db39351843013c58ef08e001024297bc56f982fe2a5ccb499c4bc40874e0361515b449b86b3fc271e0b4853d2bb6f8b2cc74414de5529f3ae08fc3292a526"
+    "sig": "075325bc8f4ec0c924efc66e0b76338f08c2d7ea85ec22d4a939057728318a273008f4124fda760d70dfd990517be2f8e764917dc4f466c12420565fb9d74137"
   },
   {
     "kind": 30023,
@@ -41,7 +41,7 @@
     "content": "Willkommen bei der **Testquelle**.\n\nZweiter Absatz.",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "c00166c04e899e4a944d5e2b46a11118db01dc00e228b499a87cd62f88291463",
-    "sig": "74bd43d7f4dd8334a1839a0788d42ee4ce26dcdac524fcde6f8bed77a8a4f2b4e52a9f42bba8f3613b3d13c6efdd600161c5346bf7eff7a3f9a3c48128d9ee3a"
+    "sig": "d65130d365482f47d7a40c9866a766649b8ab0c39a287787d8a1bb3e1cec53241e26763c8a75cd9e8bc5b89c49cf597955e5950001fd96ae492a0624f8d84e0a"
   },
   {
     "kind": 30023,
@@ -76,7 +76,7 @@
     "content": "Verantwortlich: Testquelle.",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "67deb6ca33a259ce11b5bc01e53885df714446c47f59c34cd8a1137a9f7cb24f",
-    "sig": "52ca772176de115a6c5566011cfa865b28ae5b6e7042d959b6fd3367cf11b0f39e61f35458cef55935e93560faa709ded0e5c7fdf539fc1a1bf48fad9a02a8c5"
+    "sig": "d68a49063fa275d53c2062dd4b10ab24851d1906e67d863637fa2e808fea8ceda6603c8d844eb09f1d964b7c061b4e8cb81b47078a838d05fec9453b04035440"
   },
   {
     "kind": 30023,
@@ -111,7 +111,7 @@
     "content": "Drei Menschen.",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "28d6a39fd7317127cc78fb6354e2bdc29f9c59e1864169203181bf4ee9887172",
-    "sig": "acd3a5d39e5d70271fff7355cf700803700c5df2027e1964af0a79c2ba3bd23316a3258331f2350e1a273b9d151b08848d19dba913480d672a1d4224ef2331db"
+    "sig": "88416b4b639ca59177828dfee0b7f34a49cb313eda8d13b58fde3c4e75ce214b285b017feae64c11675ab6fc2d5af32cf039b1258acb3774b63a889e30786c17"
   },
   {
     "kind": 30023,
@@ -141,12 +141,59 @@
         "l",
         "seite",
         "foerbico/typ"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:unser-team",
+        "",
+        "translation"
       ]
     ],
     "content": "Three people.",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
-    "id": "3659ab9e8b1914d5f10c6183c41394ffff842513e27850a0ea56750bffe7ca95",
-    "sig": "1433cf43e33caf393831a049beedb3246958252c17a32cea84e91c66cdfa30e82d98ddcd9da6409bdfa714bc591876683b06a8de03f6693fcd74f23738d5d8f7"
+    "id": "976b055ae7cfdf615321b021003599a3ca8c79add30e7fbe6fc560594d414f81",
+    "sig": "4054c6ff13c506a085aee5a725fecd20c46d940310e76968596ba0c28abfe0eeb5007ad565be67615bf844768bf8e82fa6e3f93447c3c2c594eb3ffc1cc6685d"
+  },
+  {
+    "kind": 30023,
+    "created_at": 1789400000,
+    "tags": [
+      [
+        "d",
+        "en/startseite"
+      ],
+      [
+        "title",
+        "Welcome"
+      ],
+      [
+        "published_at",
+        "1789400000"
+      ],
+      [
+        "inLanguage",
+        "en"
+      ],
+      [
+        "L",
+        "foerbico/typ"
+      ],
+      [
+        "l",
+        "seite",
+        "foerbico/typ"
+      ],
+      [
+        "a",
+        "30023:4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543:startseite",
+        "",
+        "translation"
+      ]
+    ],
+    "content": "Welcome to the **Testquelle**.",
+    "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
+    "id": "8e1c98fdc3397e6517345f54c2bd49abf0f1785defb5b7659ba1fde9f6f7908e",
+    "sig": "4e0e5f57b81291704bb9d501e19fe160b927ccb8756571c0caa05b2b0065645edd3e419c98645bbdc05458b4be9aef51f664134bcf6b194ac30375dd58a7fa96"
   },
   {
     "kind": 30023,
@@ -181,7 +228,7 @@
     "content": "Text von Artikel A.",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "4d822f182efae7ff83a21619611212cb2d7f0c80219dee2ccb05deceb76f13dc",
-    "sig": "17f89a37cb84df9d148f357e5009a65e40a7f67a275240822a8eefc7b2cf9acd2b4c88eecf7595ec574fc2f973a7f49181b7015c12326d558a4d223e6b7d08a1"
+    "sig": "60df408c06d6ba06c647543cfce59424b941690a624f931a47f39a5c15fa8a88611a2fd5fa7a30ebaacd794dc39b6f511200f4b25f23d1246b94e67994ce944f"
   },
   {
     "kind": 30004,
@@ -219,7 +266,7 @@
     "content": "",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "024e7da5f3075a6c66d762d7937faeb6680d21091cee38d7a781f6532dbda50b",
-    "sig": "ba9ac760849d0c44905c65b2d06920d46fc5c4960fc3b7a2148c915f05ac095c01f727d938d1b761f5008241f11b95a55644cce548d2e6dea20756eb6ef31c78"
+    "sig": "e0224334b0039c90c78387d6dc9357718cc7ad36180257170b7ab8d7767812b483719467ab92452dec7f32d9842439ebaf3f3d7b0049a2ae30081956fc90459e"
   },
   {
     "kind": 30004,
@@ -245,6 +292,6 @@
     "content": "",
     "pubkey": "4ac8e494d5af80be966f29c7aa8f5c106fbbfe04f71cf6a921755c99b4b7e543",
     "id": "c09cc28740d23abc2013d8554a2f2c9e2e4e514b0f8ace5e991ebb05a472d879",
-    "sig": "e0025fda0a9d99f088e64696bcb8919bf43a80ee9ebcdf00eb9e5bc2f8538aa2d1b93781d4a8376cd96d1682e5f9538839d114de7a7dbe920d52c8b33b0417a3"
+    "sig": "0cafd888f82001e7e25c8e3620f1fe47da79d269bb9a07d4ef6321a04e3ecd929004c52654a254c84fa58e57b2c378e2fea82fa1dfc3bc86cce9f8016add59c5"
   }
 ]

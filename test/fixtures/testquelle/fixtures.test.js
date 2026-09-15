@@ -8,13 +8,13 @@ describe('Fixtures der Testquelle', () => {
   const events = lesen('events.json');
   const { pubkey } = lesen('schluessel.json');
   it('sind gültig signiert und stammen alle vom Testschlüssel', () => {
-    expect(events.length).toBe(8);
+    expect(events.length).toBe(9);
     for (const e of events) {
       expect(verifyEvent(e)).toBe(true);
       expect(e.pubkey).toBe(pubkey);
     }
   });
   it('enthalten die Kinds, die Stufe 2 braucht', () => {
-    expect(events.map((/** @type {any} */ e) => e.kind).sort((/** @type {number} */ a, /** @type {number} */ b) => a - b)).toEqual([0, 30004, 30004, 30023, 30023, 30023, 30023, 30023]);
+    expect(events.map((/** @type {any} */ e) => e.kind).sort((/** @type {number} */ a, /** @type {number} */ b) => a - b)).toEqual([0, 30004, 30004, 30023, 30023, 30023, 30023, 30023, 30023]);
   });
 });

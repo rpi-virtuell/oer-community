@@ -13,6 +13,8 @@ const FREMD = 'b'.repeat(64);
 const ZEIT = 1789400000;
 const SEITE = [['L', 'foerbico/typ'], ['l', 'seite', 'foerbico/typ']];
 const a = (/** @type {string} */ d, pk = PUBKEY) => ['a', `30023:${pk}:${d}`];
+/** Übersetzungs-Relation (ADR-0033): a-Tag mit Marker translation. */
+const uebersetzung = (/** @type {string} */ d) => ['a', `30023:${PUBKEY}:${d}`, '', 'translation'];
 
 /** @param {number} kind @param {string[][]} tags @param {string} content */
 const ev = (kind, tags, content) => finalizeEvent({ kind, created_at: ZEIT, tags, content }, GEHEIM);
@@ -22,7 +24,8 @@ const events = [
   ev(30023, [['d', 'startseite'], ['title', 'Willkommen'], ['published_at', String(ZEIT)], ['inLanguage', 'de'], ...SEITE], 'Willkommen bei der **Testquelle**.\n\nZweiter Absatz.'),
   ev(30023, [['d', 'impressum'], ['title', 'Impressum'], ['published_at', String(ZEIT)], ['inLanguage', 'de'], ...SEITE], 'Verantwortlich: Testquelle.'),
   ev(30023, [['d', 'unser-team'], ['title', 'Unser Team'], ['published_at', String(ZEIT)], ['inLanguage', 'de'], ...SEITE], 'Drei Menschen.'),
-  ev(30023, [['d', 'our-team'], ['title', 'Our team'], ['published_at', String(ZEIT)], ['inLanguage', 'en'], ...SEITE], 'Three people.'),
+  ev(30023, [['d', 'our-team'], ['title', 'Our team'], ['published_at', String(ZEIT)], ['inLanguage', 'en'], ...SEITE, uebersetzung('unser-team')], 'Three people.'),
+  ev(30023, [['d', 'en/startseite'], ['title', 'Welcome'], ['published_at', String(ZEIT)], ['inLanguage', 'en'], ...SEITE, uebersetzung('startseite')], 'Welcome to the **Testquelle**.'),
   ev(30023, [['d', 'artikel-a'], ['title', 'Artikel A'], ['summary', 'Anriss A', 'de'], ['published_at', '1789300000'], ['inLanguage', 'de'], ['t', 'Testthema']], 'Text von Artikel A.'),
   ev(30004, [['d', 'navigation'], ['title', 'Hauptmenü'], a('unser-team'), a('oer-und-oep'), a('startseite'), a('artikel-a'), a('x', FREMD)], ''),
   ev(30004, [['d', 'fusszeile'], ['title', 'Fußzeile'], a('impressum'), a('datenschutz')], '')

@@ -14,7 +14,7 @@ describe('sitemapXml', () => {
     expect(xml).toContain('<loc>https://t/en/our-team</loc>');
     expect(xml).toContain('<loc>https://t/artikel-a</loc>');
     expect(xml).toContain('<loc>https://t/blog</loc>');
-    expect((xml.match(/<url>/g) ?? []).length).toBe(5 + 2); // 5 Beiträge der Testquelle + blog + themen
+    expect((xml.match(/<url>/g) ?? []).length).toBe(6 + 2); // 6 Beiträge der Testquelle + blog + themen
     expect(xml).toMatch(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
   });
   it('ein Beitrag auf einem festen Segment kommt nicht zweimal vor', () => {
