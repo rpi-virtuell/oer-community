@@ -6,11 +6,13 @@
 import { error, redirect } from '@sveltejs/kit';
 import { beitragLaden } from '../loaders/beitrag.js';
 import { artikelAusSpiegel } from '../loaders/artikel.js';
+import { gegenstueck } from '../loaders/uebersetzungen.js';
 import { adressePruefen } from '../models/adresse.js';
-import { beitragsPfad } from '../models/artikel.js';
+import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { befundErstellen } from '../models/entwickleransicht.js';
 import { leerstandMeldung } from '../models/leerstand.js';
 import { naddrDekodieren } from '../naddr.js';
+import { startPfad } from '../sprache.js';
 
 /**
  * Ist das Segment ein naddr der eigenen Quelle, kommt der Zielpfad zurück
@@ -45,15 +47,19 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
   const ziel = naddrWeiterleitung(d, konfig, inhalt);
   if (ziel) redirect(301, ziel + anhang);
 
-  // Die Startseite wohnt unter / — zwei Adressen für denselben Text wären
-  // eine zu viel (bis Stufe 4 die Seitenroute bringt). Die JSON-Route bleibt
-  // erreichbar: sie ist die Entwickleransicht, keine zweite Leseadresse.
-  if (d === konfig.startseiteD && !anhang && !istStartseite) redirect(301, '/');
+  // Die Startseite je Sprache wohnt unter / bzw. /en — zwei Adressen für
+  // denselben Text wären eine zu viel. Die JSON-Route bleibt erreichbar: sie
+  // ist die Entwickleransicht, keine zweite Leseadresse.
+  if (d === konfig.startseiteD && !anhang && !istStartseite) redirect(301, startPfad(sprache));
 
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);
 
-  const adresse = { kind: 30023, author: konfig.autor, d, relays: [] };
+  // Englische d tragen das Präfix en/ (ADR-0033); Altbestand ohne Präfix
+  // bleibt erreichbar — deshalb zwei Kandidaten, der erste Treffer zählt.
+  const kandidaten = sprache === 'en' ? [`en/${d}`, d] : [d];
+  const gefunden = kandidaten.find((k) => artikelAusSpiegel(inhalt, { d: k }).artikel) ?? d;
+  const adresse = { kind: 30023, author: konfig.autor, d: gefunden, relays: [] };
   const ergebnis = await beitragLaden({ adresse, konfig, inhalt });
   if (!ergebnis.ok) error(ergebnis.status, ergebnis.meldung);
 
@@ -61,6 +67,16 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
   // In der falschen Sprache aufgerufen: dorthin, wo der Beitrag wohnt — für
   // /[d]/json auf die dortige JSON-Adresse.
   if (artikel.sprache !== sprache) redirect(301, beitragsPfad(artikel) + anhang);
+
+  // Das Gegenstück in der anderen Sprache trägt den Umschalter (ADR-0033);
+  // wohnt es auf einer Startseite, ist sein Pfad / bzw. /en, nicht sein d.
+  const gegen = gegenstueck(inhalt, artikel);
+  const uebersetzung = gegen
+    ? {
+        pfad: istStartseitenD(gegen.d, konfig.startseiteD) ? startPfad(gegen.sprache) : beitragsPfad(gegen),
+        sprache: gegen.sprache
+      }
+    : null;
 
   const befund = befundErstellen({
     artikelEvent: ergebnis.artikelEvent, artikelAbfrage: ergebnis.artikelAbfrage,
@@ -82,6 +98,11 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
       lizenz: ergebnis.lizenz, teile: ergebnis.teile, fliesstext: ergebnis.fliesstext,
       entfernteBilder: ergebnis.entfernteBilder, befund,
       pfad: beitragsPfad(artikel),
+      // Das d, das wirklich gerendert wurde — unter /en/ kann das Präfix
+      // hinzugekommen sein; die Entwickleransicht meldet dieses (ADR-0033).
+      d: gefunden,
+      sprache: artikel.sprache,
+      uebersetzung,
       stand: inhalt.stand ? { zeitpunkt: inhalt.stand.zeitpunkt, nichtErreichbar: inhalt.stand.nichtErreichbar } : null
     },
     ergebnis

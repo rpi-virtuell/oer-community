@@ -197,9 +197,43 @@ describe('/', () => {
   });
 });
 
-describe('/en', () => {
-  it('leitet dauerhaft auf / weiter', async () => {
-    await expect(lade('../src/routes/en/+page.server.js', {})).rejects.toMatchObject({ status: 301, location: '/' });
+describe('/en (ADR-0033)', () => {
+  it('zeigt die englische Startseite en/startseite', async () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const data = await lade('../src/routes/en/+page.server.js', {}, inhalt, konfig.autor);
+    expect(data.artikel.titel).toBe('Welcome');
+    expect(data.sprache).toBe('en');
+    expect(data.uebersetzung).toEqual({ pfad: '/', sprache: 'de' });
+  });
+
+  it('leitet ohne englische Startseite auf / weiter', async () => {
+    const { inhalt, konfig } = inhaltDerTestquelle({ ohne: [{ kind: 30023, d: 'en/startseite' }] });
+    await expect(
+      lade('../src/routes/en/+page.server.js', {}, inhalt, konfig.autor)
+    ).rejects.toMatchObject({ status: 302, location: '/' });
+  });
+
+  it('/en/startseite leitet auf /en', async () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    await expect(
+      lade('../src/routes/en/[d]/+page.server.js', { d: 'startseite' }, inhalt, konfig.autor)
+    ).rejects.toMatchObject({ status: 301, location: '/en' });
+  });
+
+  it('/en/our-team findet den englischen Beitrag ohne Präfix und nennt das Gegenstück', async () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const data = await lade('../src/routes/en/[d]/+page.server.js', { d: 'our-team' }, inhalt, konfig.autor);
+    expect(data.artikel.titel).toBe('Our team');
+    expect(data.uebersetzung).toEqual({ pfad: '/unser-team', sprache: 'de' });
+  });
+
+  it('/unser-team nennt sein englisches Gegenstück; /en/unser-team leitet dorthin, wo der Beitrag wohnt', async () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const de = await lade('../src/routes/[d]/+page.server.js', { d: 'unser-team' }, inhalt, konfig.autor);
+    expect(de.uebersetzung).toEqual({ pfad: '/en/our-team', sprache: 'en' });
+    await expect(
+      lade('../src/routes/en/[d]/+page.server.js', { d: 'unser-team' }, inhalt, konfig.autor)
+    ).rejects.toMatchObject({ status: 301, location: '/unser-team' });
   });
 });
 

@@ -1,3 +1,5 @@
+import { zielAusKoordinate } from './liste.js';
+
 /**
  * Ein Nostr-Event, so wie es vom Relay kommt.
  *
@@ -29,12 +31,33 @@
  * @property {string} inhalt          rohes Markdown
  * @property {'de'|'en'} sprache      aus dem inLanguage-Tag, Standard de
  * @property {boolean} istSeite       Selbst-Label NIP-32 foerbico/typ = seite
+ * @property {string[]} uebersetzungen  d der Gegenstücke aus a-Tags mit Marker translation (ADR-0033)
  */
 
 /**
  * Selbst-Label, das eine Seite von einem Artikel unterscheidet (ADR-0027, NIP-32).
  */
 export const SEITEN_LABEL = { namensraum: 'foerbico/typ', wert: 'seite' };
+
+/** Marker des a-Tags, das auf die Übersetzung eines Beitrags zeigt (ADR-0033). */
+export const UEBERSETZUNG_MARKER = 'translation';
+
+/**
+ * Die d der Übersetzungen: `["a", "30023:<pubkey>:<d>", "<relay>", "translation"]`.
+ * Nur Ziele derselben Quelle und derselben Art (30023) zählen — eine
+ * Übersetzung bei einem anderen Autor wäre ein fremder Text.
+ * @param {string[][]} tags @param {string} pubkey @returns {string[]}
+ */
+function uebersetzungenAus(tags, pubkey) {
+  /** @type {string[]} */
+  const ds = [];
+  for (const t of tags) {
+    if (t[0] !== 'a' || !t[1] || t[3] !== UEBERSETZUNG_MARKER) continue;
+    const ziel = zielAusKoordinate(t[1]);
+    if (ziel && ziel.kind === 30023 && ziel.pubkey === pubkey.toLowerCase()) ds.push(ziel.d);
+  }
+  return ds;
+}
 
 /**
  * Vergleichsform eines `d`: Drei Live-Artikel tragen das Prozentzeichen
@@ -107,18 +130,34 @@ export function artikelAusEvent(event) {
     sprache: spracheAus(tagWert(tags, 'inLanguage')),
     istSeite: tags.some(
       (t) => t[0] === 'l' && t[1] === SEITEN_LABEL.wert && t[2] === SEITEN_LABEL.namensraum
-    )
+    ),
+    uebersetzungen: uebersetzungenAus(tags, event.pubkey)
   };
 }
 
 /**
- * Der Pfad eines Beitrags im Hub — sein d, für englische Inhalte unter /en/
- * (ADR-0029). Die Adresse ist der Hugo-Pfad, kein naddr.
+ * Der Pfad eines Beitrags im Hub — `/` + d (ADR-0029). Englische Inhalte
+ * tragen ihr d mit Präfix `en/` wie ihren Hugo-Pfad (ADR-0033); ein
+ * englischer Beitrag ohne Präfix (Altbestand) wohnt ebenfalls unter /en/.
  *
  * @param {{ d: string, sprache: 'de'|'en' }} beitrag
  * @returns {string}
  */
 export function beitragsPfad(beitrag) {
-  const d = encodeURIComponent(dNormalisieren(beitrag.d));
-  return beitrag.sprache === 'en' ? `/en/${d}` : `/${d}`;
+  const d = dNormalisieren(beitrag.d);
+  if (d.startsWith('en/')) return `/en/${encodeURIComponent(d.slice(3))}`;
+  return beitrag.sprache === 'en' ? `/en/${encodeURIComponent(d)}` : `/${encodeURIComponent(d)}`;
+}
+
+/**
+ * Ist dieses d die Startseite einer Sprache? Sie wohnt unter / bzw. /en und
+ * nicht unter ihrem d (ADR-0029, ADR-0033) — englische Startseiten tragen
+ * dasselbe d mit dem Präfix `en/`.
+ *
+ * @param {string} d
+ * @param {string} startseiteD
+ * @returns {boolean}
+ */
+export function istStartseitenD(d, startseiteD) {
+  return d === startseiteD || d === `en/${startseiteD}`;
 }

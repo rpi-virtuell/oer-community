@@ -40,7 +40,8 @@ export async function detailAlsJson({ d, sprache, konfig, inhalt }) {
       hinweis:
         'Entwickleransicht. Der Lizenznachweis (kind:1063) ist ein eigenes ' +
         'Event und steht nicht im Artikel (kind:30023) — siehe ADR-0013.',
-      adresse: { d, pfad: seite.pfad },
+      // Das aufgelöste d, nicht das angefragte: gemeldet wird, was gerendert wurde.
+      adresse: { d: seite.d, pfad: seite.pfad },
       artikel: seite.befund.artikel,
       lizenz: seite.befund.lizenz,
       kette: seite.befund.kette,

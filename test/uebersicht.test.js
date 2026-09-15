@@ -148,3 +148,20 @@ describe('/blog/seite/[n]', () => {
     expect(head).toContain('<link rel="canonical" href="https://test.example/blog/seite/2"');
   });
 });
+
+describe('strukturFuerLayout je Sprache (ADR-0033)', () => {
+  it('unter en: Menü und Fußzeile auf Gegenstücke, sonst der deutsche Eintrag; Hub-Ansichten übersetzt', () => {
+    const { inhalt, konfig } = inhaltDerTestquelle();
+    const en = strukturFuerLayout({ konfig, inhalt, origin: 'http://x', sprache: 'en' });
+    expect(en.sprache).toBe('en');
+    expect(en.zweisprachig).toBe(true);
+    expect(en.menue.find((e) => e.pfad === '/en/our-team')?.titel).toBe('Our team');
+    expect(en.menue.some((e) => e.pfad === '/unser-team')).toBe(false);
+    expect(en.menue.find((e) => e.pfad === '/artikel-a')?.titel).toBe('Artikel A');
+    expect(en.menue.map((e) => e.titel)).toContain('Topics');
+    expect(en.fusszeilenLinks.find((e) => e.d === 'impressum')?.pfad).toBe('/impressum');
+    const de = strukturFuerLayout({ konfig, inhalt, origin: 'http://x' });
+    expect(de.sprache).toBe('de');
+    expect(de.menue.map((e) => e.titel)).toContain('Themen');
+  });
+});

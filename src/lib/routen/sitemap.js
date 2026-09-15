@@ -3,9 +3,10 @@
  * die zwei Ansichten des Hubs selbst (/blog, /themen).
  */
 import { error } from '@sveltejs/kit';
-import { artikelAusEvent, beitragsPfad } from '../models/artikel.js';
+import { artikelAusEvent, beitragsPfad, istStartseitenD } from '../models/artikel.js';
 import { FESTE_SEGMENTE } from '../models/feste-segmente.js';
 import { leerstandMeldung } from '../models/leerstand.js';
+import { startPfad } from '../sprache.js';
 import { kanonisch } from './struktur.js';
 import { xmlEscape } from './xml.js';
 
@@ -29,7 +30,12 @@ export function sitemapXml({ konfig, inhalt, basisUrl }) {
     .map((e) => artikelAusEvent(e))
     .filter((a) => !FESTE_SEGMENTE.includes(a.d))
     .map((a) => ({
-      loc: kanonisch(basisUrl, a.d === konfig.startseiteD ? '/' : beitragsPfad(a)),
+      // Jede Sprache hat ihre Startseite unter / bzw. /en (ADR-0033); ihr d
+      // leitete nur dorthin weiter und gehört deshalb nicht in die Sitemap.
+      loc: kanonisch(
+        basisUrl,
+        istStartseitenD(a.d, konfig.startseiteD) ? startPfad(a.sprache) : beitragsPfad(a)
+      ),
       lastmod: tag(a.veroeffentlicht)
     }));
   eintraege.push(

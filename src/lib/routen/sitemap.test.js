@@ -10,11 +10,15 @@ describe('sitemapXml', () => {
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
     expect(xml).toContain('<loc>https://t/</loc>');
     expect(xml).not.toContain('<loc>https://t/startseite</loc>');
+    // Die englische Startseite wohnt unter /en (ADR-0033) — ihr d gehört
+    // nicht in die Sitemap, es leitete nur weiter.
+    expect((xml.match(/<loc>https:\/\/t\/en<\/loc>/g) ?? []).length).toBe(1);
+    expect(xml).not.toContain('<loc>https://t/en/startseite</loc>');
     expect(xml).toContain('<loc>https://t/impressum</loc>');
     expect(xml).toContain('<loc>https://t/en/our-team</loc>');
     expect(xml).toContain('<loc>https://t/artikel-a</loc>');
     expect(xml).toContain('<loc>https://t/blog</loc>');
-    expect((xml.match(/<url>/g) ?? []).length).toBe(5 + 2); // 5 Beiträge der Testquelle + blog + themen
+    expect((xml.match(/<url>/g) ?? []).length).toBe(6 + 2); // 6 Beiträge der Testquelle + blog + themen
     expect(xml).toMatch(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
   });
   it('ein Beitrag auf einem festen Segment kommt nicht zweimal vor', () => {

@@ -204,7 +204,9 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   durch Redaktionsdaten.
 - **Die Startseite hat eine Adresse: `/`.** `/[d]` mit dem `d` der
   Startseite leitet dauerhaft dorthin; nur `/[d]/json` bleibt als
-  Entwickleransicht erreichbar.
+  Entwickleransicht erreichbar. Die englische Startseite ist
+  `en/<STARTSEITE_D>` unter `/en` (ADR-0033); fehlt sie, leitet `/en`
+  vorläufig (302) auf `/`.
 - **Werte kopieren, nie verlinken.** Kein WordPress-Stylesheet und keine
   Farbkarte zur Laufzeit laden — sonst wäre WordPress Voraussetzung statt
   überflüssig.
@@ -265,8 +267,14 @@ Ausnahme ist, was der Nostr-Spezifikation gehört: `kind`, `tags`, `naddr`,
 `d`, `h`, `t`, `published_at`, `start`, `end`. Diese Namen bleiben englisch,
 auch in eigenen Funktionen.
 
-Keine Mehrsprachigkeit, kein Paraglide/inlang — relilab.org ist einsprachig
-deutsch, Nachrüsten ist möglich.
+**Zwei Sprachen, eine Tabelle** (ADR-0033): Deutsch ist die Grundsprache,
+englische Inhalte wohnen unter `/en/…` — ihr `d` beginnt wie der Hugo-Pfad
+mit `en/`. Die Oberflächentexte des Hubs stehen in `src/lib/sprache.js`
+(Deutsch und Englisch), kein Paraglide/inlang. Übersetzungen sind `a`-Tags
+mit Marker `translation` (aus `workTranslation`/`translationOfWork` im
+Frontmatter); der Umschalter DE | EN führt auf das Gegenstück, sonst auf
+`/` bzw. `/en`. Neue Chrome-Texte kommen in die Tabelle, nie als zweites
+Literal in eine Komponente.
 
 ## Technik
 

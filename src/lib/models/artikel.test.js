@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { artikelAusEvent, beitragsPfad, dNormalisieren } from './artikel.js';
+import { artikelAusEvent, beitragsPfad, dNormalisieren, istStartseitenD } from './artikel.js';
 
 const referenz = JSON.parse(
   readFileSync(
@@ -107,6 +107,34 @@ describe('Sprache, Seite und Pfad (Spec 14.09.)', () => {
     expect(beitragsPfad({ d: 'oer-visuelle-qualit%C3%A4t', sprache: 'de' })).toBe(
       '/oer-visuelle-qualit%C3%A4t'
     );
+  });
+});
+
+describe('Übersetzungen und Adressen (ADR-0033)', () => {
+  const PK = 'a'.repeat(64);
+  const ev = (/** @type {string[][]} */ tags) => /** @type {any} */ ({ id: 'x', pubkey: PK, created_at: 1, kind: 30023, tags, content: '', sig: '' });
+
+  it('liest die d der Gegenstücke aus a-Tags mit Marker translation — nur eigene 30023', () => {
+    const a = artikelAusEvent(ev([['d', 'tagungen'], ['inLanguage', 'de'],
+      ['a', `30023:${PK}:en/conference`, '', 'translation'],
+      ['a', `30023:${'b'.repeat(64)}:fremd`, '', 'translation'],
+      ['a', `30142:${PK}:tagungen`, 'wss://amb/', 'amb-metadata'],
+      ['a', `30023:${PK}:ohne-marker`]]));
+    expect(a.uebersetzungen).toEqual(['en/conference']);
+  });
+
+  it('istStartseitenD: das d der Startseite, mit und ohne en/-Präfix', () => {
+    expect(istStartseitenD('startseite', 'startseite')).toBe(true);
+    expect(istStartseitenD('en/startseite', 'startseite')).toBe(true);
+    expect(istStartseitenD('our-team', 'startseite')).toBe(false);
+    expect(istStartseitenD('en/our-team', 'startseite')).toBe(false);
+  });
+
+  it('beitragsPfad: en/-Präfix wird zur /en/-Adresse, Sprache en ohne Präfix ebenso, sonst /d', () => {
+    expect(beitragsPfad({ d: 'en/conference', sprache: 'en' })).toBe('/en/conference');
+    expect(beitragsPfad({ d: 'our-team', sprache: 'en' })).toBe('/en/our-team');
+    expect(beitragsPfad({ d: 'tagungen', sprache: 'de' })).toBe('/tagungen');
+    expect(beitragsPfad({ d: 'en/oer-visuelle-qualit%C3%A4t', sprache: 'en' })).toBe('/en/oer-visuelle-qualit%C3%A4t');
   });
 });
 

@@ -37,8 +37,10 @@ function seitendaten(abweichung = {}) {
       themen: ['OER', 'Community'],
       // Zu 'kein-nachweis' gehört eine Bildadresse — ohne sie wäre der Grund
       // 'kein-bild'. Seit ADR-0022 wird das Bild damit auch ausgeliefert.
-      bildUrl: 'https://blossom.edufeed.org/abc.jpeg'
+      bildUrl: 'https://blossom.edufeed.org/abc.jpeg',
+      sprache: 'de'
     },
+    uebersetzung: null,
     lizenz: { ok: false, grund: 'kein-nachweis' },
     teile: [{ art: 'html', html: '<p>Absatz.</p>' }],
     fliesstext: {},
@@ -100,6 +102,24 @@ describe('Kopfzeile', () => {
     });
     expect(body).not.toContain('<img');
     expect(body).toContain('Community-Hub');
+  });
+
+  it('zeigt den Umschalter DE | EN nur zweisprachig; die aktuelle Sprache ist kein Link (ADR-0033)', () => {
+    const de = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, zweisprachig: true, sprache: 'de', wechselPfad: '/en/our-team' } }).body;
+    expect(de).toMatch(/<a[^>]+href="\/en\/our-team"[^>]+hreflang="en"[^>]*>EN<\/a>/);
+    expect(de).toMatch(/aria-current="true"[^>]*>DE</);
+    const en = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, zweisprachig: true, sprache: 'en', wechselPfad: '/' } }).body;
+    expect(en).toMatch(/<a[^>]+href="\/"[^>]+hreflang="de"[^>]*>DE<\/a>/);
+    expect(en).toContain('aria-label="Language"');
+    const einsprachig = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN } }).body;
+    expect(einsprachig).not.toContain('hreflang=');
+  });
+
+  it('die Wortmarke führt auf die Startseite der Sprache (ADR-0033)', () => {
+    const en = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, sprache: 'en' } }).body;
+    expect(en).toMatch(/<a href="\/en" class="marke[ "]/);
+    const de = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN } }).body;
+    expect(de).toMatch(/<a href="\/" class="marke[ "]/);
   });
 });
 
@@ -469,12 +489,40 @@ describe('Artikelseite', () => {
     expect(body).toContain('Comenius-Institut');
   });
 
+  it('englischer Beitrag: Datum englisch, Lizenzpille englisch, hreflang auf das Gegenstück (ADR-0033)', () => {
+    const { body, head } = render(Artikelseite, {
+      props: {
+        data: seitendaten({
+          artikel: { ...seitendaten().artikel, sprache: 'en' },
+          uebersetzung: { pfad: '/die-kraft-der-gemeinschaft', sprache: 'de' },
+          pfad: '/en/the-power-of-community'
+        }),
+        wortmarke: 'T',
+        basisUrl: 'https://oer.community'
+      }
+    });
+    expect(body).toContain('Licence unclear');
+    expect(body).not.toContain('Lizenz ungeklärt');
+    expect(body).toMatch(/<time[^>]*>\d{1,2} September 2026<\/time>/);
+    // Absolut, sonst wertet keine Suchmaschine die Alternate aus — und mit
+    // Selbstverweis, weil ein Alternate-Paar beide Seiten nennen muss.
+    expect(head).toContain(
+      '<link rel="alternate" hreflang="de" href="https://oer.community/die-kraft-der-gemeinschaft"'
+    );
+    expect(head).toContain(
+      '<link rel="alternate" hreflang="en" href="https://oer.community/en/the-power-of-community"'
+    );
+    const de = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } });
+    expect(de.head).not.toContain('hreflang=');
+    expect(de.body).toContain('Lizenz ungeklärt');
+  });
+
   it('erklärt die aus dem Fließtext entfernten Bildverweise', () => {
     const { body } = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'Testquelle' } });
     expect(body).toContain('nosTr-schrein.jpg');
     // Der Grund ist ADR-0015 (kein Nachweis), nicht der Pfad: absolute
     // Blossom-Verweise werden genauso entfernt wie relative.
-    expect(body).toContain('keinen Lizenznachweis');
+    expect(body).toContain('ohne Lizenznachweis');
     expect(body).not.toContain('alten Website');
   });
 

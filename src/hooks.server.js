@@ -10,10 +10,21 @@
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { spiegelBereit, spiegelStarten } from '$lib/services/spiegel.js';
+import { spracheAusPfad } from '$lib/sprache.js';
 
 /** @type {import('@sveltejs/kit').ServerInit} */
 export async function init() {
   spiegelStarten(konfigLesen(env));
   // Erst antworten, wenn der erste Lauf durch ist oder die Frist verstrich.
   await spiegelBereit();
+}
+
+/**
+ * `<html lang>` je Antwort aus der Sprache der Adresse (ADR-0033) — der
+ * Platzhalter %lang% in app.html wird hier gefüllt.
+ * @type {import('@sveltejs/kit').Handle}
+ */
+export async function handle({ event, resolve }) {
+  const lang = spracheAusPfad(event.url.pathname);
+  return resolve(event, { transformPageChunk: ({ html }) => html.replace('%lang%', lang) });
 }
