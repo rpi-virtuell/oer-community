@@ -13,7 +13,7 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 **Passiert:** ADR-0033. Englische Inhalte tragen ihr `d` mit Präfix `en/`
 (wie der Hugo-Pfad) und wohnen unter `/en/…`; Altbestand ohne Präfix bleibt
-unter `/en/<d>` erreichbar, `/en/en/<d>` leitet auf `/en/<d>`. Übersetzungen
+unter `/en/<d>` erreichbar. Übersetzungen
 kommen als `a`-Tag mit Marker `translation` (schema.org
 `workTranslation`/`translationOfWork` im Frontmatter, mdparser 63ff6f0
 emittiert es); `loaders/uebersetzungen.js` macht die Zuordnung symmetrisch.

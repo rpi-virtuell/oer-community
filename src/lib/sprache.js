@@ -28,11 +28,6 @@ export function startPfad(sprache) {
  * @typedef {object} Texte
  * @property {string} blog
  * @property {string} themen
- * @property {string} neuere
- * @property {string} aeltere
- * @property {(n: number, m: number) => string} seiteVon
- * @property {string} seiten
- * @property {string} keinBeitrag
  * @property {string} lizenzUngeklaert
  * @property {string} bildNichtAngezeigt
  * @property {(n: number) => string} entfernteBilder
@@ -47,11 +42,6 @@ export const TEXTE = {
   de: {
     blog: 'Blog',
     themen: 'Themen',
-    neuere: '← Neuere',
-    aeltere: 'Ältere →',
-    seiteVon: (n, m) => `Seite ${n} von ${m}`,
-    seiten: 'Seiten',
-    keinBeitrag: 'Hier gibt es noch keinen Beitrag.',
     lizenzUngeklaert: 'Lizenz ungeklärt',
     bildNichtAngezeigt: 'Bild nicht angezeigt.',
     entfernteBilder: (n) =>
@@ -64,11 +54,6 @@ export const TEXTE = {
   en: {
     blog: 'Blog',
     themen: 'Topics',
-    neuere: '← Newer',
-    aeltere: 'Older →',
-    seiteVon: (n, m) => `Page ${n} of ${m}`,
-    seiten: 'Pages',
-    keinBeitrag: 'Nothing here yet.',
     lizenzUngeklaert: 'Licence unclear',
     bildNichtAngezeigt: 'Image not shown.',
     entfernteBilder: (n) =>

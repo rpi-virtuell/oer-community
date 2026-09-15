@@ -52,10 +52,6 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
   // ist die Entwickleransicht, keine zweite Leseadresse.
   if (d === konfig.startseiteD && !anhang && !istStartseite) redirect(301, startPfad(sprache));
 
-  // /en/en/<d>: das Präfix gehört ins d, nicht in die Adresse — sonst stünde
-  // derselbe Beitrag unter zwei Adressen (ADR-0033).
-  if (sprache === 'en' && d.startsWith('en/')) redirect(301, beitragsPfad({ d, sprache: 'en' }) + anhang);
-
   const leer = leerstandMeldung(inhalt, konfig);
   if (leer) error(503, leer);
 

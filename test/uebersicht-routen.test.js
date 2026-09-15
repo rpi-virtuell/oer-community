@@ -220,13 +220,6 @@ describe('/en (ADR-0033)', () => {
     ).rejects.toMatchObject({ status: 301, location: '/en' });
   });
 
-  it('/en/en/<d> — das Präfix doppelt sich nicht, es wird auf /en/<d> weitergeleitet', async () => {
-    const { inhalt, konfig } = inhaltDerTestquelle();
-    await expect(
-      lade('../src/routes/en/[d]/+page.server.js', { d: 'en/startseite' }, inhalt, konfig.autor)
-    ).rejects.toMatchObject({ status: 301, location: '/en/startseite' });
-  });
-
   it('/en/our-team findet den englischen Beitrag ohne Präfix und nennt das Gegenstück', async () => {
     const { inhalt, konfig } = inhaltDerTestquelle();
     const data = await lade('../src/routes/en/[d]/+page.server.js', { d: 'our-team' }, inhalt, konfig.autor);

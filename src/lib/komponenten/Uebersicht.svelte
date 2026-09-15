@@ -1,5 +1,7 @@
 <script>
   import Karte from './Karte.svelte';
+  // Übersichten gibt es nur deutsch (ADR-0033, Punkt 5); Texte deshalb
+  // bewusst als Literal.
   /** @type {{ karten: import('$lib/loaders/uebersicht.js').Karte[], seite: number, seiten: number, basis: string, ueberschrift: string, hinweis?: string|null }} */
   let { karten, seite, seiten, basis, ueberschrift, hinweis = null } = $props();
   const pfad = (/** @type {number} */ n) => (n <= 1 ? basis : `${basis}/seite/${n}`);

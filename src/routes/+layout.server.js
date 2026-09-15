@@ -12,7 +12,6 @@ export function load({ url }) {
   // Die Sprache der Adresse: /en und /en/… sind Englisch (ADR-0033).
   const sprache = spracheAusPfad(url.pathname);
   return {
-    sprache,
     spiegelstand: {
       zeitpunkt: inhalt.stand?.zeitpunkt ?? null,
       // Nur wenn der letzte Lauf scheiterte, ist das Alter eine Nachricht (CLAUDE.md).

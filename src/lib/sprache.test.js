@@ -18,8 +18,6 @@ describe('sprache.js (ADR-0033)', () => {
     expect(t('de', 'themen')).toBe('Themen');
     expect(t('en', 'themen')).toBe('Topics');
     expect(t('en', 'lizenzUngeklaert')).toBe('Licence unclear');
-    expect(t('en', 'seiteVon', 2, 3)).toBe('Page 2 of 3');
-    expect(t('de', 'seiteVon', 2, 3)).toBe('Seite 2 von 3');
     // Jeder deutsche Schlüssel hat ein englisches Gegenstück.
     expect(Object.keys(TEXTE.en).sort()).toEqual(Object.keys(TEXTE.de).sort());
   });

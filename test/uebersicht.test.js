@@ -71,7 +71,6 @@ describe('/themen', () => {
     const { body } = render(ThemenSeite, {
       props: {
         data: {
-          sprache: 'de',
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           themen: [{ name: 'Lizenzen', slug: 'lizenzen', anzahl: 5 }]
@@ -87,7 +86,6 @@ describe('/themen', () => {
     const { head } = render(ThemenSeite, {
       props: {
         data: {
-          sprache: 'de',
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
           struktur: { ...strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }), wortmarke: 'Testquelle' },
           themen: []
@@ -101,7 +99,6 @@ describe('/themen', () => {
     const { head } = render(ThemenSeite, {
       props: {
         data: {
-          sprache: 'de',
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           themen: []
@@ -114,7 +111,6 @@ describe('/themen', () => {
 
 /** Übersichtsdaten, wie die load-Funktionen sie liefern. @param {Partial<any>} ab */
 const uebersichtsdaten = (ab = {}) => ({
-  sprache: /** @type {const} */ ('de'),
   spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
   struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
   karten: [], seite: 1, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null, ...ab
@@ -143,7 +139,6 @@ describe('/blog/seite/[n]', () => {
     const { head } = render(BlogSeitePage, {
       props: {
         data: {
-          sprache: 'de',
           spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           karten: [], seite: 2, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null
