@@ -25,7 +25,7 @@ aus der Community (0034).
 | [0008](0008-relay-edufeed-mit-spiegel.md) | Edufeed-Relays nutzen und spiegeln, statt eigenes Relay aufzusetzen | angenommen |
 | [0009](0009-applesauce-und-mcp.md) | Applesauce für alle Nostr-Operationen, MCP-Server als Entwicklungsquelle | angenommen |
 | [0010](0010-redaktionelle-inhalte-blossom-lizenzen.md) | Exemplarische Inhalte redaktionell neu einstellen, Bilder auf Blossom mit Lizenznachweis | angenommen |
-| [0011](0011-projektname-community-hub.md) | Das Projekt heißt community-hub, nicht relilab-client | angenommen |
+| [0011](0011-projektname-community-hub.md) | Das Projekt heißt community-hub, nicht relilab-client | angenommen, Name seit 15.09. oer-community |
 | [0012](0012-foerbico-als-erste-datenquelle.md) | FOERBICO ist die erste Datenquelle, nicht der relilab-Bot | angenommen |
 | [0013](0013-bildlizenz-aufloesung.md) | Bildlizenz über mehrere Relays auflösen; ohne Nachweis kein Bild | angenommen, teils ersetzt |
 | [0014](0014-architekturregeln-werden-geprueft.md) | Architekturregeln werden automatisch geprüft, nicht nur aufgeschrieben | angenommen |

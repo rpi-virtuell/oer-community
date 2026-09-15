@@ -34,4 +34,6 @@ steps:
         # vorgeschaltete Befehle kommen nicht an (Pipelines 4 und 5, 14.09.2026).
         # Das Skript zieht per `git pull` den Branch, auf dem das Server-Repo
         # steht — derzeit `succesful-deployment`. Siehe docs/betrieb.md.
+        # Server-Verzeichnis und Unit heißen noch community-hub — bis Ludger
+        # sie mit der Adresse auf oer-community umstellt (15.09.2026).
         - ~/ServerSetup/scripts/deploy-app.sh community-hub

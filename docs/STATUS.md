@@ -9,6 +9,22 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-15 — Repository heißt oer-community
+
+**Passiert:** Auf Forgejo umbenannt (`Comenius-Institut/oer-community`,
+alte Adresse leitet 301 weiter), lokales Remote umgestellt, `package.json`,
+CLAUDE.md, ADR-0011-Status und ADR-Index nachgezogen. Der Deploy-Aufruf
+`deploy-app.sh community-hub` und die Dev-Adresse bleiben, bis Ludger
+Server-Verzeichnis, Unit und DNS auf `oer-community` umstellt.
+
+**Wo steht das Projekt:** Woodpecker zeigt für Repo 13 noch den alten
+Namen; ob Webhook und Clone nach der Umbenennung greifen, zeigt die
+Pipeline dieses Pushes.
+
+**Nächster Schritt:** Ludger: Server-Verzeichnis und Unit umbenennen,
+`oer-community.rpi-virtuell.net` anlegen; danach `.woodpecker.yml` und
+`docs/betrieb.md` anpassen.
+
 ## 2026-09-15 — Kalender aus der Community (ADR-0034)
 
 **Passiert:** Die Besprechung (Jörg, Gina, Ludger) hat drei Dinge

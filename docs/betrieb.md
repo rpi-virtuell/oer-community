@@ -1,6 +1,11 @@
 # Betrieb
 
-## Dev-Umgebung: `community-hub.rpi-virtuell.net`
+## Dev-Umgebung
+
+**Repository seit 15.09.2026: `Comenius-Institut/oer-community`** (umbenannt aus
+`community-hub`; Forgejo leitet die alte Adresse weiter, Woodpecker hängt am
+Repository, nicht am Namen). Server-Verzeichnis, Unit und Dev-Adresse heißen
+weiter `community-hub`, bis Ludger sie umstellt.: `community-hub.rpi-virtuell.net`
 
 Jeder Push auf `main` löst die Woodpecker-Pipeline aus (`.woodpecker.yml`):
 `pnpm install`, `pnpm check`, `pnpm test`, `pnpm build`, dann per SSH als

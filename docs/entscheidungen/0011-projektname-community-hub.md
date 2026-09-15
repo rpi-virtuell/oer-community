@@ -1,6 +1,6 @@
 # ADR-0011: Das Projekt heißt community-hub, nicht relilab-client
 
-**Status:** angenommen (2026-09-03)
+**Status:** angenommen (2026-09-03) · Name seit 2026-09-15 `oer-community` (Besprechung, ADR-0034); der Grundsatz „eigener Name, nicht relilab" gilt weiter
 **Beteiligte:** Jörg
 
 ## Kontext

@@ -1,4 +1,4 @@
-# community-hub
+# oer-community (vormals community-hub)
 
 Lesender Client, der oer.community vollständig aus Nostr-Events rendert
 (ADR-0026). Begonnen als relilab-Schaufenster; relilab ist seit ADR-0026
@@ -17,9 +17,16 @@ Datei ist zu korrigieren. **Neue Festlegungen aus Besprechungen werden ADRs**
 (Vorlage: `docs/entscheidungen/TEMPLATE.md`), auch mit Status „offen".
 Farben, Schriften, Abstände: `docs/designsystem.md` (FOERBICO, ADR-0031).
 
-**Zum Namen:** Das Projekt hieß `relilab-client` und heißt seit ADR-0011
-`community-hub`. Ältere ADRs sprechen noch vom alten Namen — angenommene
-ADRs werden nicht umgeschrieben. **relilab bleibt** als dokumentierte,
+**Zum Namen:** Das Projekt hieß `relilab-client`, seit ADR-0011
+`community-hub` und seit dem 15.09.2026 `oer-community` (Besprechung mit
+Gina und Ludger, festgehalten in ADR-0034): Zuerst wird das
+oer.community-Schaufenster fertig gebaut, der eigentliche Community-Hub
+folgt später auf diesen Erfahrungen. Repository:
+`git.rpi-virtuell.de/Comenius-Institut/oer-community` (die alte Adresse
+leitet weiter). Die Dev-Adresse `community-hub.rpi-virtuell.net` und das
+Deploy-Skript (`deploy-app.sh community-hub`) behalten den alten Namen,
+bis Ludger Server und DNS umstellt. Ältere ADRs sprechen noch von den
+alten Namen — angenommene ADRs werden nicht umgeschrieben. **relilab bleibt** als dokumentierte,
 nicht betriebene Quelle (ADR-0012); die Farbtoken sind seit ADR-0031
 FOERBICO, nicht mehr relilab. Umbenannt wurde nur der Projektname.
 Die **Wortmarke** in Kopf- und Fußzeile kommt aus dem `kind:0` der Quelle (`name`, Rückfall
