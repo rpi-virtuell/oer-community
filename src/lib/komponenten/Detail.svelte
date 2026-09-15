@@ -30,6 +30,8 @@
   let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null } = $props();
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
+  // Sprache des Beitrags, nicht der Adresse: beide stimmen überein, weil
+  // routen/detail.js einen Beitrag in der falschen Sprache weiterleitet.
   const datum = $derived(
     new Date(data.artikel.veroeffentlicht).toLocaleDateString(t(data.artikel.sprache, 'datumsformat'), {
       day: '2-digit',

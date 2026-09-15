@@ -28,7 +28,7 @@
      Layout mit seinem children-Snippet nicht über svelte/server zu testen
      ist — Kopfzeile ist auf jeder Seite eingebunden und deshalb gleichwertig. -->
 <svelte:head>
-  <link rel="alternate" type="application/rss+xml" title="{wortmarke} — Blog" href="/feed.xml" />
+  <link rel="alternate" type="application/rss+xml" title="{wortmarke} — {t(sprache, 'blog')}" href="/feed.xml" />
 </svelte:head>
 
 <header class="kopf">
