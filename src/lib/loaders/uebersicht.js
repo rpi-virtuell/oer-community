@@ -1,11 +1,11 @@
 import { artikelAusEvent, beitragsPfad } from '../models/artikel.js';
-import { lizenzPruefen } from '../models/lizenz.js';
+import { NICHT_ZEIGBAR, lizenzPruefen } from '../models/lizenz.js';
 import { themaNormalisieren, themenSlug, themenTabelle } from '../themen.js';
 import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
 /** @typedef {import('../konfig.js').Konfig} Konfig */
-/** @typedef {import('../models/lizenz.js').Nachweis} Nachweis */
+/** @typedef {import('../models/lizenz.js').Ergebnis} Ergebnis */
 /**
  * @typedef {object} Karte
  * @property {string} d
@@ -14,7 +14,7 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
  * @property {string} zusammenfassung
  * @property {string} veroeffentlicht
  * @property {Array<{ name: string, slug: string }>} themen
- * @property {{ url: string, alt: string, nachweis: Nachweis }|null} cover
+ * @property {{ url: string, alt: string, lizenz: Ergebnis }|null} cover
  */
 
 export const JE_SEITE = 20;
@@ -71,20 +71,26 @@ function artikelSortiert(inhalt, tabelle) {
 }
 
 /**
- * Das Cover einer Karte — nur, wenn die Kette ok ist. Ein Bild mit
- * „Lizenz ungeklärt" gehört auf die Artikelseite, wo der Grund steht, nicht
- * in eine Liste, wo er fehlen würde.
+ * Das Cover einer Karte mit seinem Lizenzstand (ADR-0032): Wie in der
+ * Detailansicht wird das Bild auch ohne Nachweis ausgeliefert (ADR-0022);
+ * nur was sich nicht zeigen lässt, ergibt null. Ohne x-Tag gibt es keinen
+ * Lookup — derselbe Weg wie in beitragLaden, damit Karte und Artikelseite
+ * denselben Stand nennen.
  * @param {Inhalt} inhalt @param {Konfig} konfig @param {import('../models/artikel.js').Artikel} a
+ * @returns {{ url: string, alt: string, lizenz: Ergebnis }|null}
  */
 function cover(inhalt, konfig, a) {
-  if (!a.bildUrl || !a.bildHash) return null;
-  const { nachweis } = nachweiseAusSpiegel(inhalt, a.bildHash);
-  const kette = lizenzPruefen({
+  if (!a.bildUrl) return null;
+  const nachweis = a.bildHash ? nachweiseAusSpiegel(inhalt, a.bildHash).nachweis : null;
+  const lizenz = lizenzPruefen({
     bildUrl: a.bildUrl, bildHash: a.bildHash, nachweis,
     etag: etagAusSpiegel(inhalt, a.bildUrl), abgeloesteHosts: konfig.abgeloesteHosts
   });
-  if (!kette.ok) return null;
-  return { url: kette.nachweis.url, alt: kette.nachweis.alt ?? kette.nachweis.titel ?? a.titel, nachweis: kette.nachweis };
+  if (!lizenz.ok && NICHT_ZEIGBAR.includes(lizenz.grund)) return null;
+  if (lizenz.ok) {
+    return { url: lizenz.nachweis.url, alt: lizenz.nachweis.alt ?? lizenz.nachweis.titel ?? a.titel, lizenz };
+  }
+  return { url: a.bildUrl, alt: a.titel, lizenz };
 }
 
 /**

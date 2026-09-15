@@ -33,13 +33,19 @@ describe('artikelListe', () => {
     expect(artikelListe(mit, KONFIG, { tabelle: TABELLE }).gesamt).toBe(artikel.length);
   });
 
-  it('zeigt das Cover nur, wenn die Kette ok ist; abgelöste Hosts nie', () => {
-    const alle = artikelListe(inhalt, KONFIG, { seite: 1, tabelle: TABELLE });
-    const referenz = alle.karten.find((k) => k.d === 'die-kraft-der-gemeinschaft') ??
-      artikelListe(inhalt, KONFIG, { seite: 2, tabelle: TABELLE }).karten.find((k) => k.d === 'die-kraft-der-gemeinschaft');
+  it('liefert das Cover auch ohne Nachweis, mit Lizenzstand; relative und abgelöste nie (ADR-0032)', () => {
+    const karten = [1, 2, 3, 4, 5].flatMap((seite) => artikelListe(inhalt, KONFIG, { seite, tabelle: TABELLE }).karten);
+    const referenz = karten.find((k) => k.d === 'die-kraft-der-gemeinschaft');
+    expect(referenz?.cover?.lizenz.ok).toBe(true);
     expect(referenz?.cover?.url).toContain('blossom.edufeed.org');
-    const mitAltemCover = alle.karten.filter((k) => k.cover && /oer\.community/.test(k.cover.url));
-    expect(mitAltemCover).toEqual([]);
+    // Blossom-Bild ohne x-Tag: zeigbar, Stand „kein-x-tag", Adresse vom Artikel.
+    const ohneX = karten.find((k) => k.d === '4g2mkzxv');
+    expect(ohneX?.cover?.url).toContain('blossom.edufeed.org');
+    expect(ohneX?.cover?.lizenz).toEqual({ ok: false, grund: 'kein-x-tag' });
+    // Abgelöste Hosts (74 Artikel auf oer.community) bleiben ohne Cover (ADR-0030).
+    expect(karten.filter((k) => k.cover && /oer\.community/.test(k.cover.url))).toEqual([]);
+    // 1 mit Nachweis + 3 Blossom-Bilder ohne x-Tag (2× blossom.primal.net, 1× blossom.edufeed.org).
+    expect(karten.filter((k) => k.cover)).toHaveLength(4);
   });
 
   it('filtert nach Themen-Slug und normalisiert die Themen der Karten', () => {
