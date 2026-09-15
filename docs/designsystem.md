@@ -133,6 +133,7 @@ Grenze.
 | `--fb-primaer` auf `--fb-weiss` | 10,2:1 | AA |
 | `--fb-ueberschrift` auf `--fb-akzent` | 7,4:1 | AA |
 | `--fb-fehler` auf `--fb-weiss` | 8,4:1 | AA |
+| `--fb-text` auf Lizenzpille (90 % Weiß über Schwarz) | 10,1:1 | AA |
 | `--fb-weiss` auf `--fb-akzent` | 2,0:1 | **durchgefallen, deshalb verboten** |
 
 **Weiß auf Akzent ist deshalb keine Option, keine Ausnahme.** Der letzte
@@ -163,6 +164,13 @@ Wiederkehrende Klassen aus `src/app.css`:
   aus dem Fließtext-HTML kommen und keinen Nachweis haben (`.inhalt img`),
   bekommen nur `--radius` — sonst behauptete der Akzentrahmen einen
   geprüften Stand, den es nicht gibt.
+- **Lizenzpille** (`Lizenzpille.svelte`) — der Lizenzstand unten rechts auf
+  jedem ausgelieferten Bild (ADR-0032), in Karte und Bildbereich: Grund
+  `--fb-weiss` zu 90 % über dem Bild (`color-mix`, `backdrop-filter`),
+  Text `--fb-text`, Rahmen `--fb-rahmen`, voll gerundet, `.78rem`. Bekannt:
+  KI-Marke (`KiMarke.svelte`) · Lizenzkürzel fett · Credit; ungeklärt:
+  „i"-Symbol und „Lizenz ungeklärt". Kein Link, kein Popover — die
+  Attribution bzw. der Grund stehen im `title` und in der Bildunterschrift.
 - **Keine kursive Schnittdatei.** Unter `static/schriften/` liegt je Familie
   nur der aufrechte variable Schnitt (400–700, `font-style: normal`). `<em>`
   wird deshalb vom Browser synthetisiert — bewusst: eine zweite Datei je

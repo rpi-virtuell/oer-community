@@ -1,6 +1,7 @@
 <script>
-  import { GRUND_TEXT } from '$lib/models/lizenz.js';
+  import { GRUND_TEXT, NICHT_ZEIGBAR } from '$lib/models/lizenz.js';
   import Lizenzzeile from './Lizenzzeile.svelte';
+  import Lizenzpille from './Lizenzpille.svelte';
 
   /**
    * Eine Bildfigur mit Lizenzstand — für das Cover wie für Bilder im Text
@@ -23,11 +24,8 @@
   // Nachweis, sonst vom Artikel — dann gibt es keinen geprüften url-Tag.
   const quelle = $derived(lizenz.ok ? lizenz.nachweis.url : bildUrl);
 
-  // 'kein-bild', 'relativ' und 'abgeloester-host' liefern nichts Anzeigbares:
-  // Im einen Fall gibt es keine Adresse, im zweiten nur eine, die gegen
-  // WordPress auflösen würde (ADR-0013, Punkt 5), im dritten liegt das Bild
-  // auf einem Host, den dieser Hub ablöst (ADR-0030).
-  const NICHT_ZEIGBAR = ['kein-bild', 'relativ', 'abgeloester-host'];
+  // Was sich nicht zeigen lässt, steht im Modell (NICHT_ZEIGBAR) — dieselbe
+  // Liste wie im Übersichts-Loader (ADR-0032).
   const zeigbar = $derived(Boolean(quelle) && (lizenz.ok || !NICHT_ZEIGBAR.includes(lizenz.grund)));
 
   // Alt-Text: die Angabe an dieser Verwendung zuerst — sie beschreibt, was
@@ -45,7 +43,10 @@
        volle Breite ist richtig. Die 150px-Thumbnails des relilab-Altbestands
        wären ein anderer Fall — der ist hier noch nicht in Betrieb. -->
   <figure class="bild">
-    <img src={quelle} {alt} />
+    <div class="rahmen">
+      <img src={quelle} {alt} />
+      <Lizenzpille {lizenz} />
+    </div>
     <figcaption class="metazeile">
       {#if lizenz.ok}
         <Lizenzzeile nachweis={lizenz.nachweis} />
@@ -73,7 +74,11 @@
   .bild {
     margin: 0 0 32px;
   }
+  .rahmen {
+    position: relative;
+  }
   .bild img {
+    display: block;
     width: 100%;
     height: auto;
     border: 1px solid var(--fb-akzent);
