@@ -191,7 +191,7 @@ export function spiegelErstellen({
 
     // Termine kommen aus der Community, nicht vom Autor (ADR-0034). Ohne
     // konfigurierte Community wird gar nicht erst gefragt.
-    const [a, l, r, p, t] = await Promise.all([
+    const [a, l, redaktion, p, t] = await Promise.all([
       nachAutor(30023), nachAutor(30004), nachAutor(30000), nachAutor(0),
       konfig.community
         ? eventsVonAllen(relays, { kinds: [31922, 31923], '#h': [konfig.community] }, { holen })
@@ -209,9 +209,9 @@ export function spiegelErstellen({
 
     const artikel = neuestesJeD(a.events);
     /** @type {Record<string, string[]>} */
-    const quellen = { ...a.quellen, ...l.quellen, ...r.quellen, ...p.quellen, ...t.quellen };
+    const quellen = { ...a.quellen, ...l.quellen, ...redaktion.quellen, ...p.quellen, ...t.quellen };
     /** @type {Set<string>} */
-    const nichtErreichbar = new Set([...a.fehler, ...l.fehler, ...r.fehler, ...p.fehler, ...t.fehler]);
+    const nichtErreichbar = new Set([...a.fehler, ...l.fehler, ...redaktion.fehler, ...p.fehler, ...t.fehler]);
 
     /** @type {Map<string, Event>} */
     const nachweise = new Map();
@@ -220,7 +220,7 @@ export function spiegelErstellen({
       const n = await eventsVonAllen(relays, { kinds: [1063], '#x': hashes.slice(i, i + BLOCK) }, { holen });
       for (const e of n.events) nachweise.set(e.id, e);
       Object.assign(quellen, n.quellen);
-      for (const r of n.fehler) nichtErreichbar.add(r);
+      for (const relay of n.fehler) nichtErreichbar.add(relay);
     }
 
     // etag nur für Bilder, zu denen es überhaupt einen Nachweis gibt — sonst
@@ -239,7 +239,7 @@ export function spiegelErstellen({
     const profil = [...p.events].sort(neuer)[0] ?? null;
     // kind:30004 und kind:30000 liegen gemeinsam in `listen` — je kind und d
     // zusammenführen, sonst verdrängte "redaktion" ein gleichnamiges Menü.
-    const listen = neuestesJeKindUndD([...l.events, ...r.events]);
+    const listen = neuestesJeKindUndD([...l.events, ...redaktion.events]);
     const termine = neuestesJeKindUndD(t.events);
 
     inhalt = {
