@@ -62,6 +62,10 @@ weiß der Hub, welche deutsche Seite dazugehört?
   `event-tag-mapping.md`).
 - **Der Umschalter ist ehrlich:** Auf einer Seite ohne Gegenstück führt er
   auf die Startseite der anderen Sprache — kein „in Vorbereitung".
+- **Der Grund unter einem ungeklärten Bild (`GRUND_TEXT`) bleibt deutsch** —
+  Diagnose für die Redaktion, nicht Lesetext; unter einem englischen Beitrag
+  steht deshalb „Licence unclear. Zu diesem Bild …". Wird das als Bruch
+  empfunden, kommt die Tabelle nach `sprache.js`.
 - **Blog-Beiträge in Englisch** würden heute im deutschen Blog erscheinen.
   Wenn es sie gibt, ist `/en/blog` als Filter auf `inLanguage = en` die
   naheliegende Ergänzung — nicht Teil dieser ADR.

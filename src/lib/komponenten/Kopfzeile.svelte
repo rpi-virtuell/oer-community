@@ -1,11 +1,12 @@
 <script>
-  import { t } from '$lib/sprache.js';
+  import { startPfad, t } from '$lib/sprache.js';
 
   /**
    * Kopfzeile: Logo und Wortmarke aus kind:0, Menü aus kind:30004 plus die
    * Ansichten des Hubs (ADR-0027). Nichts hier ist hart verdrahtet außer dem
-   * Link auf / — der gehört dem Logo. Der aktuelle Pfad kommt als Prop, weil
-   * Komponenten unter src/lib nichts aus $app importieren (ADR-0014).
+   * Link auf die Startseite der Sprache — der gehört dem Logo. Der aktuelle
+   * Pfad kommt als Prop, weil Komponenten unter src/lib nichts aus $app
+   * importieren (ADR-0014).
    *
    * @type {{ wortmarke: string, logoUrl?: string|null,
    *   menue: import('$lib/loaders/struktur.js').Eintrag[], aktuellerPfad?: string,
@@ -33,7 +34,7 @@
 
 <header class="kopf">
   <div class="innen">
-    <a href="/" class="marke" aria-label="{wortmarke} — {t(sprache, 'zurStartseite')}">
+    <a href={startPfad(sprache)} class="marke" aria-label="{wortmarke} — {t(sprache, 'zurStartseite')}">
       {#if logoUrl}<img src={logoUrl} alt="" class="logo" />{/if}
       <span>{wortmarke}</span>
     </a>

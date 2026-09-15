@@ -114,6 +114,13 @@ describe('Kopfzeile', () => {
     const einsprachig = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN } }).body;
     expect(einsprachig).not.toContain('hreflang=');
   });
+
+  it('die Wortmarke führt auf die Startseite der Sprache (ADR-0033)', () => {
+    const en = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN, sprache: 'en' } }).body;
+    expect(en).toMatch(/<a href="\/en" class="marke[ "]/);
+    const de = render(Kopfzeile, { props: { wortmarke: 'T', menue: HUB_ANSICHTEN } }).body;
+    expect(de).toMatch(/<a href="\/" class="marke[ "]/);
+  });
 });
 
 /** @type {import('../src/lib/loaders/struktur.js').Struktur['befund']} */
