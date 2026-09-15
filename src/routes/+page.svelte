@@ -16,7 +16,13 @@
 </svelte:head>
 
 {#if data.art === 'seite'}
-  <Detail data={data.seite} wortmarke={data.struktur.wortmarke} nurWortmarke kanonischeUrl={kanonisch(data.struktur.basisUrl, '/')} />
+  <Detail
+    data={data.seite}
+    wortmarke={data.struktur.wortmarke}
+    nurWortmarke
+    kanonischeUrl={kanonisch(data.struktur.basisUrl, '/')}
+    basisUrl={data.struktur.basisUrl}
+  />
 {:else}
   <Uebersicht karten={data.karten} seite={data.seitennummer} seiten={data.seiten} basis={data.basis} ueberschrift={data.ueberschrift} hinweis={data.hinweis} />
 {/if}

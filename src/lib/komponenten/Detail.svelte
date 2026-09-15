@@ -2,6 +2,7 @@
   import Bildbereich from './Bildbereich.svelte';
   import DebugBereich from './DebugBereich.svelte';
   import { einstellungen } from '../einstellungen.svelte.js';
+  import { kanonisch } from '$lib/kanonisch.js';
   import { t } from '$lib/sprache.js';
 
   /**
@@ -24,10 +25,18 @@
    *   },
    *   wortmarke: string,
    *   nurWortmarke?: boolean,
-   *   kanonischeUrl?: string|null
+   *   kanonischeUrl?: string|null,
+   *   basisUrl?: string|null
    * }}
    */
-  let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null } = $props();
+  let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null, basisUrl = null } = $props();
+
+  /**
+   * Alternates müssen absolut sein, sonst wertet keine Suchmaschine sie aus.
+   * Ohne Basis (Tests) bleibt der Pfad, wie er ist.
+   * @param {string} pfad
+   */
+  const absolut = (pfad) => (basisUrl ? kanonisch(basisUrl, pfad) : pfad);
 
   // $derived, nicht const: data ist ein Prop und aendert sich bei Navigation.
   // Sprache des Beitrags, nicht der Adresse: beide stimmen überein, weil
@@ -49,9 +58,15 @@
   {#if data.artikel.zusammenfassung}
     <meta name="description" content={data.artikel.zusammenfassung} />
   {/if}
-  <!-- Das Gegenstück in der anderen Sprache (ADR-0033). -->
+  <!-- Das Gegenstück in der anderen Sprache (ADR-0033), dazu der Selbstverweis:
+       ein Alternate-Paar nennt beide Seiten, sonst gilt es als einseitig. -->
   {#if data.uebersetzung}
-    <link rel="alternate" hreflang={data.uebersetzung.sprache} href={data.uebersetzung.pfad} />
+    <link rel="alternate" hreflang={data.uebersetzung.sprache} href={absolut(data.uebersetzung.pfad)} />
+    <link
+      rel="alternate"
+      hreflang={data.artikel.sprache}
+      href={kanonischeUrl ?? absolut(data.pfad)}
+    />
   {/if}
 </svelte:head>
 

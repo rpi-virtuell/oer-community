@@ -6,4 +6,9 @@
   let { data } = $props();
 </script>
 
-<Detail {data} wortmarke={data.struktur.wortmarke} kanonischeUrl={kanonisch(data.struktur.basisUrl, data.pfad ?? '/')} />
+<Detail
+  {data}
+  wortmarke={data.struktur.wortmarke}
+  kanonischeUrl={kanonisch(data.struktur.basisUrl, data.pfad ?? '/')}
+  basisUrl={data.struktur.basisUrl}
+/>

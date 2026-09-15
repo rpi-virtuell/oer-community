@@ -490,13 +490,21 @@ describe('Artikelseite', () => {
           uebersetzung: { pfad: '/die-kraft-der-gemeinschaft', sprache: 'de' },
           pfad: '/en/the-power-of-community'
         }),
-        wortmarke: 'T'
+        wortmarke: 'T',
+        basisUrl: 'https://oer.community'
       }
     });
     expect(body).toContain('Licence unclear');
     expect(body).not.toContain('Lizenz ungeklärt');
     expect(body).toMatch(/<time[^>]*>\d{1,2} September 2026<\/time>/);
-    expect(head).toContain('<link rel="alternate" hreflang="de" href="/die-kraft-der-gemeinschaft"');
+    // Absolut, sonst wertet keine Suchmaschine die Alternate aus — und mit
+    // Selbstverweis, weil ein Alternate-Paar beide Seiten nennen muss.
+    expect(head).toContain(
+      '<link rel="alternate" hreflang="de" href="https://oer.community/die-kraft-der-gemeinschaft"'
+    );
+    expect(head).toContain(
+      '<link rel="alternate" hreflang="en" href="https://oer.community/en/the-power-of-community"'
+    );
     const de = render(Artikelseite, { props: { data: seitendaten(), wortmarke: 'T' } });
     expect(de.head).not.toContain('hreflang=');
     expect(de.body).toContain('Lizenz ungeklärt');
