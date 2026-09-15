@@ -9,6 +9,36 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-15 — Zweisprachig: Umschalter DE | EN, /en als englische Startseite
+
+**Passiert:** ADR-0033. Englische Inhalte tragen ihr `d` mit Präfix `en/`
+(wie der Hugo-Pfad) und wohnen unter `/en/…`; Altbestand ohne Präfix bleibt
+unter `/en/<d>` erreichbar, `/en/en/<d>` leitet auf `/en/<d>`. Übersetzungen
+kommen als `a`-Tag mit Marker `translation` (schema.org
+`workTranslation`/`translationOfWork` im Frontmatter, mdparser 63ff6f0
+emittiert es); `loaders/uebersetzungen.js` macht die Zuordnung symmetrisch.
+Kopfzeile mit Umschalter (nur, wenn der Spiegel englische Inhalte hat), Ziel
+ist das Gegenstück oder `/` bzw. `/en`; `<link rel="alternate" hreflang>`
+am Gegenstück; `<html lang>` je Antwort aus dem Hook. Menü und Fußzeile
+zeigen unter `/en/` Gegenstücke, sonst den deutschen Eintrag; Hub-Ansichten
+heißen „Blog"/„Topics". Chrome-Texte in `src/lib/sprache.js`
+(Deutsch/Englisch), Datum im Beitrag in seiner Sprache. `/en` ohne
+englische Startseite antwortet 302 (Übergangszustand), `/en/startseite`
+→ `/en` 301. Testquelle: `our-team` verweist auf `unser-team`, neu
+`en/startseite`; die Entwickleransicht `/…/json` meldet das aufgelöste `d`.
+
+**Wo steht das Projekt:** Im Hub fertig. Live erscheint der Umschalter,
+sobald die englischen Seiten publiziert sind: Der FOERBICO-Branch
+`feat/zweisprachig-seiten` (8fc3f39) trägt `name`, `description`,
+`datePublished`, `creator` und `translationOfWork` an `conference`,
+`oer-and-oep`, `our-team`, `workTranslation` an den deutschen Seiten und
+die neue `content/en/startseite/index.md`; offline gegen den mdparser
+geprüft (acht Events, `d` und `translation`-Tags wie geplant). Contract
+`event-tag-mapping.md` im oer-orchestrator ergänzt (lokal, kein Remote).
+
+**Nächster Schritt:** FOERBICO-Branch nach `main` pushen (Action
+publiziert), dann `/en`, `/en/conference` und den Umschalter live prüfen.
+
 ## 2026-09-15 — Aufräumen: relilab-Reste raus, ADR-Stati nachgetragen, ADR-Index
 
 **Passiert:** CLAUDE.md nennt relilab nur noch als Herkunft und verweist

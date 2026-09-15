@@ -17,7 +17,7 @@
 - Nur `routen/*.js` wirft `error()`/`redirect()`.
 - Komponenten nur mit `--fb-*`-Token, kein Hex im `<style>`.
 - Die Adresse eines Beitrags ist sein `d` (ADR-0029): englische `d` tragen `en/` als Präfix; ein englischer Beitrag ohne Präfix (Altbestand, Testquelle `our-team`) bleibt unter `/en/<d>` erreichbar.
-- `/en` ohne englische Startseite leitet weiter auf `/` (301) — nie eine leere Seite ohne Erklärung.
+- `/en` ohne englische Startseite leitet vorläufig weiter auf `/` (302, Übergangszustand bis zur Publikation) — nie eine leere Seite ohne Erklärung.
 - Keine `/en/blog`, keine `/en/themen`: Blog und Themen bleiben eine Liste, Beiträge erscheinen in ihrer Sprache.
 - Vor jedem Commit `pnpm check && pnpm test` grün; Trailer `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`; keine Subagents aus Implementer-Sicht; kein bare `git stash`.
 
