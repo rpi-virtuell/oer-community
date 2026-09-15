@@ -62,13 +62,21 @@ export function themenLaden({ konfig, inhalt }) {
 }
 
 /**
- * `/`: die Startseite (kind:30023, d = konfig.startseiteD) als Seite — oder,
- * solange sie fehlt, der Blog mit dem Hinweis, welches Event erwartet wird
- * (ADR-0027).
- * @param {{ konfig: Konfig, inhalt: Inhalt }} e
+ * `/` und `/en`: die Startseite der Sprache (kind:30023, d = startseiteD bzw.
+ * en/startseiteD) als Seite. Fehlt die deutsche, steht der Blog mit dem
+ * Hinweis da, welches Event erwartet wird (ADR-0027); fehlt die englische,
+ * geht es nach / — eine leere englische Startseite wäre eine Sackgasse
+ * (ADR-0033).
+ * @param {{ konfig: Konfig, inhalt: Inhalt, sprache?: 'de'|'en' }} e
  */
-export async function startLaden({ konfig, inhalt }) {
+export async function startLaden({ konfig, inhalt, sprache = 'de' }) {
   leerOderWeiter(konfig, inhalt);
+  if (sprache === 'en') {
+    const { artikel: englisch } = artikelAusSpiegel(inhalt, { d: `en/${konfig.startseiteD}` });
+    if (!englisch) redirect(301, '/');
+    const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: 'en', konfig, inhalt, istStartseite: true });
+    return /** @type {const} */ ({ art: 'seite', seite });
+  }
   const { artikel } = artikelAusSpiegel(inhalt, { d: konfig.startseiteD });
   if (artikel) {
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt, istStartseite: true });
