@@ -81,12 +81,17 @@ describe('konfigLesen: Struktur-Kennungen (ADR-0027)', () => {
     expect(k.startseiteD).toBe('startseite');
     expect(k.navigationD).toBe('navigation');
     expect(k.fusszeileD).toBe('fusszeile');
+    expect(k.redaktionD).toBe('redaktion');
   });
   it('lässt andere Namen zu, getrimmt; leer heißt Standard', () => {
     const k = konfigLesen({ ...GUELTIG, STARTSEITE_D: ' start ', NAVIGATION_D: '', FUSSZEILE_D: 'footer' });
     expect(k.startseiteD).toBe('start');
     expect(k.navigationD).toBe('navigation');
     expect(k.fusszeileD).toBe('footer');
+  });
+  it('die Redaktionsliste ist ebenso Konfiguration mit Standard (ADR-0034)', () => {
+    expect(konfigLesen({ ...GUELTIG, REDAKTION_D: ' team ' }).redaktionD).toBe('team');
+    expect(konfigLesen({ ...GUELTIG, REDAKTION_D: '' }).redaktionD).toBe('redaktion');
   });
 });
 

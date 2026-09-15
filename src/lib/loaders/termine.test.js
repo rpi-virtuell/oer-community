@@ -1,16 +1,45 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { termineListe } from './termine.js';
+import { tagesbeginnBerlin, termineListe, zugelasseneAutoren } from './termine.js';
 import { leererInhalt } from '../services/spiegel.js';
 
 const fixture = (/** @type {string} */ f) => JSON.parse(readFileSync(new URL(`../../../test/fixtures/${f}`, import.meta.url), 'utf8'));
 const TAGUNG = fixture('termine-31922-community.json')[0];
 const REDAKTION = fixture('liste-30000-redaktion.json')[0];
 const COMMUNITY = 'ae6199bb435d70a0ecce61324ac80e7c24dedf2b0680cbd3e94983e7557746a2';
-const KONFIG = /** @type {any} */ ({ autor: '5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf', relays: ['wss://relay.edufeed.org/'], community: COMMUNITY, edufeedUrl: 'https://dev.edufeed.org', abgeloesteHosts: ['oer.community'] });
+const KONFIG = /** @type {any} */ ({ autor: '5a12b41ec15b466321e88c371be2dc47d9193f9c8bba4ab09fc50045bd35aedf', relays: ['wss://relay.edufeed.org/'], community: COMMUNITY, edufeedUrl: 'https://dev.edufeed.org', abgeloesteHosts: ['oer.community'], redaktionD: 'redaktion' });
 const inhalt = (/** @type {Partial<import('../services/spiegel.js').Inhalt>} */ ab = {}) => ({ ...leererInhalt(), stand: /** @type {any} */ ({}), termine: [TAGUNG], listen: [REDAKTION], ...ab });
 const VOR = () => new Date('2026-09-15T10:00:00Z');
 const NACH = () => new Date('2027-03-01T10:00:00Z');
+
+describe('tagesbeginnBerlin', () => {
+  // Die Funktion darf nicht von der Zeitzone des Hosts abhängen — geprüft
+  // wird sie deshalb auch unter TZ=America/New_York und TZ=Europe/Berlin.
+  it('Sommerzeit: Mitternacht Berlin liegt 2 Stunden vor UTC-Mitternacht', () => {
+    expect(tagesbeginnBerlin(new Date('2026-07-01T10:00:00Z')).toISOString()).toBe('2026-06-30T22:00:00.000Z');
+  });
+  it('Winterzeit: eine Stunde', () => {
+    expect(tagesbeginnBerlin(new Date('2026-12-01T10:00:00Z')).toISOString()).toBe('2026-11-30T23:00:00.000Z');
+  });
+  it('kippt genau an der Berliner Mitternacht, nicht an der UTC-Mitternacht', () => {
+    // 21:59:59Z ist in Berlin noch der 1. Juli 23:59:59 → Tagesbeginn 30.6.
+    expect(tagesbeginnBerlin(new Date('2026-07-01T21:59:59Z')).toISOString()).toBe('2026-06-30T22:00:00.000Z');
+    // 22:00:00Z ist in Berlin schon der 2. Juli 00:00 → Tagesbeginn 1.7.
+    expect(tagesbeginnBerlin(new Date('2026-07-01T22:00:00Z')).toISOString()).toBe('2026-07-01T22:00:00.000Z');
+  });
+});
+
+describe('zugelasseneAutoren', () => {
+  it('sucht die Redaktionsliste nach kind UND d — ein gleichnamiges kind:30004 zählt nicht', () => {
+    // Ein Menü mit demselben d, vor der echten Liste: listeFinden nähme sonst
+    // das erste Event und der Redaktionskreis wäre leer.
+    const menue = { ...REDAKTION, kind: 30004, id: 'a'.repeat(64), tags: [['d', 'redaktion'], ['a', `30023:${KONFIG.autor}:x`]] };
+    const mit = zugelasseneAutoren(/** @type {any} */ (inhalt({ listen: [menue, REDAKTION] })), KONFIG);
+    expect(mit.has('43415482fc9893454693aed3913acfda950a06eb4c072457a9df7390db56faf1')).toBe(true);
+    // Und die Tagung bleibt dadurch kommend.
+    expect(termineListe(inhalt({ listen: [menue, REDAKTION] }), KONFIG, { jetzt: VOR }).kommend).toHaveLength(1);
+  });
+});
 
 describe('termineListe (ADR-0034)', () => {
   it('die Tagung ist kommend, weil Phillip im Redaktionskreis steht; Link in die edufeed-app', () => {

@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 import { render } from 'svelte/server';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
 import { termineListe } from '../src/lib/loaders/termine.js';
+import { naechsteTermine } from '../src/lib/routen/termine.js';
 import Termine from '../src/lib/komponenten/Termine.svelte';
 import Termin from '../src/lib/komponenten/Termin.svelte';
 
@@ -34,7 +35,8 @@ const umgebung = () => ({
   QUELLE_AUTOR: FOERBICO_AUTOR,
   RELAYS: `${RELAY},${RPI}`,
   BLOSSOM_URL: 'https://blossom.edufeed.org/',
-  COMMUNITY,
+  REDAKTION_D: 'redaktion',
+  COMMUNITY_PUBKEY: COMMUNITY,
   EDUFEED_URL: 'https://dev.edufeed.org'
 });
 
@@ -104,10 +106,25 @@ describe('/termine (ADR-0034)', () => {
   });
 });
 
+describe('naechsteTermine (Block der Startseite, Task 3)', () => {
+  const KONFIG = /** @type {any} */ ({
+    autor: FOERBICO_AUTOR, relays: [RELAY], community: COMMUNITY,
+    edufeedUrl: 'https://dev.edufeed.org', abgeloesteHosts: ['oer.community'], redaktionD: 'redaktion'
+  });
+  const inhalt = /** @type {any} */ (inhaltMitTerminen());
+  it('liefert höchstens `anzahl` kommende Termine, standardmäßig drei', () => {
+    expect(naechsteTermine({ konfig: KONFIG, inhalt, jetzt: () => new Date('2026-09-15T10:00:00Z') })).toHaveLength(1);
+    expect(naechsteTermine({ konfig: KONFIG, inhalt, jetzt: () => new Date('2026-09-15T10:00:00Z'), anzahl: 0 })).toHaveLength(0);
+  });
+  it('nimmt nur kommende, nie vergangene Termine', () => {
+    expect(naechsteTermine({ konfig: KONFIG, inhalt, jetzt: () => new Date('2027-03-01T10:00:00Z') })).toEqual([]);
+  });
+});
+
 describe('Termine.svelte / Termin.svelte', () => {
   const KONFIG = /** @type {any} */ ({
     autor: FOERBICO_AUTOR, relays: [RELAY], community: COMMUNITY,
-    edufeedUrl: 'https://dev.edufeed.org', abgeloesteHosts: ['oer.community']
+    edufeedUrl: 'https://dev.edufeed.org', abgeloesteHosts: ['oer.community'], redaktionD: 'redaktion'
   });
   const liste = (/** @type {() => Date} */ jetzt) =>
     termineListe(/** @type {any} */ (inhaltMitTerminen()), KONFIG, { jetzt });
@@ -129,6 +146,9 @@ describe('Termine.svelte / Termin.svelte', () => {
     expect(body).toContain('rel="noopener"');
     expect(body).toContain('Im edufeed-Kalender öffnen');
     expect(body).toContain('ganztägig');
+    // Gliederung: h1 Seitentitel, h2 Abschnitt, h3 Termin (Fix-Runde 1).
+    expect(body).toMatch(/<h2[^>]*>Nächste Termine<\/h2>/);
+    expect(body).toMatch(/<h3[^>]*>[^<]*FOERBICO Tagung Frankfurt/);
   });
 
   it('vergangene Termine unter eigener Überschrift, englische Texte bei sprache en', () => {
@@ -138,10 +158,13 @@ describe('Termine.svelte / Termin.svelte', () => {
       props: { kommend: l.kommend, vergangen: l.vergangen, ueberschrift: 'Termine', hinweis: null }
     }).body;
     expect(deutsch).toContain('Vergangene Termine');
+    // Ohne kommende Termine steht die Überschrift „Nächste Termine" nicht da.
+    expect(deutsch).not.toContain('Nächste Termine');
     const englisch = render(Termine, {
       props: { kommend: l.kommend, vergangen: l.vergangen, ueberschrift: 'Events', hinweis: null, sprache: 'en' }
     }).body;
     expect(englisch).toContain('Past events');
+    expect(englisch).not.toContain('Upcoming events');
     expect(englisch).toContain('Open in the edufeed calendar');
     expect(englisch).not.toContain('Vergangene Termine');
   });

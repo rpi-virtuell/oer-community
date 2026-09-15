@@ -25,12 +25,15 @@
   <p class="hinweis">{hinweis}</p>
 {/if}
 
-{#each kommend as karte (karte.termin.d)}
-  <Termin {karte} {sprache} />
-{/each}
+{#if kommend.length > 0}
+  <h2>{t(sprache, 'naechsteTermine')}</h2>
+  {#each kommend as karte (karte.termin.d)}
+    <Termin {karte} {sprache} />
+  {/each}
+{/if}
 
 {#if vergangen.length > 0}
-  <h2 class="vergangen">{t(sprache, 'vergangen')}</h2>
+  <h2 class="spaeter">{t(sprache, 'vergangen')}</h2>
   {#each vergangen as karte (karte.termin.d)}
     <Termin {karte} {sprache} />
   {/each}
@@ -42,5 +45,7 @@
     border-bottom: 1px solid var(--fb-rahmen);
     margin-bottom: 32px;
   }
-  .vergangen { margin: 40px 0 20px; }
+  h2 { margin-bottom: 20px; }
+  /* Die zweite Überschrift braucht Luft nach der letzten Karte darüber. */
+  .spaeter { margin-top: 40px; }
 </style>

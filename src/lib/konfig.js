@@ -11,6 +11,7 @@
  * @property {string} startseiteD             Kennung (d) der Startseite; Konvention mit Standard (ADR-0027)
  * @property {string} navigationD             Kennung (d) der Navigation; Konvention mit Standard (ADR-0027)
  * @property {string} fusszeileD              Kennung (d) der Fußzeile; Konvention mit Standard (ADR-0027)
+ * @property {string} redaktionD              Kennung (d) der Redaktionsliste kind:30000 (ADR-0021, ADR-0034)
  * @property {string|null} community          Community, deren Termine der Hub zeigt (ADR-0034); null = kein Kalender
  * @property {string} edufeedUrl              Wohin „Im Kalender öffnen" führt (ADR-0034)
  */
@@ -111,6 +112,7 @@ export function konfigLesen(quelle) {
     abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS,
     startseiteD: kennung(quelle.STARTSEITE_D, 'startseite'),
     navigationD: kennung(quelle.NAVIGATION_D, 'navigation'),
-    fusszeileD: kennung(quelle.FUSSZEILE_D, 'fusszeile')
+    fusszeileD: kennung(quelle.FUSSZEILE_D, 'fusszeile'),
+    redaktionD: kennung(quelle.REDAKTION_D, 'redaktion')
   };
 }

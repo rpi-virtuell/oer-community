@@ -6,6 +6,7 @@ const KONFIG = /** @type {import('../konfig.js').Konfig} */ ({
   autor: 'a'.repeat(64), hTag: null, relays: ['wss://r1/', 'wss://r2/'], blossomUrl: 'https://b/',
   abgeloesteHosts: [], spiegelPfad: 'x', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
   startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
+  redaktionD: 'redaktion',
   community: null, edufeedUrl: 'https://dev.edufeed.org'
 });
 

@@ -20,6 +20,7 @@ const KONFIG = {
   blossomUrl: 'https://blossom.edufeed.org/', abgeloesteHosts: ['oer.community'],
   spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
   startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
+  redaktionD: 'redaktion',
   community: null, edufeedUrl: 'https://dev.edufeed.org'
 };
 

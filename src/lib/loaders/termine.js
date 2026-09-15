@@ -14,23 +14,40 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 /** @typedef {import('../models/lizenz.js').Ergebnis} Ergebnis */
 /** @typedef {{ termin: Termin, bild: { url: string, alt: string, lizenz: Ergebnis }|null, naddr: string, kalenderUrl: string }} Terminkarte */
 
-export const REDAKTION_D = 'redaktion';
-
-/** Beginn des heutigen Tages in Europe/Berlin, als UTC-Zeitpunkt. @param {Date} jetzt */
+/**
+ * Beginn des heutigen Tages in Europe/Berlin, als UTC-Zeitpunkt.
+ *
+ * Bewusst ohne `toLocaleString`-Rückparsen: dessen Ergebnis wird in der
+ * Zeitzone des *Hosts* gelesen, das Ergebnis stimmte also nur bei TZ=UTC.
+ * Hier liefert `formatToParts` die Berliner Wanduhrzeit, aus der Differenz
+ * zum Zeitpunkt folgt der Versatz — das rechnet auf jedem Host gleich.
+ * @param {Date} jetzt
+ */
 export function tagesbeginnBerlin(jetzt) {
   const teile = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).format(jetzt);
-  // en-CA liefert YYYY-MM-DD; Mitternacht Berlin liegt je nach Sommerzeit 1
-  // oder 2 Stunden vor UTC-Mitternacht.
-  const utcMitternacht = new Date(`${teile}T00:00:00Z`);
-  const versatzMin = new Date(utcMitternacht.toLocaleString('en-US', { timeZone: 'Europe/Berlin' })).getTime() - utcMitternacht.getTime();
-  return new Date(utcMitternacht.getTime() - versatzMin);
+    timeZone: 'Europe/Berlin', hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(jetzt);
+  /** @param {string} name */
+  const zahl = (name) => Number(teile.find((t) => t.type === name)?.value ?? '0');
+  const [jahr, monat, tag] = [zahl('year'), zahl('month'), zahl('day')];
+  const wanduhr = Date.UTC(jahr, monat - 1, tag, zahl('hour'), zahl('minute'), zahl('second'));
+  // Sekundengenau: der Zeitpunkt selbst kann Millisekunden tragen, die
+  // Wanduhrzeit nicht — sonst wäre der Versatz keine volle Stunde.
+  const versatz = wanduhr - Math.floor(jetzt.getTime() / 1000) * 1000;
+  return new Date(Date.UTC(jahr, monat - 1, tag) - versatz);
 }
 
-/** Zugelassene Autoren: Redaktionskreis (p-Tags) plus FOERBICO und Community. @param {Inhalt} inhalt @param {Konfig} konfig */
+/**
+ * Zugelassene Autoren: Redaktionskreis (p-Tags) plus FOERBICO und Community.
+ * Gesucht wird nach kind **und** d — `listen` hält kind:30004 und kind:30000
+ * nebeneinander, ein gleichnamiges Menü darf die Redaktionsliste nicht
+ * verdrängen (ADR-0034).
+ * @param {Inhalt} inhalt @param {Konfig} konfig
+ */
 export function zugelasseneAutoren(inhalt, konfig) {
-  const liste = listeFinden(inhalt.listen, REDAKTION_D);
+  const liste = listeFinden(inhalt.listen.filter((e) => e.kind === 30000), konfig.redaktionD);
   const personen = liste?.personen ?? [];
   return new Set([konfig.autor, ...(konfig.community ? [konfig.community] : []), ...personen]);
 }

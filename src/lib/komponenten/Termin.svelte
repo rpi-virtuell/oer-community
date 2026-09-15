@@ -1,8 +1,10 @@
 <script module>
   /**
-   * Eine Terminkarte, wie `loaders/termine.js` sie liefert — hier lokal
-   * typisiert, damit Komponenten nichts aus lib/loaders importieren
-   * (CLAUDE.md, ADR-0014). Termine.svelte reicht denselben Typ durch.
+   * Eine Terminkarte, wie `loaders/termine.js` sie liefert. Reine Typimporte
+   * aus lib/loaders wären erlaubt (Uebersicht.svelte tut das) — die lokale
+   * Typdefinition ist hier eine Lesbarkeitswahl, keine Regel: sie nennt
+   * genau die Felder, die diese Komponente anfasst. Termine.svelte reicht
+   * denselben Typ durch.
    *
    * @typedef {object} TerminkarteProp
    * @property {{ d: string, titel: string, zusammenfassung: string, inhalt: string,
