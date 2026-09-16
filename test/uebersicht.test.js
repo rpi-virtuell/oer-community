@@ -71,7 +71,7 @@ describe('/themen', () => {
     const { body } = render(ThemenSeite, {
       props: {
         data: {
-          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] }, breit: true,
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           themen: [{ name: 'Lizenzen', slug: 'lizenzen', anzahl: 5 }]
         }
@@ -86,7 +86,7 @@ describe('/themen', () => {
     const { head } = render(ThemenSeite, {
       props: {
         data: {
-          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] }, breit: true,
           struktur: { ...strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }), wortmarke: 'Testquelle' },
           themen: []
         }
@@ -99,7 +99,7 @@ describe('/themen', () => {
     const { head } = render(ThemenSeite, {
       props: {
         data: {
-          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] }, breit: true,
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           themen: []
         }
@@ -113,7 +113,7 @@ describe('/themen', () => {
 const uebersichtsdaten = (ab = {}) => ({
   spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
   struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
-  karten: [], seite: 1, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null, ...ab
+  karten: [], seite: 1, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null, breit: true, ...ab
 });
 
 describe('/blog', () => {
@@ -139,7 +139,7 @@ describe('/blog/seite/[n]', () => {
     const { head } = render(BlogSeitePage, {
       props: {
         data: {
-          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] },
+          spiegelstand: { zeitpunkt: null, veraltet: false, relays: [] }, breit: true,
           struktur: strukturFuerLayout({ ...inhaltDerTestquelle(), origin: 'https://hub.example' }),
           karten: [], seite: 2, seiten: 3, gesamt: 0, thema: null, basis: '/blog', ueberschrift: 'Blog', hinweis: null
         }

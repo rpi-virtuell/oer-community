@@ -44,7 +44,7 @@ export function blogLaden({ konfig, inhalt, seite = 1 }) {
   leerOderWeiter(konfig, inhalt);
   const liste = artikelListe(inhalt, konfig, { seite });
   if (seite > liste.seiten) error(404, `Der Blog hat ${liste.seiten} Seiten, nicht ${seite}.`);
-  return { ...liste, basis: '/blog', ueberschrift: 'Blog', hinweis: null };
+  return { ...liste, basis: '/blog', ueberschrift: 'Blog', hinweis: null, breit: true };
 }
 
 /** @param {{ konfig: Konfig, inhalt: Inhalt, slug: string, seite?: number }} e */
@@ -53,13 +53,13 @@ export function themaLaden({ konfig, inhalt, slug, seite = 1 }) {
   const liste = artikelListe(inhalt, konfig, { seite, themaSlug: slug });
   if (liste.thema === null) error(404, `Ein Thema „${slug}“ gibt es nicht. Alle Themen stehen unter /themen.`);
   if (seite > liste.seiten) error(404, `Zum Thema gibt es ${liste.seiten} Seiten, nicht ${seite}.`);
-  return { ...liste, basis: `/themen/${slug}`, ueberschrift: liste.thema, hinweis: null };
+  return { ...liste, basis: `/themen/${slug}`, ueberschrift: liste.thema, hinweis: null, breit: true };
 }
 
 /** @param {{ konfig: Konfig, inhalt: Inhalt }} e */
 export function themenLaden({ konfig, inhalt }) {
   leerOderWeiter(konfig, inhalt);
-  return { themen: themenListe(inhalt) };
+  return { themen: themenListe(inhalt), breit: true };
 }
 
 /**
@@ -72,6 +72,9 @@ export function themenLaden({ konfig, inhalt }) {
  * Beide Zweige tragen `naechste`: den Block der kommenden Termine unter dem
  * Inhalt (ADR-0034). Ohne Termine ist er leer, und die Komponente zeigt
  * nichts — nicht `undefined`, sonst müsste jede Startseite selbst prüfen.
+ *
+ * `breit` schaltet das Layout auf die Rasterbreite (ADR-0035): Startkopf
+ * und Kartenraster brauchen sie, der Beitragstext liegt in der Lesebreite.
  * @param {{ konfig: Konfig, inhalt: Inhalt, sprache?: 'de'|'en', jetzt?: () => Date }} e
  */
 export async function startLaden({ konfig, inhalt, sprache = 'de', jetzt }) {
@@ -84,17 +87,17 @@ export async function startLaden({ konfig, inhalt, sprache = 'de', jetzt }) {
     // erscheint (ADR-0033, Entscheidung 3).
     if (!englisch) redirect(302, '/');
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: 'en', konfig, inhalt, istStartseite: true });
-    return /** @type {const} */ ({ art: 'seite', seite, naechste });
+    return /** @type {const} */ ({ art: 'seite', seite, naechste, breit: true });
   }
   const { artikel } = artikelAusSpiegel(inhalt, { d: konfig.startseiteD });
   if (artikel) {
     const { seite } = await detailLaden({ d: konfig.startseiteD, sprache: artikel.sprache, konfig, inhalt, istStartseite: true });
-    return /** @type {const} */ ({ art: 'seite', seite, naechste });
+    return /** @type {const} */ ({ art: 'seite', seite, naechste, breit: true });
   }
   const blog = blogLaden({ konfig, inhalt, seite: 1 });
   const { seite: blogSeite, ...rest } = blog;
   return /** @type {const} */ ({
-    art: 'blog', ...rest, naechste, seitennummer: blogSeite, ueberschrift: 'Beiträge',
+    art: 'blog', ...rest, naechste, breit: true, seitennummer: blogSeite, ueberschrift: 'Beiträge',
     hinweis: `Es ist noch keine Startseite publiziert: erwartet wird ein kind:30023 mit d = "${konfig.startseiteD}" unter dem Autor dieser Quelle. Bis dahin steht hier der Blog.`
   });
 }

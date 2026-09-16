@@ -44,14 +44,25 @@
   --fb-flaeche-2:    #e6f2ff;  /* Kopfzeile, Marker */
   --fb-weiss:        #ffffff;
   --fb-fehler:       #971b2f;  /* Comenius-Dunkelrot aus der Farbtabelle des Styleguides */
+  --fb-primaer-tief: #152560;  /* abgeleitet: tiefes Blau des Panel-Verlaufs (ADR-0035) */
   /* Schrift */
   --schrift: 'Roboto Condensed', system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* Maße (unverändert übernommen, umbenannt) */
   --breite-container: 1499px;
+  --breite-raster: 1240px;   /* Übersichten und Startkopf (ADR-0035) */
   --breite-schmal: 820px;
-  --hoehe-kopf: 120px;
+  --hoehe-kopf: 76px;        /* flacher und klebend seit ADR-0035, vorher 120px */
   --radius: 5px;
   --schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
+  /* Bewegung: kurz und nur bei Hover; prefers-reduced-motion schaltet sie ab. */
+  --uebergang: 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* ── Grundschrift ────────────────────────────────────────────────────── */
@@ -139,3 +150,50 @@ a:hover { color: var(--fb-ueberschrift); text-decoration: underline; }
   overflow-wrap: anywhere; /* lange Blossom-URLs im Hinweis */
 }
 .hinweis strong { color: var(--fb-ueberschrift); }
+
+
+/* Lesebreite: der Fließtext eines Beitrags, auch innerhalb einer breiten Seite. */
+.lesebreite {
+  max-width: var(--breite-schmal);
+  margin: 0 auto;
+}
+
+/* Label: Versalien mit weitem Buchstabenabstand — Datum auf Karten, Menü,
+   Spaltentitel. Im Panel wird es orange (Kontrast 5,2:1 auf Primärblau). */
+.label {
+  font-family: var(--schrift);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fb-primaer);
+  margin: 0;
+}
+
+/* Display: die große Überschrift des Startkopfs und der Aufmacher-Karte —
+   Roboto Condensed 700 in Versalien statt einer zweiten Schrift (ADR-0031). */
+.display {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Panel: Primärblau mit Verlauf ins tiefe Blau, feinem Raster und orangem
+   Glow — aus dem FOERBICO-Landing-Entwurf (ADR-0035). Text darauf ist weiß,
+   Labels sind orange; beides nachgerechnet in test/kontrast.test.js. */
+.panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  color: var(--fb-weiss);
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--fb-akzent) 18%, transparent), transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 48px, color-mix(in srgb, var(--fb-weiss) 5%, transparent) 48px, color-mix(in srgb, var(--fb-weiss) 5%, transparent) 49px),
+    repeating-linear-gradient(90deg, transparent, transparent 48px, color-mix(in srgb, var(--fb-weiss) 5%, transparent) 48px, color-mix(in srgb, var(--fb-weiss) 5%, transparent) 49px),
+    linear-gradient(135deg, var(--fb-primaer) 0%, var(--fb-primaer-tief) 100%);
+}
+.panel h1, .panel h2, .panel h3 { color: var(--fb-weiss); }
+.panel a { color: var(--fb-weiss); }
+.panel a:hover { color: var(--fb-weiss); text-decoration-color: var(--fb-akzent); }
+.panel .label { color: var(--fb-akzent); }

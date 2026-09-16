@@ -21,37 +21,64 @@
 </script>
 
 {#if karten.length > 0}
-  <section class="naechste">
+  <!-- Das blaue Panel aus dem Landing-Entwurf (ADR-0035): weißer Text,
+       oranges Datum-Label — beide Paare in test/kontrast.test.js. -->
+  <section class="naechste panel">
     <h2>{t(sprache, 'naechsteTermine')}</h2>
     <ul>
       {#each karten as karte (karte.termin.d)}
         <li>
-          <a href="/termine#{encodeURIComponent(karte.termin.d)}">{karte.termin.titel}</a>
-          <span class="metazeile">
+          <p class="label">
             <time datetime={karte.termin.start.toISOString()}>{zeitraumText(karte.termin, sprache)}</time>
-          </span>
+          </p>
+          <a href="/termine#{encodeURIComponent(karte.termin.d)}">{karte.termin.titel}</a>
         </li>
       {/each}
     </ul>
-    <p><a class="marker" href="/termine">{t(sprache, 'alleTermine')}</a></p>
+    <p class="alle"><a href="/termine">{t(sprache, 'alleTermine')} →</a></p>
   </section>
 {/if}
 
 <style>
   .naechste {
-    margin-top: 40px;
-    padding-top: 28px;
-    border-top: 1px solid var(--fb-rahmen);
+    margin-top: 56px;
+    padding: 40px 44px;
   }
-  .naechste h2 { margin-bottom: 16px; }
-  .naechste ul { list-style: none; padding: 0; margin: 0 0 16px; }
+  .naechste h2 {
+    margin-bottom: 24px;
+  }
+  .naechste ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px 32px;
+  }
   .naechste li {
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--fb-rahmen);
+    padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, var(--fb-weiss) 25%, transparent);
   }
-  .naechste li:last-child { border-bottom: none; }
-  /* Datum unter den Titel, damit die Zeile auf schmalen Schirmen nicht bricht. */
-  .naechste .metazeile { display: block; }
-  .marker { text-decoration: none; }
+  .naechste li .label {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .naechste li a {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+  .naechste li a:hover {
+    text-decoration: underline;
+  }
+  .alle {
+    margin: 0;
+    font-size: 0.86rem;
+    letter-spacing: 0.06em;
+  }
+  @media (max-width: 640px) {
+    .naechste { padding: 28px 24px; }
+  }
 </style>

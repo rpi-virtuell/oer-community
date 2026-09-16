@@ -48,19 +48,21 @@
 
 <footer class="fuss">
   <div class="innen">
-    <p class="marke">{wortmarke}</p>
-    {#if fusstextHtml}
-      <!-- Gesäubertes HTML aus inhaltAufbereiten (Task 6) — deshalb erlaubt in {@html}. -->
-      <div class="text">{@html fusstextHtml}</div>
-    {:else}
-      <p class="text">
-        Schaufenster für Beiträge im Nostr-Netz. Jeder Beitrag ist ein signiertes
-        Event unter seiner stabilen Adresse (<code>d</code>), ein
-        <code>naddr</code> leitet dorthin weiter.
-      </p>
-    {/if}
+    <div class="spalte marke-spalte">
+      <p class="marke">{wortmarke}</p>
+      {#if fusstextHtml}
+        <!-- Gesäubertes HTML aus inhaltAufbereiten (Task 6) — deshalb erlaubt in {@html}. -->
+        <div class="text">{@html fusstextHtml}</div>
+      {:else}
+        <p class="text">
+          Schaufenster für Beiträge im Nostr-Netz. Jeder Beitrag ist ein signiertes
+          Event unter seiner stabilen Adresse (<code>d</code>), ein
+          <code>naddr</code> leitet dorthin weiter.
+        </p>
+      {/if}
+    </div>
     {#if links.length > 0}
-      <ul class="links">
+      <ul class="links spalte">
         {#each links as l (l.pfad)}
           <li><a href={l.pfad}>{l.titel}</a></li>
         {/each}
@@ -106,24 +108,31 @@
 </footer>
 
 <style>
+  /* Drei Spalten wie im Landing-Entwurf (ADR-0035): Marke mit Text, Links,
+     Werkzeug. Stand und Befund laufen über die ganze Breite. */
   .fuss {
     background: var(--fb-flaeche);
     color: var(--fb-text);
     border-top: 1px solid var(--fb-akzent);
-    margin-top: 64px;
-    padding: 48px 0;
+    margin-top: 72px;
+    padding: 48px 0 32px;
     font-size: 0.92rem;
   }
   .innen {
     max-width: var(--breite-container);
     margin: 0 auto;
     padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1.2fr;
+    gap: 32px 48px;
+    align-items: start;
   }
   .marke {
     font-family: var(--schrift);
-    font-size: 2rem;
+    font-size: 1.45rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--fb-ueberschrift);
     margin: 0 0 12px;
   }
@@ -136,18 +145,26 @@
     text-decoration: underline;
   }
   .links {
-    display: flex;
-    gap: 16px;
     list-style: none;
     padding: 0;
-    margin: 16px 0 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
   .links a {
+    color: var(--fb-text);
+    text-decoration: none;
+    transition: color var(--uebergang);
+  }
+  .links a:hover {
     color: var(--fb-primaer);
+    text-decoration: underline;
   }
   .stand {
+    grid-column: 1 / -1;
     max-width: 60ch;
-    margin: 12px 0 0;
+    margin: 0;
     padding: 12px;
     background: var(--fb-weiss);
     border-left: 3px solid var(--fb-akzent);
@@ -155,12 +172,9 @@
   }
   .werkzeug {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 0.75rem;
-    margin-top: 28px;
-    padding-top: 16px;
-    border-top: 1px solid var(--fb-rahmen);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     font-family: var(--schrift);
     font-size: 0.86rem;
   }
@@ -176,9 +190,13 @@
   }
   .erklaerung {
     font-size: 0.8rem;
+    color: var(--fb-text-leise);
   }
   .befund {
-    margin-top: 20px;
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--fb-rahmen);
     font-family: var(--schrift);
     font-size: 0.86rem;
   }
@@ -189,5 +207,12 @@
   }
   .befund ul {
     padding-left: 1.2em;
+  }
+  @media (max-width: 1024px) {
+    .innen { grid-template-columns: 1fr 1fr; }
+    .marke-spalte { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .innen { grid-template-columns: 1fr; }
   }
 </style>

@@ -9,6 +9,40 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-16 — Gestaltung nach dem FOERBICO-Landing-Entwurf (ADR-0035, Branch `feat/gestaltung`)
+
+**Passiert:** Jörg hat den Landing-Entwurf aus dem FOERBICO-Repository
+(`docs/foerbico-landing_draft3.html`) als Anlass genommen, den Hub
+schicker zu machen. Übernommen ist die Gestaltungssprache, nachgebaut mit
+den Token aus ADR-0031: klebende, halbtransparente Kopfzeile mit
+Versalien-Menü und orangem Unterstrich; Startkopf mit großem Titel,
+Vorspann und blauem Raster-Panel (Logo als weiße Silhouette); Blog und
+Themenlisten breit mit Aufmacher plus dreispaltigem Kartenraster
+(Hover: 2 px hoch, Rahmen blau); Themenseite als Wolke in fünf
+Größenstufen; „Nächste Termine" als blaues Panel; Fußzeile in drei
+Spalten. Yanone Kaffeesatz bleibt draußen (Entscheidung Jörg, ADR-0031),
+Display-Wirkung kommt aus Roboto Condensed 700 in Versalien.
+
+Neu im Code: Token `--fb-primaer-tief`, `--breite-raster`, `--uebergang`;
+Bausteine `.panel`, `.label`, `.display`, `.lesebreite`; Komponenten
+`Startkopf.svelte`, `Themenwolke.svelte`; Karte mit Prop `aufmacher`,
+Detail mit `ohneKopf`; Layout schaltet über `page.data.breit` zwischen
+Lese- und Rasterbreite (die load-Funktionen der Übersichten und der
+Startseite setzen es). Reines Modul `src/lib/themenwolke.js`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 441 Tests grün, im
+Browser gegen das Live-Relay geprüft (Start, Blog, Themen, Termine,
+Artikel) bei 1440px. Der Handy-Umbruch (Raster 1 Spalte, Kopfzeile nicht
+klebend) ist nur per Media-Query geschrieben, nicht im Browser gesehen.
+Aufgefallen: Die Startseite beginnt im Markdown selbst mit „FOERBICO" —
+mit dem Startkopf steht der Titel zweimal; das ist am Event zu ändern,
+nicht im Code.
+
+**Nächster Schritt:** Jörg schaut sich den Branch lokal an (`pnpm dev`),
+Handy-Breite im Gerätemodus prüfen. Dann Gina und Ludger fragen, ob der
+Entwurf die Richtung ist (ADR-0035 auf „angenommen") und ob Yanone
+Kaffeesatz zurückkommt. Danach Merge nach `dev`.
+
 ## 2026-09-15 — Repository heißt oer-community
 
 **Passiert:** Auf Forgejo umbenannt (`Comenius-Institut/oer-community`,

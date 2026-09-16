@@ -1,6 +1,7 @@
 <script>
   import Detail from '$lib/komponenten/Detail.svelte';
   import NaechsteTermine from '$lib/komponenten/NaechsteTermine.svelte';
+  import Startkopf from '$lib/komponenten/Startkopf.svelte';
   import Uebersicht from '$lib/komponenten/Uebersicht.svelte';
   import { kanonisch } from '$lib/kanonisch.js';
   /** @type {{ data: import('./$types').PageData }} */
@@ -17,13 +18,24 @@
 </svelte:head>
 
 {#if data.art === 'seite'}
-  <Detail
-    data={data.seite}
+  <!-- Hero mit Titel und Vorspann der Startseite (ADR-0035); der Inhalt
+       darunter bleibt in der Lesebreite. -->
+  <Startkopf
+    titel={data.seite.artikel.titel}
+    vorspann={data.seite.artikel.zusammenfassung}
     wortmarke={data.struktur.wortmarke}
-    nurWortmarke
-    kanonischeUrl={kanonisch(data.struktur.basisUrl, '/')}
-    basisUrl={data.struktur.basisUrl}
+    logoUrl={data.struktur.logoUrl}
   />
+  <div class="lesebreite">
+    <Detail
+      data={data.seite}
+      wortmarke={data.struktur.wortmarke}
+      nurWortmarke
+      ohneKopf
+      kanonischeUrl={kanonisch(data.struktur.basisUrl, '/')}
+      basisUrl={data.struktur.basisUrl}
+    />
+  </div>
 {:else}
   <Uebersicht karten={data.karten} seite={data.seitennummer} seiten={data.seiten} basis={data.basis} ueberschrift={data.ueberschrift} hinweis={data.hinweis} />
 {/if}

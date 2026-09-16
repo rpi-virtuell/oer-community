@@ -1,4 +1,5 @@
 <script>
+  import Themenwolke from '$lib/komponenten/Themenwolke.svelte';
   import { kanonisch } from '$lib/kanonisch.js';
   let { data } = $props();
 </script>
@@ -7,12 +8,12 @@
   <link rel="canonical" href={kanonisch(data.struktur.basisUrl, '/themen')} />
 </svelte:head>
 <header class="detail-kopf"><h1>Themen</h1></header>
-<ul class="themenliste">
-  {#each data.themen as t (t.slug)}
-    <li><a href={`/themen/${t.slug}`}>{t.name}</a> <span class="metazeile">{t.anzahl}</span></li>
-  {/each}
-</ul>
+<!-- Als Wolke nach Häufigkeit (ADR-0035); die Anzahl steht an jedem Thema. -->
+<Themenwolke themen={data.themen} />
 <style>
-  .themenliste { list-style: none; padding: 0; columns: 2 18rem; column-gap: 32px; }
-  .themenliste li { break-inside: avoid; padding: 6px 0; display: flex; gap: 10px; align-items: baseline; }
+  .detail-kopf {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--fb-rahmen);
+    margin-bottom: 32px;
+  }
 </style>
