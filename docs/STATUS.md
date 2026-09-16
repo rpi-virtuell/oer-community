@@ -15,8 +15,9 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 (`docs/foerbico-landing_draft3.html`) als Anlass genommen, den Hub
 schicker zu machen. Übernommen ist die Gestaltungssprache, nachgebaut mit
 den Token aus ADR-0031: klebende, halbtransparente Kopfzeile mit
-Versalien-Menü und orangem Unterstrich; Startkopf mit großem Titel,
-Vorspann und blauem Raster-Panel (Logo als weiße Silhouette); Blog und
+Versalien-Menü und orangem Unterstrich; Startkopf mit großem Titel und
+Vorspann (das Logo-Panel aus dem ersten Wurf ist wieder raus: Logo klebte
+am unteren Rand, und es steht schon in der Kopfzeile); Blog und
 Themenlisten breit mit Aufmacher plus dreispaltigem Kartenraster
 (Hover: 2 px hoch, Rahmen blau); Themenseite als Wolke in fünf
 Größenstufen; „Nächste Termine" als blaues Panel; Fußzeile in drei

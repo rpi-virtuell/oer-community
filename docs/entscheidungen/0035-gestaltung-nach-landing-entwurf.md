@@ -20,9 +20,9 @@ nicht hat.
 
 ## Entscheidung
 
-Wir übernehmen die **Gestaltungssprache** des Entwurfs — Panel, Label,
-Display-Überschrift, Aufmacher plus Raster, klebende Kopfzeile,
-dreispaltige Fußzeile, Themenwolke — und bauen sie **mit den Token aus
+Wir übernehmen die **Gestaltungssprache** des Entwurfs — Panel (für die
+Termine), Label, Display-Überschrift, Aufmacher plus Raster, klebende
+Kopfzeile, dreispaltige Fußzeile, Themenwolke — und bauen sie **mit den Token aus
 ADR-0031** nach: Roboto Condensed 700 in Versalien statt einer zweiten
 Schrift, kein Hex außerhalb `app.css`, keine Google-Schrift, alles reines
 CSS ohne Browser-JavaScript. Neu sind ein abgeleiteter Token
@@ -35,7 +35,9 @@ ab.
 **Nicht übernommen:** Relay-Status-Punkt, Skeleton, Modal, Live-Filter
 (Client-Logik, ADR-0028); Luminosity-Blend auf Fotos (verfremdet
 lizenzierte Bilder); Eck-Beschriftungen wie „index · 001" (Deutung ohne
-Inhalt); die orange Zähler-Zahl (Kontrast). Oranger Text steht nur auf
+Inhalt); die orange Zähler-Zahl (Kontrast); das Logo-Panel im Hero (Logo
+und Wortmarke stehen schon in der Kopfzeile, das Logo klebte im Panel am
+unteren Rand — der Startkopf ist reiner Text). Oranger Text steht nur auf
 dem Panel (5,2:1 auf Primärblau, 7,3:1 auf dem tiefen Blau) und nur als
 Label.
 

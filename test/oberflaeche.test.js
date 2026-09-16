@@ -630,18 +630,15 @@ describe('NaechsteTermine (Startseitenblock, ADR-0034)', () => {
 });
 
 describe('Startkopf (Hero der Startseite, ADR-0035)', () => {
-  it('nennt Titel und Vorspann und zeigt im Panel das Logo', () => {
-    const { body } = render(Startkopf, {
-      props: { titel: 'Willkommen', vorspann: 'Offen. Vernetzt.', wortmarke: 'Testquelle', logoUrl: 'https://blossom.example/logo.png' }
-    });
+  it('nennt Titel und Vorspann — kein Logo, kein Panel: Logo und Wortmarke stehen schon in der Kopfzeile', () => {
+    const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: 'Offen. Vernetzt.' } });
     expect(body).toMatch(/<h1[^>]*>Willkommen<\/h1>/);
     expect(body).toContain('Offen. Vernetzt.');
-    expect(body).toMatch(/<img[^>]+src="https:\/\/blossom\.example\/logo\.png"/);
-  });
-  it('ohne Logo steht die Wortmarke im Panel; ohne Vorspann kein leerer Absatz', () => {
-    const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: '', wortmarke: 'Testquelle', logoUrl: null } });
     expect(body).not.toContain('<img');
-    expect(body).toMatch(/class="panel[^"]*"[\s\S]*Testquelle/);
+    expect(body).not.toContain('class="panel');
+  });
+  it('ohne Vorspann kein leerer Absatz', () => {
+    const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: '' } });
     expect(body).not.toMatch(/<p[^>]*class="vorspann"/);
   });
 });

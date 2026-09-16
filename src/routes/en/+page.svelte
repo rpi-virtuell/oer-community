@@ -10,12 +10,7 @@
 
 <!-- /en ist die Basis der englischen Startseite (ADR-0033): /en/startseite
      leitet hierher, deshalb ist der Kanon /en und nicht data.pfad. -->
-<Startkopf
-  titel={data.artikel.titel}
-  vorspann={data.artikel.zusammenfassung}
-  wortmarke={data.struktur.wortmarke}
-  logoUrl={data.struktur.logoUrl}
-/>
+<Startkopf titel={data.artikel.titel} vorspann={data.artikel.zusammenfassung} />
 <div class="lesebreite">
   <Detail
     {data}

@@ -20,12 +20,7 @@
 {#if data.art === 'seite'}
   <!-- Hero mit Titel und Vorspann der Startseite (ADR-0035); der Inhalt
        darunter bleibt in der Lesebreite. -->
-  <Startkopf
-    titel={data.seite.artikel.titel}
-    vorspann={data.seite.artikel.zusammenfassung}
-    wortmarke={data.struktur.wortmarke}
-    logoUrl={data.struktur.logoUrl}
-  />
+  <Startkopf titel={data.seite.artikel.titel} vorspann={data.seite.artikel.zusammenfassung} />
   <div class="lesebreite">
     <Detail
       data={data.seite}

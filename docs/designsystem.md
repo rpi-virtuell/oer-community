@@ -183,13 +183,15 @@ Wiederkehrende Klassen aus `src/app.css`:
   ADR-0031 ausschließt.
 - **Panel** (`.panel`) — Primärblau mit Verlauf nach `--fb-primaer-tief`,
   feinem Raster aus `repeating-linear-gradient` und orangem Radial-Glow
-  (`color-mix`, keine Hex-Werte in Komponenten). Trägt den Startkopf rechts
-  und den Block „Nächste Termine".
-- **Startkopf** (`Startkopf.svelte`) — Hero der Startseite: links Titel
-  (`.display`) und Vorspann der Seite `d = startseite`, rechts das Panel mit
-  dem Logo aus `kind:0` als weiße Silhouette (`filter: brightness(0)
-  invert(1)`, wie im Entwurf); ohne Logo die Wortmarke. Detail rendert
-  darunter mit `ohneKopf`, sonst stünde der Titel zweimal.
+  (`color-mix`, keine Hex-Werte in Komponenten). Trägt den Block „Nächste
+  Termine".
+- **Startkopf** (`Startkopf.svelte`) — Hero der Startseite: Titel
+  (`.display`, bis 5,6rem) mit orangem 4-px-Strich darunter und Vorspann der
+  Seite `d = startseite`, reiner Text in voller Breite. Das Logo-Panel des
+  Entwurfs ist weggefallen: Logo und Wortmarke stehen schon in der
+  Kopfzeile, und das Logo klebte im Panel am unteren Rand (Rückmeldung
+  Jörg, 16.09.). Detail rendert darunter mit `ohneKopf`, sonst stünde der
+  Titel zweimal.
 - **Karte** (`Karte.svelte`) — Übersichtskachel: Rahmen `--fb-rahmen` (1px),
   `--radius`, weißer Grund, Cover oben (16:10, `object-fit: cover`), darunter
   Datum als Label, Titel, Anriss auf drei Zeilen begrenzt, Themen über einer
