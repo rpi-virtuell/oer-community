@@ -22,18 +22,12 @@ steps:
       - corepack enable
       - pnpm run build
 
-  - name: deploy
+  - name: deploy_oer-community
     image: appleboy/drone-ssh:1.7.3
     settings:
-      host: community-hub.rpi-virtuell.net
+      host: oer-community.rpi-virtuell.net
       username: svc-cha
       key:
-        from_secret: deploy_ssh_key
+        from_secret: deploy_secret
       script:
-        # Der Server führt für diesen Schlüssel immer nur dieses Skript aus;
-        # vorgeschaltete Befehle kommen nicht an (Pipelines 4 und 5, 14.09.2026).
-        # Das Skript zieht per `git pull` den Branch, auf dem das Server-Repo
-        # steht — derzeit `succesful-deployment`. Siehe docs/betrieb.md.
-        # Server-Verzeichnis und Unit heißen noch community-hub — bis Ludger
-        # sie mit der Adresse auf oer-community umstellt (15.09.2026).
-        - ~/ServerSetup/scripts/deploy-app.sh community-hub
+        - ~/ServerSetup/scripts/deploy-app.sh oer-community
