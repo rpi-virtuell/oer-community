@@ -14,6 +14,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { hashAusUrl } from '../models/lizenz.js';
+import { echtesEvent } from '../models/signatur.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
@@ -30,6 +31,7 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {string[]} gefragteRelays
  * @property {string[]} nichtErreichbar
  * @property {{ artikel: number, listen: number, nachweise: number, profil: number, termine: number }} anzahl
+ * @property {number} [verworfen]  Events mit ungültiger Signatur oder falscher id, nicht übernommen (ADR-0036)
  */
 /**
  * @typedef {object} Inhalt
@@ -174,10 +176,11 @@ export function hashesSammeln(artikel) {
  * @param {() => number} [eingabe.jetzt]               dito
  * @param {ReturnType<typeof dateiSpeicher>} [eingabe.speicher]  dito
  * @param {(fn: () => unknown, ms: number) => { stoppen(): void }} [eingabe.planen]  dito
+ * @param {(e: Event) => boolean} [eingabe.pruefen]  dito — nur für Prüfungen mit gebauten, unsignierten Events
  */
 export function spiegelErstellen({
   konfig, holen = eventsHolen, etagHolen = etagHolenEcht, jetzt = () => Date.now(),
-  speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen
+  speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen, pruefen = echtesEvent
 }) {
   let inhalt = leererInhalt();
   /** @type {Fehlschlag|null} */
@@ -186,8 +189,21 @@ export function spiegelErstellen({
   async function auffrischen() {
     const start = jetzt();
     const relays = konfig.relays;
-    const nachAutor = (/** @type {number} */ kind) =>
-      eventsVonAllen(relays, { kinds: [kind], authors: [konfig.autor] }, { holen });
+    let verworfen = 0;
+    /**
+     * Nur echte Events kommen herein (ADR-0036): Ein Relay kann liefern, was
+     * es will — auch ein Event mit dem Schlüssel der Quelle, das sie nie
+     * signiert hat. Was durchfällt, wird gezählt, nicht still verschluckt.
+     * @param {import('./relay.js').Sammelergebnis} ergebnis
+     */
+    const nurEchte = (ergebnis) => {
+      const echte = ergebnis.events.filter((e) => pruefen(e));
+      verworfen += ergebnis.events.length - echte.length;
+      return { ...ergebnis, events: echte };
+    };
+    /** @param {import('./relay.js').Filter} filter */
+    const fragen = async (filter) => nurEchte(await eventsVonAllen(relays, filter, { holen }));
+    const nachAutor = (/** @type {number} */ kind) => fragen({ kinds: [kind], authors: [konfig.autor] });
 
     // Termine kommen aus der Community, nicht vom Autor (ADR-0034). Ohne
     // konfigurierte Community wird gar nicht erst gefragt.
@@ -200,7 +216,7 @@ export function spiegelErstellen({
     const [a, l, redaktion, p, t] = await Promise.all([
       nachAutor(30023), nachAutor(30004), nachAutor(30000), nachAutor(0),
       konfig.community
-        ? eventsVonAllen(relays, { kinds: [31922, 31923], '#h': [konfig.community] }, { holen })
+        ? fragen({ kinds: [31922, 31923], '#h': [konfig.community] })
         : Promise.resolve(
             /** @type {import('./relay.js').Sammelergebnis} */ ({
               events: [], gefragt: relays, fehler: [], ohneTreffer: [], quellen: {}, grund: null
@@ -223,7 +239,7 @@ export function spiegelErstellen({
     const nachweise = new Map();
     const hashes = hashesSammeln(artikel);
     for (let i = 0; i < hashes.length; i += BLOCK) {
-      const n = await eventsVonAllen(relays, { kinds: [1063], '#x': hashes.slice(i, i + BLOCK) }, { holen });
+      const n = await fragen({ kinds: [1063], '#x': hashes.slice(i, i + BLOCK) });
       for (const e of n.events) nachweise.set(e.id, e);
       Object.assign(quellen, n.quellen);
       for (const relay of n.fehler) nichtErreichbar.add(relay);
@@ -257,7 +273,8 @@ export function spiegelErstellen({
         anzahl: {
           artikel: artikel.length, listen: listen.length, nachweise: nachweise.size,
           profil: profil ? 1 : 0, termine: termine.length
-        }
+        },
+        verworfen
       },
       artikel, listen, termine, profil,
       nachweise: [...nachweise.values()],

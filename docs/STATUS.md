@@ -9,6 +9,20 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Nur signierte Events in den Spiegel (ADR-0036)
+
+**Passiert:** Code-Review (Claude) fand: Der Spiegel übernahm jedes Event,
+auch mit falscher Signatur. Jetzt prüft `echtesEvent`
+(`src/lib/models/signatur.js`) `getEventHash` und `verifyEvent` für jedes
+Event vor der Übernahme; die Entwickleransicht nutzt dieselbe Funktion.
+Verworfenes zählt `stand.verworfen`.
+
+**Wo steht das Projekt:** `feat/signatur-im-spiegel`, `pnpm check` 0 Fehler,
+435 Tests grün.
+
+**Nächster Schritt:** Auf Forgejo nach `dev` mergen. Danach der zweite
+Befund des Reviews: ein Lauf ohne Artikel-Relay darf den Stand nicht leeren.
+
 ## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
 
 **Passiert:** Claude arbeitet auf dem GitHub-Spiegel
