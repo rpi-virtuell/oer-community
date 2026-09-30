@@ -4,8 +4,9 @@
  * Ein Lauf baut einen vollständigen neuen Stand über ALLE konfigurierten
  * Relays und tauscht ihn atomar ein — Leser sehen nie einen halben Stand.
  * Gültig ist ein Lauf, wenn mindestens ein Relay die Artikelabfrage
- * beantwortet hat; ein ungültiger Lauf ersetzt nichts und wird als
- * Fehlschlag gemerkt, damit die Fußzeile das Alter nennen kann.
+ * beantwortet hat — und zwar eines, das bisher Artikel lieferte, sofern es
+ * einen Stand gibt (ADR-0037). Ein ungültiger Lauf ersetzt nichts und wird
+ * als Fehlschlag gemerkt, damit die Fußzeile das Alter nennen kann.
  *
  * Diese Datei ist die EINZIGE, die `services/relay.js` importiert
  * (Architekturtest). Sie kennt die Oberfläche nicht.
@@ -224,8 +225,23 @@ export function spiegelErstellen({
           )
     ]);
 
-    if (a.grund !== null) {
-      fehlschlag = { zeitpunkt: new Date(jetzt()).toISOString(), gefragteRelays: a.gefragt };
+    // Ungültig ist ein Lauf auch, wenn genau die Relays schweigen, die bisher
+    // die Artikel lieferten (ADR-0037). Sonst antworten die übrigen mit
+    // „habe nichts" — sie führen gar keine Artikel —, der Lauf gälte, und ein
+    // Ausfall von relay.edufeed.org leerte die Seite. Gezählt werden nur
+    // Relays, die noch konfiguriert sind: Wer RELAYS ändert, soll nicht am
+    // alten Stand hängen bleiben.
+    const bisherigeArtikelRelays = new Set(
+      inhalt.artikel.flatMap((e) => inhalt.quellen[e.id] ?? []).filter((r) => a.gefragt.includes(r))
+    );
+    const artikelRelaysStumm =
+      bisherigeArtikelRelays.size > 0 && [...bisherigeArtikelRelays].every((r) => a.fehler.includes(r));
+
+    if (a.grund !== null || artikelRelaysStumm) {
+      fehlschlag = {
+        zeitpunkt: new Date(jetzt()).toISOString(),
+        gefragteRelays: a.grund !== null ? a.gefragt : [...bisherigeArtikelRelays]
+      };
       return { gueltig: false, inhalt };
     }
 

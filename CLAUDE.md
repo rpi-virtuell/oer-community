@@ -293,7 +293,9 @@ Drei Regeln dazu:
 
 Jede Anfrage rendert aus dem Spiegel, **nie direkt aus dem Relay**.
 
-- Kein Relay erreichbar → letzter gültiger Stand **mit Hinweis auf sein Alter**
+- Kein Relay erreichbar → letzter gültiger Stand **mit Hinweis auf sein Alter**.
+  Das gilt auch, wenn nur die Relays schweigen, die bisher die Artikel
+  lieferten; `CLOSED` ist keine Antwort (ADR-0037)
 - Spiegel leer → Meldung, die das Relay nennt und sagt, was zu tun ist
 - Pflichtwert fehlt → **Start bricht ab** mit klarer Meldung, statt später
   leere Seiten zu liefern
