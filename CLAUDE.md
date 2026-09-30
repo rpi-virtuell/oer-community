@@ -23,9 +23,9 @@ Gina und Ludger, festgehalten in ADR-0034): Zuerst wird das
 oer.community-Schaufenster fertig gebaut, der eigentliche Community-Hub
 folgt später auf diesen Erfahrungen. Repository:
 `git.rpi-virtuell.de/Comenius-Institut/oer-community` (die alte Adresse
-leitet weiter). Die Dev-Adresse `community-hub.rpi-virtuell.net` und das
-Deploy-Skript (`deploy-app.sh community-hub`) behalten den alten Namen,
-bis Ludger Server und DNS umstellt. Ältere ADRs sprechen noch von den
+leitet weiter). Dev-Adresse seit dem 30.09.2026:
+`oer-community.rpi-virtuell.net` (Deploy-Skript `deploy-app.sh
+oer-community`); die alte Adresse zeigt einen Umzugshinweis. Ältere ADRs sprechen noch von den
 alten Namen — angenommene ADRs werden nicht umgeschrieben. **relilab bleibt** als dokumentierte,
 nicht betriebene Quelle (ADR-0012); die Farbtoken sind seit ADR-0031
 FOERBICO, nicht mehr relilab. Umbenannt wurde nur der Projektname.
@@ -406,7 +406,7 @@ weil FOERBICO selbst noch kein `kind:30004` publiziert.
 | Umgebung | Quelle | Datenquelle |
 |---|---|---|
 | lokal (`pnpm dev`) | Arbeitskopie | `relay.edufeed.org` |
-| `community-hub.rpi-virtuell.net` (Dev) | `main`, bei jedem Push per Woodpecker | `relay.edufeed.org`, `relay-rpi.edufeed.org` |
+| `oer-community.rpi-virtuell.net` (Dev) | `main`, bei jedem Push per Woodpecker | `relay.edufeed.org`, `relay-rpi.edufeed.org` |
 
 Ziel ist oer.community. Der Deploy-Weg samt Stolperstein steht in
 `docs/betrieb.md` (Abschnitt Dev-Umgebung); ältere Zwischenstände liefen auf dem Hetzner-Server aus
