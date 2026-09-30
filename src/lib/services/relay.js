@@ -22,7 +22,7 @@ import { WebSocket } from 'ws';
  *
  * @typedef {object} Relayantwort
  * @property {Event[]} events
- * @property {boolean} erreicht  true, sobald das Relay mit EOSE/CLOSED antwortete
+ * @property {boolean} erreicht  true, sobald das Relay mit EOSE antwortete; CLOSED ist eine Ablehnung, keine Antwort
  */
 
 /**
@@ -110,9 +110,15 @@ export function eventsHolen(relayUrl, filter, optionen = {}) {
       const [art] = nachricht;
       if (art === 'EVENT' && nachricht[2]) {
         gesammelt.push(nachricht[2]);
-      } else if (art === 'EOSE' || art === 'CLOSED') {
+      } else if (art === 'EOSE') {
         // Eine vollständige Antwort — auch eine leere ist eine Antwort.
         erreicht = true;
+        beenden();
+      } else if (art === 'CLOSED') {
+        // Das Relay hat die Abfrage abgelehnt (NIP-01: z. B. „auth-required:",
+        // „rate-limited:", „error:"). Das ist keine Antwort „habe nichts",
+        // sondern keine Antwort — sonst hielte der Spiegel eine Ablehnung für
+        // einen leeren Bestand.
         beenden();
       }
     });

@@ -9,6 +9,20 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Ausfall des Artikel-Relays leert den Spiegel nicht mehr (ADR-0037)
+
+**Passiert:** Zweiter Befund des Code-Reviews. Fiel `relay.edufeed.org`
+aus, antworteten die anderen Relays mit „habe nichts" und der Spiegel wurde
+leer. Jetzt ist ein Lauf ungültig, wenn alle Relays schweigen, die bisher
+Artikel lieferten; `CLOSED` zählt in `services/relay.js` als nicht erreicht.
+`eventsHolen` hat dafür erstmals Tests gegen einen echten WebSocket-Server.
+
+**Wo steht das Projekt:** `feat/spiegel-schwund`, baut auf
+`feat/signatur-im-spiegel` auf. `pnpm check` 0 Fehler, 440 Tests grün.
+
+**Nächster Schritt:** Beide Branches nacheinander auf Forgejo nach `dev`
+mergen (erst Signatur, dann dieser).
+
 ## 2026-09-30 — Nur signierte Events in den Spiegel (ADR-0036)
 
 **Passiert:** Code-Review (Claude) fand: Der Spiegel übernahm jedes Event,

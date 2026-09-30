@@ -124,3 +124,37 @@ describe('eventsVonAllen haelt fest, welches Relay ein Event lieferte', () => {
     expect(ergebnis.quellen).toEqual({});
   });
 });
+
+describe('eventsHolen gegen ein echtes WebSocket-Relay', () => {
+  /** @param {(nachricht: any[], senden: (x: unknown[]) => void) => void} verhalten */
+  async function relayStarten(verhalten) {
+    const { WebSocketServer } = await import('ws');
+    const server = new WebSocketServer({ port: 0 });
+    await new Promise((fertig) => server.once('listening', fertig));
+    server.on('connection', (ws) => {
+      ws.on('message', (roh) => verhalten(JSON.parse(roh.toString()), (x) => ws.send(JSON.stringify(x))));
+    });
+    const adresse = /** @type {import('node:net').AddressInfo} */ (server.address());
+    return { url: `ws://127.0.0.1:${adresse.port}`, schliessen: () => new Promise((f) => server.close(f)) };
+  }
+
+  it('EOSE ohne Events: erreicht, hat nichts', async () => {
+    const relay = await relayStarten((n, senden) => senden(['EOSE', n[1]]));
+    try {
+      const { eventsHolen } = await import('./relay.js');
+      expect(await eventsHolen(relay.url, { kinds: [1] })).toEqual({ events: [], erreicht: true });
+    } finally {
+      await relay.schliessen();
+    }
+  });
+
+  it('CLOSED ist eine Ablehnung, keine leere Antwort', async () => {
+    const relay = await relayStarten((n, senden) => senden(['CLOSED', n[1], 'auth-required: bitte anmelden']));
+    try {
+      const { eventsHolen } = await import('./relay.js');
+      expect(await eventsHolen(relay.url, { kinds: [1] })).toEqual({ events: [], erreicht: false });
+    } finally {
+      await relay.schliessen();
+    }
+  });
+});

@@ -119,6 +119,39 @@ describe('spiegelErstellen().auffrischen', () => {
     expect(inhalt.stand?.anzahl).toEqual({ artikel: 1, listen: 0, nachweise: 0, profil: 1, termine: 0 });
   });
 
+  it('fällt nur das Artikel-Relay aus, bleibt der alte Stand (ADR-0037)', async () => {
+    const lage = { tot: /** @type {string[]} */ ([]) };
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(lage), etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    await s.auffrischen();
+    const vorher = s.lesen();
+    expect(vorher.artikel.length).toBeGreaterThan(0);
+    // relay-rpi antwortet weiter — es führt aber keine Artikel.
+    lage.tot = [RELAY];
+    const { gueltig } = await s.auffrischen();
+    expect(gueltig).toBe(false);
+    expect(s.lesen()).toBe(vorher);
+    expect(s.letzterFehlschlag()?.gefragteRelays).toEqual([RELAY]);
+  });
+
+  it('ohne bisherigen Stand genügt irgendein antwortendes Relay', async () => {
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays({ tot: [RELAY] }), etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const { gueltig, inhalt } = await s.auffrischen();
+    expect(gueltig).toBe(true);
+    expect(inhalt.artikel).toEqual([]);
+  });
+
+  it('ein Relay, das aus RELAYS gestrichen wurde, hält den alten Stand nicht fest', async () => {
+    const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    await s.auffrischen();
+    const ohne = spiegelErstellen({
+      konfig: { ...KONFIG, relays: [RPI] }, holen: relays(), etagHolen: async () => undefined,
+      speicher: speicherAttrappe(JSON.stringify(s.lesen()))
+    });
+    await ohne.ausDateiLaden();
+    const { gueltig } = await ohne.auffrischen();
+    expect(gueltig).toBe(true);
+  });
+
   it('fragt Nachweise in Blöcken zu höchstens 50 Hashes', async () => {
     // Fixture-Anpassung (Task 4): content muss mit überschrieben werden —
     // ARTIKEL_NEU trägt im Markdown ein Blossom-Bild mit eigenem Hash
