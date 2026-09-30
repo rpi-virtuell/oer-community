@@ -73,7 +73,7 @@ export function themenLaden({ konfig, inhalt }) {
  * Inhalt (ADR-0034). Ohne Termine ist er leer, und die Komponente zeigt
  * nichts — nicht `undefined`, sonst müsste jede Startseite selbst prüfen.
  *
- * `breit` schaltet das Layout auf die Rasterbreite (ADR-0035): Startkopf
+ * `breit` schaltet das Layout auf die Rasterbreite (ADR-0040): Startkopf
  * und Kartenraster brauchen sie, der Beitragstext liegt in der Lesebreite.
  * @param {{ konfig: Konfig, inhalt: Inhalt, sprache?: 'de'|'en', jetzt?: () => Date }} e
  */

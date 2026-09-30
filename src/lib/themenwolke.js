@@ -1,5 +1,5 @@
 /**
- * Größenstufe eines Themas in der Themenwolke (ADR-0035): fünf Stufen von
+ * Größenstufe eines Themas in der Themenwolke (ADR-0040): fünf Stufen von
  * 1 (einzelner Treffer) bis 5 (häufigstes Thema), linear zwischen 1 und dem
  * Maximum. Rein — keine Importe —, damit Komponente und Test dasselbe
  * rechnen.

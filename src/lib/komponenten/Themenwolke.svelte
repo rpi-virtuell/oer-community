@@ -2,7 +2,7 @@
   import { groessenstufe } from '$lib/themenwolke.js';
 
   /**
-   * Alle Themen als Wolke (ADR-0035): die Schriftgröße folgt der Häufigkeit
+   * Alle Themen als Wolke (ADR-0040): die Schriftgröße folgt der Häufigkeit
    * in fünf Stufen, in Primärblau — nicht in Orange, das trägt auf Weiß
    * keinen Text (ADR-0031). Die Anzahl steht sichtbar dabei, damit die
    * Größe nicht die einzige Auskunft ist. Übersichten gibt es nur deutsch

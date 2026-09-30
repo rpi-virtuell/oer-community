@@ -2,7 +2,7 @@
   import Lizenzpille from './Lizenzpille.svelte';
   /**
    * Eine Übersichtskarte. Als `aufmacher` liegt sie zweispaltig quer über
-   * dem Raster — Cover links, Text rechts, größere Überschrift (ADR-0035).
+   * dem Raster — Cover links, Text rechts, größere Überschrift (ADR-0040).
    * @type {{ karte: import('$lib/loaders/uebersicht.js').Karte, aufmacher?: boolean }}
    */
   let { karte, aufmacher = false } = $props();

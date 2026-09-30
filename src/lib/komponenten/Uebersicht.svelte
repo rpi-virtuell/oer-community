@@ -5,7 +5,7 @@
   /** @type {{ karten: import('$lib/loaders/uebersicht.js').Karte[], seite: number, seiten: number, basis: string, ueberschrift: string, hinweis?: string|null }} */
   let { karten, seite, seiten, basis, ueberschrift, hinweis = null } = $props();
   const pfad = (/** @type {number} */ n) => (n <= 1 ? basis : `${basis}/seite/${n}`);
-  // Auf Seite 1 ist der neueste Beitrag der Aufmacher (ADR-0035); auf den
+  // Auf Seite 1 ist der neueste Beitrag der Aufmacher (ADR-0040); auf den
   // Folgeseiten stehen alle im Raster — ein zweiter Aufmacher wäre keiner.
   const aufmacher = $derived(seite === 1 ? karten[0] ?? null : null);
   const raster = $derived(aufmacher ? karten.slice(1) : karten);

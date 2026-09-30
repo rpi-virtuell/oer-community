@@ -1,6 +1,6 @@
 <script>
   /**
-   * Der Hero der Startseite (ADR-0035): Titel und Vorspann der Seite
+   * Der Hero der Startseite (ADR-0040): Titel und Vorspann der Seite
    * `d = startseite` aus Nostr, groß gesetzt. Kein Logo und kein Panel —
    * Logo und Wortmarke stehen schon in der Kopfzeile, ein zweites Mal
    * daneben war Dekoration ohne Aussage. Kein Text hier ist erfunden.

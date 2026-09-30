@@ -93,7 +93,7 @@ describe('Kontrast der FOERBICO-Palette (docs/designsystem.md, ADR-0031)', () =>
     expect(kontrast(token('--fb-ueberschrift'), token('--fb-akzent'))).toBeGreaterThanOrEqual(AA);
     expect(kontrast('#ffffff', token('--fb-akzent'))).toBeLessThan(AA);
   });
-  // Blaues Panel (ADR-0035): weißer Text und oranges Label auf Primärblau
+  // Blaues Panel (ADR-0040): weißer Text und oranges Label auf Primärblau
   // und auf dem tiefen Blau des Verlaufs.
   it('Panel: Weiß und --fb-akzent tragen auf --fb-primaer und --fb-primaer-tief', () => {
     for (const grund of ['--fb-primaer', '--fb-primaer-tief']) {

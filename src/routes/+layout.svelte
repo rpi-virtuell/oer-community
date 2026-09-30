@@ -25,7 +25,7 @@
   zweisprachig={data.struktur.zweisprachig}
   {wechselPfad}
 />
-<!-- Breit für Übersichten und Startseite (ADR-0035), sonst Lesebreite;
+<!-- Breit für Übersichten und Startseite (ADR-0040), sonst Lesebreite;
      die Seite sagt es über ihre Daten (`breit`). -->
 <main class:breit={page.data.breit === true}>
   {@render children()}

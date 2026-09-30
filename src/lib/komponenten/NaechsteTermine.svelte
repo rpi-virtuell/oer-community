@@ -21,7 +21,7 @@
 </script>
 
 {#if karten.length > 0}
-  <!-- Das blaue Panel aus dem Landing-Entwurf (ADR-0035): weißer Text,
+  <!-- Das blaue Panel aus dem Landing-Entwurf (ADR-0040): weißer Text,
        oranges Datum-Label — beide Paare in test/kontrast.test.js. -->
   <section class="naechste panel">
     <h2>{t(sprache, 'naechsteTermine')}</h2>

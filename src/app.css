@@ -44,14 +44,14 @@
   --fb-flaeche-2:    #e6f2ff;  /* Kopfzeile, Marker */
   --fb-weiss:        #ffffff;
   --fb-fehler:       #971b2f;  /* Comenius-Dunkelrot aus der Farbtabelle des Styleguides */
-  --fb-primaer-tief: #152560;  /* abgeleitet: tiefes Blau des Panel-Verlaufs (ADR-0035) */
+  --fb-primaer-tief: #152560;  /* abgeleitet: tiefes Blau des Panel-Verlaufs (ADR-0040) */
   /* Schrift */
   --schrift: 'Roboto Condensed', system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* Maße (unverändert übernommen, umbenannt) */
   --breite-container: 1499px;
-  --breite-raster: 1240px;   /* Übersichten und Startkopf (ADR-0035) */
+  --breite-raster: 1240px;   /* Übersichten und Startkopf (ADR-0040) */
   --breite-schmal: 820px;
-  --hoehe-kopf: 76px;        /* flacher und klebend seit ADR-0035, vorher 120px */
+  --hoehe-kopf: 76px;        /* flacher und klebend seit ADR-0040, vorher 120px */
   --radius: 5px;
   --schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
   /* Bewegung: kurz und nur bei Hover; prefers-reduced-motion schaltet sie ab. */
@@ -180,7 +180,7 @@ a:hover { color: var(--fb-ueberschrift); text-decoration: underline; }
 }
 
 /* Panel: Primärblau mit Verlauf ins tiefe Blau, feinem Raster und orangem
-   Glow — aus dem FOERBICO-Landing-Entwurf (ADR-0035). Text darauf ist weiß,
+   Glow — aus dem FOERBICO-Landing-Entwurf (ADR-0040). Text darauf ist weiß,
    Labels sind orange; beides nachgerechnet in test/kontrast.test.js. */
 .panel {
   position: relative;

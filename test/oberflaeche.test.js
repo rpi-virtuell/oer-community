@@ -629,7 +629,7 @@ describe('NaechsteTermine (Startseitenblock, ADR-0034)', () => {
   });
 });
 
-describe('Startkopf (Hero der Startseite, ADR-0035)', () => {
+describe('Startkopf (Hero der Startseite, ADR-0040)', () => {
   it('nennt Titel und Vorspann — kein Logo, kein Panel: Logo und Wortmarke stehen schon in der Kopfzeile', () => {
     const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: 'Offen. Vernetzt.' } });
     expect(body).toMatch(/<h1[^>]*>Willkommen<\/h1>/);
@@ -643,7 +643,7 @@ describe('Startkopf (Hero der Startseite, ADR-0035)', () => {
   });
 });
 
-describe('Themenwolke (ADR-0035)', () => {
+describe('Themenwolke (ADR-0040)', () => {
   const THEMEN = [
     { name: 'OER', slug: 'oer', anzahl: 12 },
     { name: 'Community', slug: 'community', anzahl: 6 },
@@ -662,7 +662,7 @@ describe('Themenwolke (ADR-0035)', () => {
   });
 });
 
-describe('Übersicht als Aufmacher plus Raster (ADR-0035)', () => {
+describe('Übersicht als Aufmacher plus Raster (ADR-0040)', () => {
   /** @param {number} n @returns {any[]} */
   const karten = (n) =>
     Array.from({ length: n }, (_, i) => ({

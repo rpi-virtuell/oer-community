@@ -8,7 +8,7 @@
   <link rel="canonical" href={kanonisch(data.struktur.basisUrl, '/themen')} />
 </svelte:head>
 <header class="detail-kopf"><h1>Themen</h1></header>
-<!-- Als Wolke nach Häufigkeit (ADR-0035); die Anzahl steht an jedem Thema. -->
+<!-- Als Wolke nach Häufigkeit (ADR-0040); die Anzahl steht an jedem Thema. -->
 <Themenwolke themen={data.themen} />
 <style>
   .detail-kopf {

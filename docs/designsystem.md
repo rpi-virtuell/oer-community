@@ -9,7 +9,7 @@ relilab-Stand vom 04.09.2026 (Farbkarte FOERBICO × rpi-virtuell,
 und nur noch in der Git-Historie nachzulesen (siehe „Frühere Stände“).
 
 **Stand:** 16.09.2026 · Umsetzung: `src/app.css` (Tokens, Grundschrift,
-Bausteine) · Begründung: ADR-0031, Gestaltungsebene ADR-0035 (Panel, Label,
+Bausteine) · Begründung: ADR-0031, Gestaltungsebene ADR-0040 (Panel, Label,
 Display, Aufmacher-Raster, klebende Kopfzeile — nach dem
 FOERBICO-Landing-Entwurf `foerbico-landing_draft3.html`) ·
 Kontrastentscheidungen: ADR-0031, nachgerechnet in `test/kontrast.test.js`.
@@ -41,7 +41,7 @@ Zwei Werte sind abgeleitet, nicht im Styleguide genannt:
 |---|---|---|
 | `--fb-text-leise` | `#5a6178` | Metazeilen — Wert aus dem früheren Designsystem übernommen, da der Styleguide keinen eigenen für gedämpften Text nennt |
 | `--fb-fehler` | `#971b2f` | Comenius-Dunkelrot aus der Farbtabelle des Styleguides (Zeile „Aktive Elemente", Spalte Comenius) — der Styleguide selbst nennt keinen Fehlerton, ADR-0031 legt diesen fest |
-| `--fb-primaer-tief` | `#152560` | Endpunkt des Panel-Verlaufs, aus dem Landing-Entwurf (`--blue-deep`); nur im Panel, nie als Textfarbe (ADR-0035) |
+| `--fb-primaer-tief` | `#152560` | Endpunkt des Panel-Verlaufs, aus dem Landing-Entwurf (`--blue-deep`); nur im Panel, nie als Textfarbe (ADR-0040) |
 
 **Kein Dunkelmodus in dieser Stufe** (ADR-0031). PaperMod hatte einen; der
 Hub bekommt ihn, wenn jemand ihn vermisst.
@@ -84,16 +84,16 @@ zeigt, prüft `src/lib/architektur.test.js`.
 
 ```css
 --breite-container: 1499px;   /* Kopf- und Fußzeile */
---breite-raster:    1240px;   /* Übersichten und Startkopf (ADR-0035) */
+--breite-raster:    1240px;   /* Übersichten und Startkopf (ADR-0040) */
 --breite-schmal:     820px;   /* Lesebreite */
---hoehe-kopf:         76px;   /* Kopfzeile, klebend (ADR-0035; vorher 120px) */
+--hoehe-kopf:         76px;   /* Kopfzeile, klebend (ADR-0040; vorher 120px) */
 --radius:              5px;
 --uebergang:  160ms ease-out; /* Hover-Übergänge; prefers-reduced-motion schaltet ab */
 ```
 
 Das Layout — Textbreite, Container — bleibt vom bisherigen Designsystem
 übernommen, weil es nicht markenspezifisch ist (ADR-0031). **Zwei
-Breiten** seit ADR-0035: Übersichten und die Startseite laufen in der
+Breiten** seit ADR-0040: Übersichten und die Startseite laufen in der
 Rasterbreite (`main.breit`, geschaltet über das Seitendatum `breit`), der
 Beitragstext liegt immer in der Lesebreite — auf der Startseite in einem
 `.lesebreite`-Wrapper unter dem Startkopf.
@@ -252,7 +252,7 @@ Nostr.
 ## Noch zu klären
 
 **Wie nah kommt „1:1" an oer.community?** Farben, Schrift und Maße sind
-Tokens; Kartenraster und Kopfzeile folgen seit ADR-0035 dem
+Tokens; Kartenraster und Kopfzeile folgen seit ADR-0040 dem
 FOERBICO-Landing-Entwurf, nicht PaperMod. Ob der Entwurf der künftige
 Styleguide wird (und Yanone Kaffeesatz zurückkommt), entscheidet die
-Redaktion — ADR-0035 hat Status „offen".
+Redaktion — ADR-0040 hat Status „offen".

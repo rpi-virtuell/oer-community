@@ -1,4 +1,4 @@
-# ADR-0035: Der Hub übernimmt die Gestaltungssprache des FOERBICO-Landing-Entwurfs — mit den Token aus ADR-0031
+# ADR-0040: Der Hub übernimmt die Gestaltungssprache des FOERBICO-Landing-Entwurfs — mit den Token aus ADR-0031
 
 **Status:** offen (umgesetzt auf `feat/gestaltung`, 2026-09-16; Bestätigung durch die Redaktion steht aus)
 **Beteiligte:** Jörg (Vorschlag), Gina und Ludger (zu fragen)

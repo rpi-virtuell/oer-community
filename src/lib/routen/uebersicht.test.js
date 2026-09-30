@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { blogLaden, startLaden, themenLaden } from './uebersicht.js';
 import { inhaltDerTestquelle } from '../../../test/fixtures/testquelle/laden.js';
 
-// Der Breitenschalter des Layouts (ADR-0035): Übersichten und Startseite
+// Der Breitenschalter des Layouts (ADR-0040): Übersichten und Startseite
 // laufen breit, Beitrag und Termine bleiben in der Lesebreite.
 describe('breit — Kartenraster und Hero brauchen den ganzen Container', () => {
   it('Blog und Themen sind breit', () => {

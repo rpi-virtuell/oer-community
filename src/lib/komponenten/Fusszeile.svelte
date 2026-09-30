@@ -108,7 +108,7 @@
 </footer>
 
 <style>
-  /* Drei Spalten wie im Landing-Entwurf (ADR-0035): Marke mit Text, Links,
+  /* Drei Spalten wie im Landing-Entwurf (ADR-0040): Marke mit Text, Links,
      Werkzeug. Stand und Befund laufen über die ganze Breite. */
   .fuss {
     background: var(--fb-flaeche);

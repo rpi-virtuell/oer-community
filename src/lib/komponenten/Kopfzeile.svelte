@@ -66,7 +66,7 @@
 </header>
 
 <style>
-  /* Klebend und halbtransparent mit Blur (ADR-0035); der orange Saum bleibt
+  /* Klebend und halbtransparent mit Blur (ADR-0040); der orange Saum bleibt
      die Marke. Ohne color-mix bleibt die Fläche deckend statt unsichtbar. */
   .kopf {
     position: sticky;

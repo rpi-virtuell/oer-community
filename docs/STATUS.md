@@ -9,7 +9,7 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
-## 2026-09-16 — Gestaltung nach dem FOERBICO-Landing-Entwurf (ADR-0035, Branch `feat/gestaltung`)
+## 2026-09-16 — Gestaltung nach dem FOERBICO-Landing-Entwurf (ADR-0040, Branch `feat/gestaltung`)
 
 **Passiert:** Jörg hat den Landing-Entwurf aus dem FOERBICO-Repository
 (`docs/foerbico-landing_draft3.html`) als Anlass genommen, den Hub
@@ -41,7 +41,7 @@ nicht im Code.
 
 **Nächster Schritt:** Jörg schaut sich den Branch lokal an (`pnpm dev`),
 Handy-Breite im Gerätemodus prüfen. Dann Gina und Ludger fragen, ob der
-Entwurf die Richtung ist (ADR-0035 auf „angenommen") und ob Yanone
+Entwurf die Richtung ist (ADR-0040 auf „angenommen") und ob Yanone
 Kaffeesatz zurückkommt. Danach Merge nach `dev`.
 
 ## 2026-09-15 — Repository heißt oer-community

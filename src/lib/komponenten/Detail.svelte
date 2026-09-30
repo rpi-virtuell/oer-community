@@ -30,7 +30,7 @@
    *   basisUrl?: string|null
    * }}
    */
-  // ohneKopf: die Startseite trägt Titel und Vorspann im Startkopf (ADR-0035);
+  // ohneKopf: die Startseite trägt Titel und Vorspann im Startkopf (ADR-0040);
   // ein zweiter <h1> hier wäre derselbe Titel zweimal.
   let { data, wortmarke, nurWortmarke = false, ohneKopf = false, kanonischeUrl = null, basisUrl = null } = $props();
 
