@@ -2,44 +2,42 @@
 
 ## Dev-Umgebung
 
-**Repository seit 15.09.2026: `Comenius-Institut/oer-community`** (umbenannt aus
+**Dev-Adresse seit dem 30.09.2026: `oer-community.rpi-virtuell.net`.**
+Repository seit 15.09.2026 `Comenius-Institut/oer-community` (umbenannt aus
 `community-hub`; Forgejo leitet die alte Adresse weiter, Woodpecker hängt am
-Repository, nicht am Namen). Server-Verzeichnis, Unit und Dev-Adresse heißen
-weiter `community-hub`, bis Ludger sie umstellt.: `community-hub.rpi-virtuell.net`
+Repository, nicht am Namen). Ludger hat Server und DNS mit dem Commit
+„Deploy nach oer-community" (PR #4) umgestellt; die alte Adresse
+`community-hub.rpi-virtuell.net` zeigt nur noch einen Umzugshinweis.
 
 Jeder Push auf `main` löst die Woodpecker-Pipeline aus (`.woodpecker.yml`):
-`pnpm install`, `pnpm check`, `pnpm test`, `pnpm build`, dann per SSH als
-`svc-cha` das Skript `~/ServerSetup/scripts/deploy-app.sh community-hub`
-auf `community-hub.rpi-virtuell.net`. Das Skript zieht
-`~/SourceCode/community-hub` per `git pull`, synchronisiert eine git-freie
-Kopie und baut das Image aus dem `Dockerfile` mit Podman. **Der Container
-ist also der Docker-Weg**, nicht die systemd-Unit weiter unten — deshalb
-liegt `daten/themen.json` im Image (Dockerfile). Ob der Container ein
-Volume für `daten/` bekommt, entscheidet das Skript auf dem Server; ohne
-Volume startet der Spiegel nach jedem Neustart leer und lädt neu (ADR-0028),
-die Datei schreibt er dann nur ins Container-Dateisystem.
+`pnpm install`, `pnpm check`, `pnpm lint`, `pnpm test`, `pnpm build`, dann
+per SSH als `svc-cha` das Skript
+`~/ServerSetup/scripts/deploy-app.sh oer-community` auf
+`oer-community.rpi-virtuell.net`. Das Skript zieht das Server-Repository
+per `git pull`, synchronisiert eine git-freie Kopie und baut das Image aus
+dem `Dockerfile` mit Podman. **Der Container ist also der Docker-Weg**,
+nicht die systemd-Unit weiter unten — deshalb liegt `daten/themen.json` im
+Image (Dockerfile). Ob der Container ein Volume für `daten/` bekommt,
+entscheidet das Skript auf dem Server; ohne Volume startet der Spiegel nach
+jedem Neustart leer und lädt neu (ADR-0028), die Datei schreibt er dann nur
+ins Container-Dateisystem — und die Profilbilder (ADR-0039) holt er ebenfalls
+neu.
 
 Status und Logs: Forgejo zeigt den Commit-Status, die Pipeline liegt unter
 `https://woody.git.rpi-virtuell.de/repos/13/`. Eingerichtet von Ludger
 (PR #3, 08.09.2026).
 
-**Stolperstein vom 14.09.2026:** Das Server-Repo steht auf dem Branch
-`succesful-deployment`, der nach dem Merge von PR #3 auf dem Remote gelöscht
-war; `git pull` fand keinen Upstream, der Deploy-Schritt brach nach einer
-Sekunde ab (Pipelines 2 bis 5). Aus der Pipeline heraus lässt sich das nicht
-beheben: Der Deploy-Schlüssel darf auf dem Server nur das Skript ausführen,
-vorgeschaltete Befehle kommen nicht an. **Übergangslösung:** Der Branch
-`succesful-deployment` existiert wieder und wird bei jedem Push auf `main`
-auf denselben Stand gesetzt:
+**Erledigter Stolperstein (14.09.–30.09.2026):** Das alte Server-Repo stand
+auf dem Branch `succesful-deployment`, der nach dem Merge von PR #3 auf dem
+Remote gelöscht war; `git pull` fand keinen Upstream, der Deploy-Schritt
+brach nach einer Sekunde ab. Übergangsweise wurde der Branch bei jedem Push
+mitgeführt. Seit dem Umzug auf `oer-community` (30.09.) läuft der Deploy
+ohne Hilfsbranch; `succesful-deployment` ist gelöscht und `main` allein
+genügt:
 
 ```
-git push origin main:succesful-deployment
 git push origin main
 ```
-
-**Dauerhafte Lösung (Ludger, Serverzugang als `svc-cha`):** in
-`~/SourceCode/community-hub` einmal `git checkout main` — danach kann der
-Hilfsbranch weg und die zwei Zeilen werden zu einer.
 
 ## GitHub-Spiegel und Übertragung nach Forgejo
 
