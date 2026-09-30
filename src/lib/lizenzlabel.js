@@ -23,7 +23,11 @@ export function lizenzLabel(url) {
   if (/creativecommons\.org\/publicdomain\/mark\/1\.0/i.test(roh)) {
     return 'Public Domain';
   }
-  if (/unsplash\.com\/license/i.test(roh)) return 'Unsplash License';
+  // Unsplash verlinkt die Lizenz je Sprache anders: /license, /de/lizenz,
+  // /fr/licence. Die edufeed-app kennt bisher nur /license (Stand 2026-09-10);
+  // der Sprachpfad ist hier ergänzt, weil FOERBICO-Nachweise die deutsche
+  // Adresse tragen.
+  if (/unsplash\.com\/(?:[a-z]{2}\/)?(?:license|lizenz|licence)$/i.test(roh)) return 'Unsplash License';
   if (/pixabay\.com\/service\/license/i.test(roh)) return 'Pixabay License';
   if (/canva\.com\/policies\/content-license/i.test(roh)) {
     return 'Canva Content License';
