@@ -217,7 +217,10 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **`verifyEvent` allein prüft die Signatur nicht gegen den Inhalt.** Es
   prüft `sig` gegen `id`; ein Event mit verändertem `content` und
   unberührter `id`/`sig` kommt durch. Immer zusätzlich `getEventHash`
-  gegen die `id` vergleichen (ADR-0017).
+  gegen die `id` vergleichen (ADR-0017). **Der Spiegel lässt nur echte
+  Events herein** (`echtesEvent` in `src/lib/models/signatur.js`,
+  ADR-0036) — neue Abfragen im Spiegel laufen über `fragen`, nie direkt
+  über `eventsVonAllen`.
 - **Bilder von abgelösten Hosts** (`ABGELOESTE_HOSTS`, Standard
   `oer.community`) gelten wie relative Pfade (ADR-0030).
 - **Ein Beitrag ist eine Seite**, wenn er `["l","seite","foerbico/typ"]`

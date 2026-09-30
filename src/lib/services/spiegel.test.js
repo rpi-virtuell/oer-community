@@ -137,7 +137,8 @@ describe('spiegelErstellen().auffrischen', () => {
       if (/** @type {number[]} */ (filter.kinds).includes(1063) && url === RELAY) groessen.push(/** @type {string[]} */ (filter['#x']).length);
       return { events: [], erreicht: true };
     };
-    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    // Gebaute Fassungen sind nicht signiert — hier geht es um die Blöcke, nicht um die Signatur.
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe(), pruefen: () => true });
     await s.auffrischen();
     expect(groessen).toEqual([50, 50, 20]);
   });
@@ -153,6 +154,40 @@ function speicherAttrappe(/** @type {string|null} */ anfang = null) {
   };
 }
 
+describe('Signatur (ADR-0036)', () => {
+  it('lässt ein Event mit falscher Signatur nicht herein und zählt es', async () => {
+    const gefaelscht = { ...structuredClone(ARTIKEL_NEU), content: 'Nie von FOERBICO geschrieben.' };
+    /** @type {import('./relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(30023)) return { events: url === RELAY ? [gefaelscht, structuredClone(ARTIKEL_ALT)] : [], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const { inhalt } = await s.auffrischen();
+    expect(inhalt.artikel.map((e) => e.id)).toEqual([ARTIKEL_ALT.id]);
+    expect(inhalt.stand?.verworfen).toBe(1);
+  });
+
+  it('prüft auch Nachweise, Listen, Profil und Termine', async () => {
+    const falsch = (/** @type {any} */ e) => ({ ...structuredClone(e), sig: '00'.repeat(64) });
+    /** @type {import('./relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      if (url !== RELAY) return { events: [], erreicht: true };
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(30023)) return { events: [structuredClone(ARTIKEL_NEU)], erreicht: true };
+      if (kinds.includes(0)) return { events: [falsch(PROFIL)], erreicht: true };
+      if (kinds.includes(1063)) return { events: [falsch(NACHWEIS)], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const { inhalt } = await s.auffrischen();
+    expect(inhalt.profil).toBeNull();
+    expect(inhalt.nachweise).toEqual([]);
+    expect(inhalt.stand?.verworfen).toBe(2);
+  });
+});
+
 describe('Profilwahl', () => {
   it('behält das neueste kind:0, nicht das älteste', async () => {
     const alt = { ...PROFIL, id: 'a'.repeat(64), created_at: 1 };
@@ -163,7 +198,7 @@ describe('Profilwahl', () => {
       if (kinds.includes(0)) return { events: url === RELAY ? [alt, neu] : [], erreicht: true };
       return { events: [], erreicht: true };
     };
-    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const s = spiegelErstellen({ konfig: KONFIG, holen, etagHolen: async () => undefined, speicher: speicherAttrappe(), pruefen: () => true });
     const { inhalt } = await s.auffrischen();
     expect(inhalt.profil?.id).toBe(neu.id);
   });
@@ -312,7 +347,7 @@ describe('Termine und Redaktionsliste (ADR-0034)', () => {
       if (kinds.includes(30000)) return { events: [REDAKTION], erreicht: true };
       return { events: [], erreicht: true };
     };
-    const s = spiegelErstellen({ konfig: { ...KONFIG, community: null }, holen, etagHolen: async () => undefined, speicher: speicherAttrappe() });
+    const s = spiegelErstellen({ konfig: { ...KONFIG, community: null }, holen, etagHolen: async () => undefined, speicher: speicherAttrappe(), pruefen: () => true });
     const { inhalt } = await s.auffrischen();
     expect(inhalt.listen.map((e) => e.id).sort()).toEqual([REDAKTION.id, liste30004.id].sort());
   });
