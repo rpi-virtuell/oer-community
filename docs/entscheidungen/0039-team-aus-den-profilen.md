@@ -28,6 +28,10 @@ die Karte selbst hinge an beidem gleich.
 
 ## Konsequenzen
 
+- Die Personenprofile gehen wie jedes andere Event durch die
+  Signaturprüfung des Spiegels (ADR-0036). Ein Relay kann sonst ein
+  neueres `kind:0` mit fremdem Bild und Text unter dem Schlüssel einer
+  Person liefern, und es stünde auf der Teamseite.
 - Der Spiegel holt zusätzlich das `kind:0` jeder verwiesenen Person, über
   alle Relays; je Person gilt das neueste. Verweise zählen nur aus dem
   eigenen Bestand — ein fremder Key zieht keine Profile in den Spiegel.

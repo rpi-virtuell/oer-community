@@ -129,6 +129,30 @@ describe('Spiegel holt die kind:0 der verwiesenen Personen', () => {
     expect(inhalt.profil?.id).toBe(PROFIL.id);
   });
 
+  it('übernimmt nur Profile mit gültiger Signatur (ADR-0036)', async () => {
+    const gefaelscht = { ...kind0(JENS, { name: 'untergeschoben' }, 1795000000), sig: 'falsch' };
+    /** @type {import('../src/lib/services/relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(30023)) return { events: url === RELAY ? [/** @type {any} */ (TEAMSEITE)] : [], erreicht: true };
+      if (kinds.includes(0) && /** @type {string[]|undefined} */ (filter.authors)?.includes(JENS)) {
+        return { events: /** @type {any} */ (url === RPI ? [JENS_PROFIL, gefaelscht] : []), erreicht: true };
+      }
+      if (kinds.includes(0)) return { events: url === RELAY ? [PROFIL] : [], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+    const s = spiegelErstellen({
+      konfig: KONFIG, holen, etagHolen: async () => undefined,
+      speicher: { lesen: async () => null, schreiben: async () => {} },
+      pruefen: (e) => e.sig !== 'falsch',
+      bildHolen: async () => null, bildspeicher: { pfadVon: (d) => d, vorhanden: async () => false, schreiben: async () => {} }
+    });
+    const { inhalt } = await s.auffrischen();
+    // Das neuere, aber gefälschte Profil verdrängt das echte nicht.
+    expect(inhalt.personen?.map((e) => e.id)).toEqual([JENS_PROFIL.id]);
+    expect(inhalt.stand?.verworfen).toBe(1);
+  });
+
   it('sammelt nur Verweise auf eigener Zeile', () => {
     expect(personenSammeln([/** @type {any} */ (TEAMSEITE)])).toEqual([JENS, GINA]);
   });
