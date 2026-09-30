@@ -18,6 +18,7 @@
   <img src={url} {alt} loading="lazy" referrerpolicy="no-referrer" />
   <figcaption class="metazeile">
     <!-- Gesäubert in inhalt.js — deshalb erlaubt in {@html}. -->
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     <span class="unterschrift">{@html unterschrift}</span>
   </figcaption>
 </figure>

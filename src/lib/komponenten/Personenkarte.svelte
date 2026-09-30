@@ -28,6 +28,8 @@
     <p class="name">{person.name}</p>
   {/if}
   {#if person.aboutHtml}
+    <!-- Gesäubertes HTML aus inhaltAufbereiten (loaders/beitrag.js) — deshalb erlaubt in {@html}. -->
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     <div class="about">{@html person.aboutHtml}</div>
   {/if}
   {#if kontakt}

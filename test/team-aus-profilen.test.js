@@ -117,7 +117,8 @@ describe('Spiegel holt die kind:0 der verwiesenen Personen', () => {
     };
     const s = spiegelErstellen({
       konfig: KONFIG, holen, etagHolen: async () => undefined,
-      speicher: { lesen: async () => null, schreiben: async () => {} }
+      speicher: { lesen: async () => null, schreiben: async () => {} },
+      pruefen: () => true // Fixtures sind unsigniert; die Prüfung selbst testet signatur.test.js
     });
     const { inhalt } = await s.auffrischen();
     expect(gefragt.map((g) => g.url).sort()).toEqual([RELAY, RPI].sort());

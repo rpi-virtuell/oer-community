@@ -275,12 +275,13 @@ export function spiegelErstellen({
 
     // Profile der Personen, auf die Seiten verweisen (ADR-0039). Wie der
     // Lizenz-Lookup über alle Relays: Personenprofile liegen oft nicht dort,
-    // wo die Seite liegt. Je Person gilt das neueste kind:0.
+    // wo die Seite liegt. Je Person gilt das neueste kind:0 — auch hier nur
+    // echte Events (ADR-0036).
     /** @type {Event[]} */
     const personenEvents = [];
     const pubkeys = personenSammeln(artikel);
     for (let i = 0; i < pubkeys.length; i += BLOCK) {
-      const n = await eventsVonAllen(relays, { kinds: [0], authors: pubkeys.slice(i, i + BLOCK) }, { holen });
+      const n = await fragen({ kinds: [0], authors: pubkeys.slice(i, i + BLOCK) });
       personenEvents.push(...n.events);
       Object.assign(quellen, n.quellen);
       for (const relay of n.fehler) nichtErreichbar.add(relay);
