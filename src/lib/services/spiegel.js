@@ -4,8 +4,9 @@
  * Ein Lauf baut einen vollständigen neuen Stand über ALLE konfigurierten
  * Relays und tauscht ihn atomar ein — Leser sehen nie einen halben Stand.
  * Gültig ist ein Lauf, wenn mindestens ein Relay die Artikelabfrage
- * beantwortet hat; ein ungültiger Lauf ersetzt nichts und wird als
- * Fehlschlag gemerkt, damit die Fußzeile das Alter nennen kann.
+ * beantwortet hat — und zwar eines, das bisher Artikel lieferte, sofern es
+ * einen Stand gibt (ADR-0037). Ein ungültiger Lauf ersetzt nichts und wird
+ * als Fehlschlag gemerkt, damit die Fußzeile das Alter nennen kann.
  *
  * Diese Datei ist die EINZIGE, die `services/relay.js` importiert
  * (Architekturtest). Sie kennt die Oberfläche nicht.
@@ -14,6 +15,8 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { hashAusUrl } from '../models/lizenz.js';
+import { echtesEvent } from '../models/signatur.js';
+import { personenVerweise } from '../models/profil.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
@@ -30,6 +33,7 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {string[]} gefragteRelays
  * @property {string[]} nichtErreichbar
  * @property {{ artikel: number, listen: number, nachweise: number, profil: number, termine: number }} anzahl
+ * @property {number} [verworfen]  Events mit ungültiger Signatur oder falscher id, nicht übernommen (ADR-0036)
  */
 /**
  * @typedef {object} Inhalt
@@ -38,6 +42,7 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {Event[]} listen
  * @property {Event[]} termine  Termine der Community, kind 31922/31923 (ADR-0034)
  * @property {Event|null} profil
+ * @property {Event[]} [personen]  kind:0 der Personen, auf die Seiten verweisen (ADR-0039)
  * @property {Event[]} nachweise
  * @property {Record<string, string[]>} quellen
  * @property {Record<string, string>} etags
@@ -90,7 +95,7 @@ function istInhalt(x) {
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
-  return { stand: null, artikel: [], listen: [], termine: [], profil: null, nachweise: [], quellen: {}, etags: {} };
+  return { stand: null, artikel: [], listen: [], termine: [], profil: null, personen: [], nachweise: [], quellen: {}, etags: {} };
 }
 
 /** @param {string[][]} tags @param {string} name */
@@ -167,6 +172,16 @@ export function hashesSammeln(artikel) {
 }
 
 /**
+ * Alle Personen, auf die Beiträge als Karte verweisen (ADR-0039) — ihr
+ * kind:0 wird mitgespiegelt. Nur Verweise aus dem eigenen Bestand; ein
+ * fremder Key kann so keine Profile in den Spiegel ziehen.
+ * @param {Event[]} artikel @returns {string[]}
+ */
+export function personenSammeln(artikel) {
+  return [...new Set(artikel.flatMap((e) => personenVerweise(e.content ?? '')))];
+}
+
+/**
  * @param {object} eingabe
  * @param {Konfig} eingabe.konfig
  * @param {typeof eventsHolen} [eingabe.holen]        nur zum Prüfen austauschbar
@@ -174,10 +189,11 @@ export function hashesSammeln(artikel) {
  * @param {() => number} [eingabe.jetzt]               dito
  * @param {ReturnType<typeof dateiSpeicher>} [eingabe.speicher]  dito
  * @param {(fn: () => unknown, ms: number) => { stoppen(): void }} [eingabe.planen]  dito
+ * @param {(e: Event) => boolean} [eingabe.pruefen]  dito — nur für Prüfungen mit gebauten, unsignierten Events
  */
 export function spiegelErstellen({
   konfig, holen = eventsHolen, etagHolen = etagHolenEcht, jetzt = () => Date.now(),
-  speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen
+  speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen, pruefen = echtesEvent
 }) {
   let inhalt = leererInhalt();
   /** @type {Fehlschlag|null} */
@@ -186,8 +202,21 @@ export function spiegelErstellen({
   async function auffrischen() {
     const start = jetzt();
     const relays = konfig.relays;
-    const nachAutor = (/** @type {number} */ kind) =>
-      eventsVonAllen(relays, { kinds: [kind], authors: [konfig.autor] }, { holen });
+    let verworfen = 0;
+    /**
+     * Nur echte Events kommen herein (ADR-0036): Ein Relay kann liefern, was
+     * es will — auch ein Event mit dem Schlüssel der Quelle, das sie nie
+     * signiert hat. Was durchfällt, wird gezählt, nicht still verschluckt.
+     * @param {import('./relay.js').Sammelergebnis} ergebnis
+     */
+    const nurEchte = (ergebnis) => {
+      const echte = ergebnis.events.filter((e) => pruefen(e));
+      verworfen += ergebnis.events.length - echte.length;
+      return { ...ergebnis, events: echte };
+    };
+    /** @param {import('./relay.js').Filter} filter */
+    const fragen = async (filter) => nurEchte(await eventsVonAllen(relays, filter, { holen }));
+    const nachAutor = (/** @type {number} */ kind) => fragen({ kinds: [kind], authors: [konfig.autor] });
 
     // Termine kommen aus der Community, nicht vom Autor (ADR-0034). Ohne
     // konfigurierte Community wird gar nicht erst gefragt.
@@ -200,7 +229,7 @@ export function spiegelErstellen({
     const [a, l, redaktion, p, t] = await Promise.all([
       nachAutor(30023), nachAutor(30004), nachAutor(30000), nachAutor(0),
       konfig.community
-        ? eventsVonAllen(relays, { kinds: [31922, 31923], '#h': [konfig.community] }, { holen })
+        ? fragen({ kinds: [31922, 31923], '#h': [konfig.community] })
         : Promise.resolve(
             /** @type {import('./relay.js').Sammelergebnis} */ ({
               events: [], gefragt: relays, fehler: [], ohneTreffer: [], quellen: {}, grund: null
@@ -208,8 +237,23 @@ export function spiegelErstellen({
           )
     ]);
 
-    if (a.grund !== null) {
-      fehlschlag = { zeitpunkt: new Date(jetzt()).toISOString(), gefragteRelays: a.gefragt };
+    // Ungültig ist ein Lauf auch, wenn genau die Relays schweigen, die bisher
+    // die Artikel lieferten (ADR-0037). Sonst antworten die übrigen mit
+    // „habe nichts" — sie führen gar keine Artikel —, der Lauf gälte, und ein
+    // Ausfall von relay.edufeed.org leerte die Seite. Gezählt werden nur
+    // Relays, die noch konfiguriert sind: Wer RELAYS ändert, soll nicht am
+    // alten Stand hängen bleiben.
+    const bisherigeArtikelRelays = new Set(
+      inhalt.artikel.flatMap((e) => inhalt.quellen[e.id] ?? []).filter((r) => a.gefragt.includes(r))
+    );
+    const artikelRelaysStumm =
+      bisherigeArtikelRelays.size > 0 && [...bisherigeArtikelRelays].every((r) => a.fehler.includes(r));
+
+    if (a.grund !== null || artikelRelaysStumm) {
+      fehlschlag = {
+        zeitpunkt: new Date(jetzt()).toISOString(),
+        gefragteRelays: a.grund !== null ? a.gefragt : [...bisherigeArtikelRelays]
+      };
       return { gueltig: false, inhalt };
     }
 
@@ -223,11 +267,26 @@ export function spiegelErstellen({
     const nachweise = new Map();
     const hashes = hashesSammeln(artikel);
     for (let i = 0; i < hashes.length; i += BLOCK) {
-      const n = await eventsVonAllen(relays, { kinds: [1063], '#x': hashes.slice(i, i + BLOCK) }, { holen });
+      const n = await fragen({ kinds: [1063], '#x': hashes.slice(i, i + BLOCK) });
       for (const e of n.events) nachweise.set(e.id, e);
       Object.assign(quellen, n.quellen);
       for (const relay of n.fehler) nichtErreichbar.add(relay);
     }
+
+    // Profile der Personen, auf die Seiten verweisen (ADR-0039). Wie der
+    // Lizenz-Lookup über alle Relays: Personenprofile liegen oft nicht dort,
+    // wo die Seite liegt. Je Person gilt das neueste kind:0 — auch hier nur
+    // echte Events (ADR-0036).
+    /** @type {Event[]} */
+    const personenEvents = [];
+    const pubkeys = personenSammeln(artikel);
+    for (let i = 0; i < pubkeys.length; i += BLOCK) {
+      const n = await fragen({ kinds: [0], authors: pubkeys.slice(i, i + BLOCK) });
+      personenEvents.push(...n.events);
+      Object.assign(quellen, n.quellen);
+      for (const relay of n.fehler) nichtErreichbar.add(relay);
+    }
+    const personen = neuestesJe(personenEvents, (e) => e.pubkey);
 
     // etag nur für Bilder, zu denen es überhaupt einen Nachweis gibt — sonst
     // gibt es keinen Schritt 5, den der etag entscheiden könnte.
@@ -257,9 +316,10 @@ export function spiegelErstellen({
         anzahl: {
           artikel: artikel.length, listen: listen.length, nachweise: nachweise.size,
           profil: profil ? 1 : 0, termine: termine.length
-        }
+        },
+        verworfen
       },
-      artikel, listen, termine, profil,
+      artikel, listen, termine, profil, personen,
       nachweise: [...nachweise.values()],
       quellen, etags
     };

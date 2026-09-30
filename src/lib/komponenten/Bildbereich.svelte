@@ -65,7 +65,9 @@
         </span>
         {#if unterschrift}
           <!-- Die Angabe der Autor:in aus dem Markdown: Rückfall, nicht
-               Wahrheit (ADR-0023). Ist der Nachweis da, ersetzt er sie. -->
+               Wahrheit (ADR-0023). Ist der Nachweis da, ersetzt er sie.
+               In inhalt.js entschärft (inlineEntschaerfen). -->
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
           <span class="unterschrift">{@html unterschrift}</span>
         {/if}
       {/if}

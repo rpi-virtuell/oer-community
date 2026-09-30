@@ -149,7 +149,8 @@ Ausnahme. Ist `COMMUNITY_PUBKEY` leer, ist der Kalender abgeschaltet.
 Kinds: `30023` Artikel und Seiten (NIP-23) · `30004` Kuratierungslisten
 für Menü und Fußzeile (NIP-51) · `30000` Redaktionskreis, Personenliste
 (NIP-51, ADR-0021/ADR-0034) · `31922` ganztägige und `31923` zeitgebundene
-Termine (NIP-52, ADR-0034) · `0` Profil der Quelle · `1063`
+Termine (NIP-52, ADR-0034) · `0` Profil der Quelle und der Personen, auf
+die Seiten mit `nostr:npub1…` auf eigener Zeile verweisen (ADR-0039) · `1063`
 Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
 über die Hauptabfrage).
 
@@ -217,7 +218,10 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
 - **`verifyEvent` allein prüft die Signatur nicht gegen den Inhalt.** Es
   prüft `sig` gegen `id`; ein Event mit verändertem `content` und
   unberührter `id`/`sig` kommt durch. Immer zusätzlich `getEventHash`
-  gegen die `id` vergleichen (ADR-0017).
+  gegen die `id` vergleichen (ADR-0017). **Der Spiegel lässt nur echte
+  Events herein** (`echtesEvent` in `src/lib/models/signatur.js`,
+  ADR-0036) — neue Abfragen im Spiegel laufen über `fragen`, nie direkt
+  über `eventsVonAllen`.
 - **Bilder von abgelösten Hosts** (`ABGELOESTE_HOSTS`, Standard
   `oer.community`) gelten wie relative Pfade (ADR-0030).
 - **Fremdbilder mit Quellenzeile werden gezeigt** (ADR-0038): Ein hashloses
@@ -296,7 +300,9 @@ Drei Regeln dazu:
 
 Jede Anfrage rendert aus dem Spiegel, **nie direkt aus dem Relay**.
 
-- Kein Relay erreichbar → letzter gültiger Stand **mit Hinweis auf sein Alter**
+- Kein Relay erreichbar → letzter gültiger Stand **mit Hinweis auf sein Alter**.
+  Das gilt auch, wenn nur die Relays schweigen, die bisher die Artikel
+  lieferten; `CLOSED` ist keine Antwort (ADR-0037)
 - Spiegel leer → Meldung, die das Relay nennt und sagt, was zu tun ist
 - Pflichtwert fehlt → **Start bricht ab** mit klarer Meldung, statt später
   leere Seiten zu liefern
@@ -353,10 +359,21 @@ aus nie beschrieben (ADR-0035).
 **Vor jedem Merge:**
 
 ```
-pnpm check && pnpm test
+pnpm check && pnpm lint && pnpm test && pnpm test:e2e
 ```
 
-(`lint` und `test:e2e` gibt es noch nicht; offener Punkt der Spec vom 14.09.)
+`pnpm lint` ist ESLint mit dem Svelte-Plugin (`eslint.config.js`):
+ungenutzte Variablen, Svelte-Fallen wie fehlende `each`-Schlüssel. Jedes
+`{@html}` braucht ein `eslint-disable-next-line` mit Begründung, woher das
+HTML gesäubert kommt. Formatierung prüft es nicht.
+
+`pnpm test:e2e` sind Playwright-Rauchtests (`test/e2e/`) gegen den
+**gebauten** Server: `test/e2e/server.mjs` legt den Spiegel aus der
+Testquelle an und nennt ein Relay, das niemand beantwortet — ohne Netz,
+wie nach einem Relay-Ausfall. Geprüft wird, was Vitest nicht sieht:
+Build, Start, Hydration ohne Browserfehler, Navigation, Umschalter,
+Lesbarkeit ohne JavaScript. Auf dem GitHub-Spiegel laufen alle vier
+Befehle für jeden `feat/**`-Branch (`.github/workflows/pruefen.yml`).
 
 Tests laufen gegen ein Mock-Relay mit echten Events aus `test/fixtures/` —
 ohne Netz und ohne Abhängigkeit von der Publikationstätigkeit anderer.

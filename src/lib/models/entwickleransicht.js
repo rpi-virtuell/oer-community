@@ -18,10 +18,9 @@
  * behaupten als die Anzeige.
  */
 
-import { getEventHash, verifyEvent } from 'nostr-tools/pure';
-
 import { ABFRAGEGRUND_TEXT } from '../services/spiegel.js';
 import { GRUND_TEXT, lizenzPruefen } from './lizenz.js';
+import { echtesEvent } from './signatur.js';
 
 /**
  * @typedef {import('../services/relay.js').Event} Event
@@ -125,29 +124,15 @@ function hashAusEtag(etag) {
 }
 
 /**
- * Prüft Signatur **und** Event-Hash.
- *
- * **`verifyEvent` allein genügt nicht.** Es prüft `sig` gegen `id` — nicht
- * gegen den Inhalt. Wer `content` oder `tags` verändert und `id` und `sig`
- * unangetastet lässt, kommt damit durch (hier am Referenzfall belegt:
- * `verifyEvent` sagt `true` für ein Event mit angefasstem `content`). Erst
- * der Vergleich mit `getEventHash` — der `id` als SHA-256 über die
- * NIP-01-Serialisierung — bindet die Signatur an den Inhalt.
- *
- * `verifyEvent` wirft bei unvollständigen Feldern; für die Diagnose ist das
- * kein Absturzgrund, sondern das Ergebnis „ungültig".
+ * Signaturbefund für die Anzeige — aus `echtesEvent`, derselben Prüfung,
+ * die der Spiegel anwendet (ADR-0036). Sie steht nicht zweimal im Code.
  *
  * @param {Event|null} event
  * @returns {Signaturbefund}
  */
 function signaturPruefen(event) {
   if (!event) return null;
-  try {
-    const inhaltPasstZurId = getEventHash(event) === event.id;
-    return inhaltPasstZurId && verifyEvent(event) ? 'gueltig' : 'ungueltig';
-  } catch {
-    return 'ungueltig';
-  }
+  return echtesEvent(event) ? 'gueltig' : 'ungueltig';
 }
 
 /**

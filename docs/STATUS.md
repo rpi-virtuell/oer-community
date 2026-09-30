@@ -9,6 +9,30 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Alle Branches über `dev` nach `main`
+
+**Passiert:** Zusammengeführt auf `dev`: `origin/main` (Deploy, ADR-0038),
+`feat/lint-e2e`, `feat/gestaltung`, `feat/team-aus-profilen` (ADR-0039).
+Zwei ADR-Nummern waren doppelt vergeben: Die Gestaltung nach dem
+Landing-Entwurf heißt jetzt **ADR-0040** (0035 gehört dem GitHub-Spiegel).
+Beim Merge nachgezogen: Die Profile der verwiesenen Personen laufen wie
+alles andere durch `echtesEvent` (ADR-0036); `Fremdbild` und
+`Personenkarte` tragen die Lint-Ausnahme für gesäubertes `{@html}`.
+
+**Nicht gemerged:** Der unkommittierte Stand vom 24.09. (Team als
+Personenliste `kind:30000` mit gespiegelten Profilbildern, `/team`,
+ADR-Entwurf mit der schon vergebenen Nummer 0036) liegt jetzt auf
+`feat/team-liste`. Er konkurriert mit ADR-0039 (Personen als
+`nostr:npub`-Zeilen im Seitentext); ADR-0039 nennt die Liste ausdrücklich
+als offene Alternative. Das entscheidet die Redaktion, nicht der Merge.
+
+**Wo steht das Projekt:** `main` = `dev`. `pnpm check` 0 Fehler,
+`pnpm lint` ohne Befund, 470 Tests grün, 8 E2E-Tests grün.
+
+**Nächster Schritt:** Entscheidung Liste vs. Verweise im Seitentext für die
+Teamseite (ADR-0039, `feat/team-liste`); danach den unterlegenen Weg
+löschen. ADR-0040 auf „angenommen", wenn das Team die Gestaltung abnimmt.
+
 ## 2026-09-30 — Fremdbilder mit Quellenzeile (ADR-0038)
 
 **Passiert:** Auf der Teamseite fehlen im Hub alle Bilder. Die Porträts sind
@@ -28,6 +52,85 @@ Logos als absolute URL mit Zeile darunter eintragen
 (`© <Institution>, Quelle: [<host>](<url>)`); Porträts über `md2blossom` /
 `sync publish` mit `bilder.yaml` nach Blossom migrieren. Danach neu publizieren.
 
+## 2026-09-30 — Teamseite aus den Profilen (ADR-0039)
+
+**Passiert:** Jörg hat den Screenshot der alten Hugo-Teamseite geteilt und
+vorgegeben, die Personen aus ihren `kind:0` zu bauen. Eine Zeile mit nur
+`nostr:npub1…`/`nostr:nprofile1…` im Seitentext wird zur Personenkarte
+(Porträt 160×210 mit Akzentrahmen, Name, `about`, Kontakt); der Spiegel holt
+dafür das `kind:0` jeder verwiesenen Person über alle Relays. Fehlt ein
+Profil, nennt ein Hinweis den npub. Prüfung: `test/team-aus-profilen.test.js`.
+
+**Wo steht das Projekt:** Code auf `feat/team-aus-profilen`; die Seite
+`unser-team` trägt noch keine Verweise, sie zeigt deshalb vorerst nichts Neues.
+Gegen echte Relays nicht geprüft (in der Arbeitsumgebung gesperrt).
+
+**Nächster Schritt:** Redaktion: in `unser-team` unter jeder Institution je
+Person eine Zeile `nostr:npub1…` statt Bild und Text setzen; die Personen
+pflegen `picture`, `about` und ggf. `email` in ihrem Profil. Danach auf Forgejo
+nach `dev` mergen.
+
+## 2026-09-30 — Ausfall des Artikel-Relays leert den Spiegel nicht mehr (ADR-0037)
+
+**Passiert:** Zweiter Befund des Code-Reviews. Fiel `relay.edufeed.org`
+aus, antworteten die anderen Relays mit „habe nichts" und der Spiegel wurde
+leer. Jetzt ist ein Lauf ungültig, wenn alle Relays schweigen, die bisher
+Artikel lieferten; `CLOSED` zählt in `services/relay.js` als nicht erreicht.
+`eventsHolen` hat dafür erstmals Tests gegen einen echten WebSocket-Server.
+
+**Wo steht das Projekt:** `feat/spiegel-schwund`, baut auf
+`feat/signatur-im-spiegel` auf. `pnpm check` 0 Fehler, 440 Tests grün.
+
+**Nächster Schritt:** Beide Branches nacheinander auf Forgejo nach `dev`
+mergen (erst Signatur, dann dieser).
+
+## 2026-09-30 — Nur signierte Events in den Spiegel (ADR-0036)
+
+**Passiert:** Code-Review (Claude) fand: Der Spiegel übernahm jedes Event,
+auch mit falscher Signatur. Jetzt prüft `echtesEvent`
+(`src/lib/models/signatur.js`) `getEventHash` und `verifyEvent` für jedes
+Event vor der Übernahme; die Entwickleransicht nutzt dieselbe Funktion.
+Verworfenes zählt `stand.verworfen`.
+
+**Wo steht das Projekt:** `feat/signatur-im-spiegel`, `pnpm check` 0 Fehler,
+435 Tests grün.
+
+**Nächster Schritt:** Auf Forgejo nach `dev` mergen. Danach der zweite
+Befund des Reviews: ein Lauf ohne Artikel-Relay darf den Stand nicht leeren.
+
+## 2026-09-30 — `pnpm lint` und `pnpm test:e2e`
+
+**Passiert:** Die beiden offenen Befehle aus der Spec vom 14.09. gibt es
+jetzt. `pnpm lint` ist ESLint 10 mit `eslint-plugin-svelte`
+(`eslint.config.js`); `svelte/no-navigation-without-resolve` ist aus, weil
+die Adressen das `d` sind und es keinen `paths.base` gibt. Die drei
+`{@html}`-Stellen (Detail, Bildbereich, Fußzeile) tragen je ein
+`eslint-disable-next-line` mit Herkunft des gesäuberten HTML. Behoben:
+zwei ungenutzte Werte (`ARTIKEL` in `test/oberflaeche.test.js`, Import
+`kanonisch` in `routen/struktur.js`), `{#each}` der Textteile mit
+Schlüssel.
+
+`pnpm test:e2e` ist Playwright (Chromium) mit acht Rauchtests in
+`test/e2e/rauchtest.spec.js` gegen den gebauten Server;
+`test/e2e/server.mjs` legt den Spiegel aus der Testquelle samt Tagung an
+und lässt kein Relay antworten. **Gefunden und behoben:** Nach dem
+Umschalter DE → EN im Browser blieb `<html lang="de">`, weil nur der Server
+`lang` setzt und die Navigation clientseitig läuft. `+layout.svelte` setzt
+`lang` jetzt auch nach jedem Wechsel.
+
+Neuer Workflow `.github/workflows/pruefen.yml`: check, lint, test und
+test:e2e für jeden `feat/**`-Branch auf dem GitHub-Spiegel. Woodpecker
+führt `lint` zusätzlich aus.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, `pnpm lint` ohne Befund,
+427 Tests grün, 8 E2E-Tests grün. Prettier ist bewusst nicht dabei: Es
+würde 64 Dateien umformatieren und jeden offenen Branch in Konflikte
+bringen.
+
+**Nächster Schritt:** Jörg: `feat/lint-e2e` auf Forgejo nach `dev` mergen,
+wenn „Prüfen" auf GitHub grün ist. Ob Prettier kommt, ist eine eigene
+Entscheidung — am besten an einem Tag ohne offene Branches.
+
 ## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
 
 **Passiert:** Claude arbeitet auf dem GitHub-Spiegel
@@ -45,6 +148,41 @@ Festgehalten in ADR-0035, CLAUDE.md (Arbeitsweise) und `docs/betrieb.md`.
 **Nächster Schritt:** Jörg: prüfen, dass `feat/forgejo-sync` auf Forgejo
 angekommen ist, und ihn dort nach `dev` mergen — der erste Durchlauf des
 neuen Wegs.
+
+## 2026-09-16 — Gestaltung nach dem FOERBICO-Landing-Entwurf (ADR-0040, Branch `feat/gestaltung`)
+
+**Passiert:** Jörg hat den Landing-Entwurf aus dem FOERBICO-Repository
+(`docs/foerbico-landing_draft3.html`) als Anlass genommen, den Hub
+schicker zu machen. Übernommen ist die Gestaltungssprache, nachgebaut mit
+den Token aus ADR-0031: klebende, halbtransparente Kopfzeile mit
+Versalien-Menü und orangem Unterstrich; Startkopf mit großem Titel und
+Vorspann (das Logo-Panel aus dem ersten Wurf ist wieder raus: Logo klebte
+am unteren Rand, und es steht schon in der Kopfzeile); Blog und
+Themenlisten breit mit Aufmacher plus dreispaltigem Kartenraster
+(Hover: 2 px hoch, Rahmen blau); Themenseite als Wolke in fünf
+Größenstufen; „Nächste Termine" als blaues Panel; Fußzeile in drei
+Spalten. Yanone Kaffeesatz bleibt draußen (Entscheidung Jörg, ADR-0031),
+Display-Wirkung kommt aus Roboto Condensed 700 in Versalien.
+
+Neu im Code: Token `--fb-primaer-tief`, `--breite-raster`, `--uebergang`;
+Bausteine `.panel`, `.label`, `.display`, `.lesebreite`; Komponenten
+`Startkopf.svelte`, `Themenwolke.svelte`; Karte mit Prop `aufmacher`,
+Detail mit `ohneKopf`; Layout schaltet über `page.data.breit` zwischen
+Lese- und Rasterbreite (die load-Funktionen der Übersichten und der
+Startseite setzen es). Reines Modul `src/lib/themenwolke.js`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 441 Tests grün, im
+Browser gegen das Live-Relay geprüft (Start, Blog, Themen, Termine,
+Artikel) bei 1440px. Der Handy-Umbruch (Raster 1 Spalte, Kopfzeile nicht
+klebend) ist nur per Media-Query geschrieben, nicht im Browser gesehen.
+Aufgefallen: Die Startseite beginnt im Markdown selbst mit „FOERBICO" —
+mit dem Startkopf steht der Titel zweimal; das ist am Event zu ändern,
+nicht im Code.
+
+**Nächster Schritt:** Jörg schaut sich den Branch lokal an (`pnpm dev`),
+Handy-Breite im Gerätemodus prüfen. Dann Gina und Ludger fragen, ob der
+Entwurf die Richtung ist (ADR-0040 auf „angenommen") und ob Yanone
+Kaffeesatz zurückkommt. Danach Merge nach `dev`.
 
 ## 2026-09-15 — Repository heißt oer-community
 

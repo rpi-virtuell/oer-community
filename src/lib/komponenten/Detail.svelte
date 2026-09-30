@@ -2,6 +2,7 @@
   import Bildbereich from './Bildbereich.svelte';
   import Fremdbild from './Fremdbild.svelte';
   import DebugBereich from './DebugBereich.svelte';
+  import Personenkarte from './Personenkarte.svelte';
   import { einstellungen } from '../einstellungen.svelte.js';
   import { kanonisch } from '$lib/kanonisch.js';
   import { t } from '$lib/sprache.js';
@@ -18,6 +19,9 @@
    *     teile: import('../inhalt.js').Teil[],
    *     fliesstext: Record<string, import('../models/lizenz.js').Ergebnis>,
    *     entfernteBilder: string[],
+   *     personen?: Record<string, { pubkey: string, name: string|null, bildUrl: string|null, aboutHtml: string,
+   *       website: string|null, email: string|null, nip05: string|null }>,
+   *     fehlendeProfile?: string[],
    *     befund: import('../models/entwickleransicht.js').Befund,
    *     pfad: string,
    *     sprache?: 'de'|'en',
@@ -26,11 +30,14 @@
    *   },
    *   wortmarke: string,
    *   nurWortmarke?: boolean,
+   *   ohneKopf?: boolean,
    *   kanonischeUrl?: string|null,
    *   basisUrl?: string|null
    * }}
    */
-  let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null, basisUrl = null } = $props();
+  // ohneKopf: die Startseite trägt Titel und Vorspann im Startkopf (ADR-0040);
+  // ein zweiter <h1> hier wäre derselbe Titel zweimal.
+  let { data, wortmarke, nurWortmarke = false, ohneKopf = false, kanonischeUrl = null, basisUrl = null } = $props();
 
   /**
    * Alternates müssen absolut sein, sonst wertet keine Suchmaschine sie aus.
@@ -72,6 +79,7 @@
 </svelte:head>
 
 <article>
+  {#if !ohneKopf}
   <header class="detail-kopf">
     <h1>{data.artikel.titel}</h1>
     {#if !data.artikel.istSeite}
@@ -87,6 +95,7 @@
       </div>
     {/if}
   </header>
+  {/if}
 
   {#if !data.artikel.istSeite}
     <Bildbereich
@@ -106,11 +115,20 @@
        wie beim Cover; der Alt-Text kommt aus dem Markdown, die Unterschrift
        aus dem Nachweis — oder, wenn der fehlt, aus der Zeile der Autor:in. -->
   <div class="inhalt">
-    {#each data.teile as teil}
+    <!-- Die Teile stehen in der Reihenfolge des Textes und ordnen sich nie
+         um; die Stelle ist der Schlüssel. -->
+    {#each data.teile as teil, stelle (stelle)}
       {#if teil.art === 'html'}
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html teil.html}
       {:else if teil.art === 'fremdbild'}
         <Fremdbild url={teil.url} alt={teil.alt} unterschrift={teil.unterschrift} />
+      {:else if teil.art === 'person'}
+        <!-- Personenverweis nach NIP-27 (ADR-0039); ohne Profil steht der
+             Schlüssel im Hinweis unten, keine leere Karte. -->
+        {#if data.personen?.[teil.pubkey]}
+          <Personenkarte person={data.personen[teil.pubkey]} sprache={data.artikel.sprache} />
+        {/if}
       {:else}
         <Bildbereich
           lizenz={data.fliesstext[teil.hash] ?? { ok: false, grund: 'kein-nachweis' }}
@@ -128,6 +146,13 @@
     <p class="hinweis">
       {t(data.artikel.sprache, 'entfernteBilder', data.entfernteBilder.length)}
       {data.entfernteBilder.join(', ')}
+    </p>
+  {/if}
+
+  {#if data.fehlendeProfile && data.fehlendeProfile.length > 0}
+    <p class="hinweis">
+      {t(data.artikel.sprache, 'fehlendeProfile', data.fehlendeProfile.length)}
+      {data.fehlendeProfile.join(', ')}
     </p>
   {/if}
 

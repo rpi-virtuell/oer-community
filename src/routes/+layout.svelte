@@ -14,6 +14,13 @@
   // der anderen Sprache (ADR-0033). `page.data` trägt Layout- und Seitendaten
   // zusammen; `uebersetzung` kommt nur von Detailseiten.
   const wechselPfad = $derived(page.data.uebersetzung?.pfad ?? startPfad(andere));
+
+  // `<html lang>` setzt der Server je Antwort (hooks.server.js). Nach einem
+  // Wechsel im Browser, etwa über den Umschalter, lädt keine neue Seite —
+  // ohne das hier bliebe ein englischer Text als Deutsch ausgezeichnet.
+  $effect(() => {
+    document.documentElement.lang = data.struktur.sprache;
+  });
 </script>
 
 <Kopfzeile
@@ -25,7 +32,9 @@
   zweisprachig={data.struktur.zweisprachig}
   {wechselPfad}
 />
-<main class="schmal">
+<!-- Breit für Übersichten und Startseite (ADR-0040), sonst Lesebreite;
+     die Seite sagt es über ihre Daten (`breit`). -->
+<main class:breit={page.data.breit === true}>
   {@render children()}
 </main>
 <Fusszeile
@@ -37,10 +46,13 @@
 />
 
 <style>
-  /* Textbreite „schmal" aus dem Designsystem: 820px. */
-  .schmal {
+  /* Lesebreite aus dem Designsystem: 820px; Rasterbreite 1240px. */
+  main {
     max-width: var(--breite-schmal);
     margin: 0 auto;
     padding: 40px 24px 0;
+  }
+  main.breit {
+    max-width: var(--breite-raster);
   }
 </style>

@@ -61,6 +61,15 @@ Scheitert ein Lauf (GitHub → Actions → „Nach Forgejo übertragen"), liegt 
 Branch nicht auf Forgejo. Meist ist der Token abgelaufen; neuen anlegen,
 Secret ersetzen, Lauf neu starten.
 
+Daneben prüft `.github/workflows/pruefen.yml` jeden `feat/**`-Branch:
+`pnpm check`, `pnpm lint`, `pnpm test` und `pnpm test:e2e` (Playwright,
+Chromium). Die beiden Workflows hängen nicht voneinander ab — ein roter
+„Prüfen"-Lauf hält die Übertragung nicht auf. **Vor dem Merge auf Forgejo
+auf grünes „Prüfen" achten.** Bei einem Fehlschlag der E2E-Tests liegen
+Spuren (Trace, Screenshot) als Artefakt `playwright-spuren` am Lauf.
+Woodpecker führt auf `main` zusätzlich `pnpm lint` aus; die E2E-Tests
+laufen dort nicht, weil das Alpine-Image keinen Browser mitbringt.
+
 ## Zweiter Server (Hetzner, systemd)
 
 **Server:** `46.225.82.96` (Hetzner, Ubuntu 24.04.4, 7,6 GB RAM, 65 GB frei)

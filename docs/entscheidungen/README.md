@@ -11,7 +11,7 @@ Nostr (0026), Seitenstruktur aus Nostr (0027), Spiegel statt Relay-Zugriff
 (0028), Adressen sind `d` (0029), FOERBICO-Designsystem (0031), Bildlizenz
 wie edufeed mit eigener Attribution (0022, 0023, 0025, 0030, 0032),
 Redaktion nur in Nostr (0021, offen). Zweisprachig (0033, offen), Termine
-aus der Community (0034).
+aus der Community (0034), Gestaltung nach dem Landing-Entwurf (0040, offen).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -50,4 +50,8 @@ aus der Community (0034).
 | [0033](0033-zweisprachig-de-en-mit-umschalter.md) | Zweisprachig — Englisch als zweite Sprache mit Umschalter | offen |
 | [0034](0034-kalender-aus-der-community.md) | Termine kommen aus der Community — Quelle je Inhaltsart | angenommen |
 | [0035](0035-claude-arbeitet-auf-dem-github-spiegel.md) | Claude arbeitet auf dem GitHub-Spiegel, gemergt wird auf Forgejo | angenommen |
+| [0036](0036-nur-echte-events-in-den-spiegel.md) | Nur Events mit gültiger Signatur kommen in den Spiegel | angenommen |
+| [0037](0037-lauf-ohne-artikel-relay-ist-ungueltig.md) | Ein Lauf ohne die bisherigen Artikel-Relays ist ungültig | angenommen |
 | [0038](0038-fremdbilder-mit-quellenzeile.md) | Fremdbilder mit Quellenzeile werden gezeigt, nicht entfernt | angenommen |
+| [0039](0039-team-aus-den-profilen.md) | Die Teamseite baut ihre Personen aus deren eigenem `kind:0` | offen |
+| [0040](0040-gestaltung-nach-landing-entwurf.md) | Der Hub übernimmt die Gestaltungssprache des FOERBICO-Landing-Entwurfs — mit den Token aus ADR-0031 | offen |

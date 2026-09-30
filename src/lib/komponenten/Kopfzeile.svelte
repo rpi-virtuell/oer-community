@@ -66,44 +66,61 @@
 </header>
 
 <style>
+  /* Klebend und halbtransparent mit Blur (ADR-0040); der orange Saum bleibt
+     die Marke. Ohne color-mix bleibt die Fläche deckend statt unsichtbar. */
   .kopf {
-    height: var(--hoehe-kopf);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: var(--hoehe-kopf);
     background: var(--fb-flaeche-2);
+    background: color-mix(in srgb, var(--fb-flaeche-2) 88%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--fb-akzent);
   }
   .innen {
     max-width: var(--breite-container);
-    height: 100%;
+    min-height: var(--hoehe-kopf);
     margin: 0 auto;
     padding: 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 12px 32px;
   }
   .nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 6px 28px;
     font-family: var(--schrift);
+    font-size: 0.78rem;
     font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
   .nav a {
+    color: var(--fb-text);
+    text-decoration: none;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: color var(--uebergang), border-color var(--uebergang);
+  }
+  .nav a:hover {
     color: var(--fb-primaer);
     text-decoration: none;
   }
-  .nav a:hover,
   .nav a[aria-current] {
-    text-decoration: underline;
-    text-underline-offset: 0.3em;
     color: var(--fb-ueberschrift);
+    border-bottom-color: var(--fb-akzent);
   }
   .sprachen {
     display: flex;
     gap: 8px;
-    font-size: 0.9rem;
-    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
     color: var(--fb-text-leise);
   }
   .sprachen a {
@@ -123,25 +140,30 @@
     align-items: center;
     gap: 12px;
     font-family: var(--schrift);
-    font-size: 2rem;
+    font-size: 1.45rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--fb-ueberschrift);
     text-decoration: none;
   }
   .marke:hover {
     color: var(--fb-ueberschrift);
+    text-decoration: none;
   }
   .logo {
-    height: 48px;
+    height: 40px;
     width: auto;
   }
   @media (max-width: 640px) {
     .kopf {
-      height: auto;
+      position: static;
     }
     .innen {
-      padding: 16px 24px;
+      padding: 14px 24px;
+    }
+    .marke {
+      font-size: 1.2rem;
     }
   }
 </style>

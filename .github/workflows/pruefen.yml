@@ -1,0 +1,49 @@
+# Prüft jeden Arbeitsbranch auf dem GitHub-Spiegel, bevor er auf Forgejo
+# gemergt wird: Typen, Lint, Unit-Tests und die E2E-Rauchtests gegen den
+# gebauten Server. Dieselben Befehle wie „Vor jedem Merge" in CLAUDE.md.
+# Die Übertragung nach Forgejo (nach-forgejo.yml) läuft unabhängig davon.
+name: Prüfen
+
+on:
+  push:
+    branches:
+      - "feat/**"
+  pull_request:
+
+concurrency:
+  group: pruefen-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm check
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - name: Browser für die E2E-Tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e
+
+      - name: Playwright-Spuren bei Fehlschlag
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-spuren
+          path: test-results/
+          retention-days: 7

@@ -17,9 +17,11 @@
  * was sie daraus macht.
  */
 
+import { npubEncode } from 'nostr-tools/nip19';
 import { inhaltAufbereiten } from '../inhalt.js';
 import { ABLEHNUNG_TEXT, adressePruefen } from '../models/adresse.js';
 import { lizenzPruefen } from '../models/lizenz.js';
+import { personAusEvent } from '../models/profil.js';
 import { abfrageAusStand, artikelAusSpiegel } from './artikel.js';
 import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 
@@ -47,6 +49,14 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
  * @property {import('../inhalt.js').Teil[]} teile
  * @property {Record<string, import('../models/lizenz.js').Ergebnis>} fliesstext  je Hash eines Textbildes
  * @property {string[]} entfernteBilder
+ * @property {Record<string, PersonAnzeige>} personen  je pubkey einer Personenkarte (ADR-0039)
+ * @property {string[]} fehlendeProfile  npubs der Verweise, zu denen kein kind:0 im Spiegel liegt
+ */
+
+/**
+ * Eine Person, wie die Karte sie braucht: das Modell plus die gesäuberte
+ * Selbstbeschreibung. Bilder im `about` fallen weg wie überall (ADR-0015).
+ * @typedef {Omit<import('../models/profil.js').Person, 'about'> & { aboutHtml: string }} PersonAnzeige
  */
 
 /**
@@ -120,5 +130,26 @@ export async function beitragLaden({ adresse, konfig, inhalt }) {
     });
   }
 
-  return { ok: true, artikel, artikelEvent, artikelAbfrage, lizenzEvents: gesucht?.events ?? [], lizenzAbfrage, nachweis, etag, lizenz, teile, fliesstext, entfernteBilder };
+  // Personenkarten (ADR-0039): je pubkey das Profil aus dem Spiegel. Fehlt
+  // es, steht die Karte nicht leer da, sondern der Schlüssel im Hinweis.
+  /** @type {Record<string, PersonAnzeige>} */
+  const personen = {};
+  /** @type {Set<string>} */
+  const ohneProfil = new Set();
+  for (const teil of teile) {
+    if (teil.art !== 'person' || teil.pubkey in personen || ohneProfil.has(teil.pubkey)) continue;
+    const person = personAusEvent((inhalt.personen ?? []).find((e) => e.pubkey === teil.pubkey) ?? null);
+    if (!person) {
+      ohneProfil.add(teil.pubkey);
+      continue;
+    }
+    const { about, ...rest } = person;
+    const aboutHtml = about
+      ? inhaltAufbereiten(about).teile.map((t) => (t.art === 'html' ? t.html : '')).join('')
+      : '';
+    personen[teil.pubkey] = { ...rest, aboutHtml };
+  }
+  const fehlendeProfile = [...ohneProfil].map((p) => npubEncode(p));
+
+  return { ok: true, artikel, artikelEvent, artikelAbfrage, lizenzEvents: gesucht?.events ?? [], lizenzAbfrage, nachweis, etag, lizenz, teile, fliesstext, entfernteBilder, personen, fehlendeProfile };
 }
