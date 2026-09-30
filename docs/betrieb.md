@@ -121,7 +121,9 @@ cd ~/community-hub && docker compose up -d --build
 dorthin (ADR-0028), und `daten/themen.json` wird zur Laufzeit gelesen —
 `docker-compose.yml` hängt deshalb `./daten` in den Container. Die Datei
 `themen.json` liegt zusätzlich im Image, damit ein Lauf ohne Volume nicht
-an ihr scheitert.
+an ihr scheitert. Im selben Volume liegen die Profilbilder der
+verwiesenen Personen (`daten/profilbilder/`, ADR-0039); ohne Volume holt
+der Spiegel sie nach jedem Neustart neu.
 
 ## Die Seite ist nicht öffentlich erreichbar
 

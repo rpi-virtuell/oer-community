@@ -230,6 +230,14 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   Website —, erscheint als Fremdbild ohne Lookup und ohne Lizenzpille.
   Ohne Link in der Zeile: entfernen wie ADR-0015. Nicht für eigene Fotos;
   die gehören auf Blossom.
+- **Profilbilder kommen vom Hub, nie vom Fremdhost** (ADR-0039). Der
+  Spiegel holt zu jeder verwiesenen Person das `picture` aus dem `kind:0`
+  (nur `https`, nur `image/*` ohne SVG, höchstens 3 MB) nach
+  `PROFILBILDER_PFAD`; `/profilbild/<pubkey>` liefert es mit ETag. Was er
+  nicht hält, ist 404 — die Karte steht dann ohne Bild, nie mit einem
+  `<img>` auf imgur. Ein Profilbild trägt keine Lizenzpille: Es ist die
+  Selbstdarstellung aus dem eigenen `kind:0`, kein Werk in einem Beitrag.
+  Die `kind:0` werden zusätzlich über `PROFIL_RELAYS` gesucht.
 - **Ein Beitrag ist eine Seite**, wenn er `["l","seite","foerbico/typ"]`
   trägt (ADR-0027); Seiten erscheinen nicht im Blog.
 - **Das Menü beschriftet Einträge mit dem Seitentitel;** Ziele außerhalb
@@ -415,6 +423,7 @@ gespiegelt (ADR-0008). Bilder liegen auf `https://blossom.edufeed.org/`
 | `relay.edufeed.org` | Artikel, Seiten, Listen, Profil |
 | `relay-rpi.edufeed.org` | **Lizenznachweise `kind:1063`** |
 | `amb-relay.edufeed.org` | AMB-Metadaten |
+| `PROFIL_RELAYS` (optional, z. B. `purplepag.es`) | nur `kind:0` verwiesener Personen (ADR-0039) |
 
 Der Lizenz-Lookup fragt alle, weil der Nachweis nicht dort liegt, wo der
 Artikel liegt.

@@ -14,6 +14,8 @@
  * @property {string} redaktionD              Kennung (d) der Redaktionsliste kind:30000 (ADR-0021, ADR-0034)
  * @property {string|null} community          Community, deren Termine der Hub zeigt (ADR-0034); null = kein Kalender
  * @property {string} edufeedUrl              Wohin „Im Kalender öffnen" führt (ADR-0034)
+ * @property {string[]} profilRelays          zusätzliche Relays nur für die kind:0 verwiesener Personen (ADR-0039)
+ * @property {string} profilbilderPfad        Verzeichnis, in dem der Spiegel Profilbilder hält (ADR-0039)
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -105,9 +107,22 @@ export function konfigLesen(quelle) {
   const edufeedUrl = ((quelle.EDUFEED_URL ?? '').trim() || 'https://dev.edufeed.org').replace(/\/+$/, '');
   if (!edufeedUrl.startsWith('https://')) throw new Error('EDUFEED_URL muss mit https:// beginnen.');
 
+  // ADR-0039: Ein kind:0 liegt nicht immer dort, wo die Beiträge liegen — ein
+  // reines Profil-Relay wie purplepag.es ist optional und wird nur für
+  // Profile gefragt.
+  const profilRelays = (quelle.PROFIL_RELAYS ?? '')
+    .split(',')
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0);
+  const falschProfil = profilRelays.filter((r) => !r.startsWith('wss://'));
+  if (falschProfil.length > 0) {
+    throw new Error(`PROFIL_RELAYS: keine wss-Adresse: ${falschProfil.join(', ')}`);
+  }
+  const profilbilderPfad = (quelle.PROFILBILDER_PFAD ?? '').trim() || 'daten/profilbilder';
+
   const rohHTag = (quelle.QUELLE_H_TAG ?? '').trim();
   return {
-    community, edufeedUrl,
+    community, edufeedUrl, profilRelays, profilbilderPfad,
     autor, hTag: rohHTag === '' ? null : rohHTag, relays, blossomUrl,
     abgeloesteHosts, spiegelPfad, spiegelIntervallS, spiegelStartwartezeitS,
     startseiteD: kennung(quelle.STARTSEITE_D, 'startseite'),

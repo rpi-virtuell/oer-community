@@ -48,7 +48,7 @@ export function inhaltDerTestquelle(lage = {}) {
       autor: pubkey, hTag: null, relays: ['wss://r/'], blossomUrl: 'https://blossom.example/', abgeloesteHosts: [],
       spiegelPfad: 'x', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
       startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
-      redaktionD: 'redaktion',
+      redaktionD: 'redaktion', profilRelays: [], profilbilderPfad: 'daten/profilbilder',
       community: termine?.community ?? null, edufeedUrl: 'https://dev.edufeed.org'
     })
   };

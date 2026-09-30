@@ -9,6 +9,29 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Profilbilder vom Hub und Profil-Relays (ADR-0039, Nachtrag)
+
+**Passiert:** Entscheidung Jörg: Die Teamseite bleibt bei den
+`nostr:npub`-Zeilen (ADR-0039); aus dem Listen-Entwurf auf
+`feat/team-liste` kommen zwei Stücke herüber. Erstens hält der Spiegel die
+Profilbilder der verwiesenen Personen auf der Platte
+(`services/profilbilder.js`, `PROFILBILDER_PFAD`; nur https, nur `image/*`
+ohne SVG, höchstens 3 MB) und liefert sie unter `/profilbild/<pubkey>` mit
+ETag, 304 und langem Cache (`routen/profilbild.js`); die Personenkarte
+zeigt nur noch das gehaltene Bild, nie den Fremdhost. Zweitens fragt der
+Spiegel die `kind:0` zusätzlich über `PROFIL_RELAYS` (optional, für
+Profile, die nur auf `purplepag.es` liegen). `profilbild` ist festes
+Segment. ADR-0039, CLAUDE.md, Betrieb und `.env.example` nachgezogen.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, `pnpm lint` ohne Befund,
+489 Tests grün, 8 E2E-Tests grün. Gegen echte Relays nicht geprüft: Die
+Seite `unser-team` trägt noch keine Verweise.
+
+**Nächster Schritt:** Redaktion setzt die `nostr:npub`-Zeilen in
+`unser-team` und fragt jede Person, ob ihr Profilbild auf die Teamseite
+darf. Ludger: `PROFIL_RELAYS=wss://purplepag.es/` in die Dev-`.env`, damit
+Lauras Profil gefunden wird. `feat/team-liste` kann danach gelöscht werden.
+
 ## 2026-09-30 — Alle Branches über `dev` nach `main`
 
 **Passiert:** Zusammengeführt auf `dev`: `origin/main` (Deploy, ADR-0038),
