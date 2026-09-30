@@ -9,6 +9,30 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Alle Branches über `dev` nach `main`
+
+**Passiert:** Zusammengeführt auf `dev`: `origin/main` (Deploy, ADR-0038),
+`feat/lint-e2e`, `feat/gestaltung`, `feat/team-aus-profilen` (ADR-0039).
+Zwei ADR-Nummern waren doppelt vergeben: Die Gestaltung nach dem
+Landing-Entwurf heißt jetzt **ADR-0040** (0035 gehört dem GitHub-Spiegel).
+Beim Merge nachgezogen: Die Profile der verwiesenen Personen laufen wie
+alles andere durch `echtesEvent` (ADR-0036); `Fremdbild` und
+`Personenkarte` tragen die Lint-Ausnahme für gesäubertes `{@html}`.
+
+**Nicht gemerged:** Der unkommittierte Stand vom 24.09. (Team als
+Personenliste `kind:30000` mit gespiegelten Profilbildern, `/team`,
+ADR-Entwurf mit der schon vergebenen Nummer 0036) liegt jetzt auf
+`feat/team-liste`. Er konkurriert mit ADR-0039 (Personen als
+`nostr:npub`-Zeilen im Seitentext); ADR-0039 nennt die Liste ausdrücklich
+als offene Alternative. Das entscheidet die Redaktion, nicht der Merge.
+
+**Wo steht das Projekt:** `main` = `dev`. `pnpm check` 0 Fehler,
+`pnpm lint` ohne Befund, 470 Tests grün, 8 E2E-Tests grün.
+
+**Nächster Schritt:** Entscheidung Liste vs. Verweise im Seitentext für die
+Teamseite (ADR-0039, `feat/team-liste`); danach den unterlegenen Weg
+löschen. ADR-0040 auf „angenommen", wenn das Team die Gestaltung abnimmt.
+
 ## 2026-09-30 — Fremdbilder mit Quellenzeile (ADR-0038)
 
 **Passiert:** Auf der Teamseite fehlen im Hub alle Bilder. Die Porträts sind
