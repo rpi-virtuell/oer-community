@@ -338,6 +338,12 @@ benannt `YYYY-MM-DD-<thema>`.
 
 **Branches:** `dev` arbeiten · `feat/<thema>` je Vorhaben · `main` freigegeben.
 
+**Claude arbeitet auf dem GitHub-Spiegel** (`github.com/rpi-virtuell/oer-community`),
+nur auf `feat/<thema>`-Branches von `dev` aus. Der Workflow
+`.github/workflows/nach-forgejo.yml` überträgt sie nach Forgejo; **gemergt
+wird nur auf Forgejo**, nie auf GitHub, und `main`/`dev` werden von GitHub
+aus nie beschrieben (ADR-0035).
+
 **Vor jedem Merge:**
 
 ```

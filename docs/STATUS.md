@@ -9,6 +9,24 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
+
+**Passiert:** Claude arbeitet auf dem GitHub-Spiegel
+(`rpi-virtuell/oer-community`), Haupt-Repository bleibt Forgejo. Neuer
+Workflow `.github/workflows/nach-forgejo.yml` pusht jeden `feat/**`-Branch
+von GitHub nach Forgejo. `main` und `dev` werden **nie** von GitHub aus
+beschrieben; gemergt wird auf Forgejo, der Spiegel bringt den Stand zurück.
+
+Festgehalten in ADR-0035, CLAUDE.md (Arbeitsweise) und `docs/betrieb.md`.
+
+**Wo steht das Projekt:** Workflow liegt auf `feat/forgejo-sync`; Secret
+`FORGEJO_TOKEN` und Variable `FORGEJO_USER` sind im GitHub-Repo angelegt
+(Jörg, 30.09.).
+
+**Nächster Schritt:** Jörg: prüfen, dass `feat/forgejo-sync` auf Forgejo
+angekommen ist, und ihn dort nach `dev` mergen — der erste Durchlauf des
+neuen Wegs.
+
 ## 2026-09-15 — Repository heißt oer-community
 
 **Passiert:** Auf Forgejo umbenannt (`Comenius-Institut/oer-community`,

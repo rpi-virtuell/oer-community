@@ -1,0 +1,37 @@
+# Überträgt Arbeitsbranches vom GitHub-Spiegel ins Haupt-Repository auf Forgejo.
+# Nur `feat/**` — `main` und `dev` entstehen ausschließlich auf Forgejo und
+# kommen über den Spiegel hierher, nie umgekehrt.
+#
+# Voraussetzung: Repository-Secret `FORGEJO_TOKEN` (Forgejo-Zugangstoken mit
+# Schreibrecht auf das Repository) und Variable `FORGEJO_USER` (Forgejo-Benutzername).
+name: Nach Forgejo übertragen
+
+on:
+  push:
+    branches:
+      - "feat/**"
+
+concurrency:
+  group: nach-forgejo-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  uebertragen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Branch nach Forgejo pushen
+        env:
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+          FORGEJO_USER: ${{ vars.FORGEJO_USER }}
+          FORGEJO_REPO: git.rpi-virtuell.de/Comenius-Institut/oer-community.git
+        run: |
+          if [ -z "$FORGEJO_TOKEN" ] || [ -z "$FORGEJO_USER" ]; then
+            echo "::error::Secret FORGEJO_TOKEN oder Variable FORGEJO_USER fehlt — nichts übertragen."
+            exit 1
+          fi
+          git push "https://${FORGEJO_USER}:${FORGEJO_TOKEN}@${FORGEJO_REPO}" \
+            "HEAD:refs/heads/${GITHUB_REF_NAME}"
