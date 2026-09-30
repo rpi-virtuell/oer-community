@@ -149,7 +149,8 @@ Ausnahme. Ist `COMMUNITY_PUBKEY` leer, ist der Kalender abgeschaltet.
 Kinds: `30023` Artikel und Seiten (NIP-23) · `30004` Kuratierungslisten
 für Menü und Fußzeile (NIP-51) · `30000` Redaktionskreis, Personenliste
 (NIP-51, ADR-0021/ADR-0034) · `31922` ganztägige und `31923` zeitgebundene
-Termine (NIP-52, ADR-0034) · `0` Profil der Quelle · `1063`
+Termine (NIP-52, ADR-0034) · `0` Profil der Quelle und der Personen, auf
+die Seiten mit `nostr:npub1…` auf eigener Zeile verweisen (ADR-0039) · `1063`
 Lizenznachweis zu Bildern (NIP-94, wird über `#x` nachgeschlagen, nicht
 über die Hauptabfrage).
 

@@ -50,3 +50,4 @@ aus der Community (0034).
 | [0033](0033-zweisprachig-de-en-mit-umschalter.md) | Zweisprachig — Englisch als zweite Sprache mit Umschalter | offen |
 | [0034](0034-kalender-aus-der-community.md) | Termine kommen aus der Community — Quelle je Inhaltsart | angenommen |
 | [0035](0035-claude-arbeitet-auf-dem-github-spiegel.md) | Claude arbeitet auf dem GitHub-Spiegel, gemergt wird auf Forgejo | angenommen |
+| [0039](0039-team-aus-den-profilen.md) | Die Teamseite baut ihre Personen aus deren eigenem `kind:0` | offen |

@@ -1,6 +1,7 @@
 <script>
   import Bildbereich from './Bildbereich.svelte';
   import DebugBereich from './DebugBereich.svelte';
+  import Personenkarte from './Personenkarte.svelte';
   import { einstellungen } from '../einstellungen.svelte.js';
   import { kanonisch } from '$lib/kanonisch.js';
   import { t } from '$lib/sprache.js';
@@ -17,6 +18,9 @@
    *     teile: import('../inhalt.js').Teil[],
    *     fliesstext: Record<string, import('../models/lizenz.js').Ergebnis>,
    *     entfernteBilder: string[],
+   *     personen?: Record<string, { pubkey: string, name: string|null, bildUrl: string|null, aboutHtml: string,
+   *       website: string|null, email: string|null, nip05: string|null }>,
+   *     fehlendeProfile?: string[],
    *     befund: import('../models/entwickleransicht.js').Befund,
    *     pfad: string,
    *     sprache?: 'de'|'en',
@@ -108,6 +112,12 @@
     {#each data.teile as teil}
       {#if teil.art === 'html'}
         {@html teil.html}
+      {:else if teil.art === 'person'}
+        <!-- Personenverweis nach NIP-27 (ADR-0039); ohne Profil steht der
+             Schlüssel im Hinweis unten, keine leere Karte. -->
+        {#if data.personen?.[teil.pubkey]}
+          <Personenkarte person={data.personen[teil.pubkey]} sprache={data.artikel.sprache} />
+        {/if}
       {:else}
         <Bildbereich
           lizenz={data.fliesstext[teil.hash] ?? { ok: false, grund: 'kein-nachweis' }}
@@ -125,6 +135,13 @@
     <p class="hinweis">
       {t(data.artikel.sprache, 'entfernteBilder', data.entfernteBilder.length)}
       {data.entfernteBilder.join(', ')}
+    </p>
+  {/if}
+
+  {#if data.fehlendeProfile && data.fehlendeProfile.length > 0}
+    <p class="hinweis">
+      {t(data.artikel.sprache, 'fehlendeProfile', data.fehlendeProfile.length)}
+      {data.fehlendeProfile.join(', ')}
     </p>
   {/if}
 
