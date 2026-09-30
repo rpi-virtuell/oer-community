@@ -31,6 +31,8 @@ export function startPfad(sprache) {
  * @property {string} lizenzUngeklaert
  * @property {string} bildNichtAngezeigt
  * @property {(n: number) => string} entfernteBilder
+ * @property {(n: number) => string} fehlendeProfile
+ * @property {string} kontakt
  * @property {string} sprache
  * @property {string} zurStartseite
  * @property {string} hauptnavigation
@@ -55,6 +57,9 @@ export const TEXTE = {
     bildNichtAngezeigt: 'Bild nicht angezeigt.',
     entfernteBilder: (n) =>
       `${n} Bildverweis${n === 1 ? '' : 'e'} ohne Lizenznachweis wurden nicht ausgeliefert (ADR-0015):`,
+    fehlendeProfile: (n) =>
+      `Zu ${n} Personenverweis${n === 1 ? '' : 'en'} liegt noch kein Profil (kind:0) vor:`,
+    kontakt: 'Kontakt',
     sprache: 'Sprache',
     zurStartseite: 'zur Startseite',
     hauptnavigation: 'Hauptnavigation',
@@ -78,6 +83,9 @@ export const TEXTE = {
     bildNichtAngezeigt: 'Image not shown.',
     entfernteBilder: (n) =>
       `${n} image reference${n === 1 ? '' : 's'} without a licence record ${n === 1 ? 'was' : 'were'} not delivered (ADR-0015):`,
+    fehlendeProfile: (n) =>
+      `No profile (kind:0) yet for ${n} person reference${n === 1 ? '' : 's'}:`,
+    kontakt: 'Contact',
     sprache: 'Language',
     zurStartseite: 'to the start page',
     hauptnavigation: 'Main navigation',

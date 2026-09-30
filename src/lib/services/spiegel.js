@@ -16,6 +16,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { hashAusUrl } from '../models/lizenz.js';
 import { echtesEvent } from '../models/signatur.js';
+import { personenVerweise } from '../models/profil.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
@@ -41,6 +42,7 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {Event[]} listen
  * @property {Event[]} termine  Termine der Community, kind 31922/31923 (ADR-0034)
  * @property {Event|null} profil
+ * @property {Event[]} [personen]  kind:0 der Personen, auf die Seiten verweisen (ADR-0039)
  * @property {Event[]} nachweise
  * @property {Record<string, string[]>} quellen
  * @property {Record<string, string>} etags
@@ -93,7 +95,7 @@ function istInhalt(x) {
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
-  return { stand: null, artikel: [], listen: [], termine: [], profil: null, nachweise: [], quellen: {}, etags: {} };
+  return { stand: null, artikel: [], listen: [], termine: [], profil: null, personen: [], nachweise: [], quellen: {}, etags: {} };
 }
 
 /** @param {string[][]} tags @param {string} name */
@@ -167,6 +169,16 @@ export function hashesSammeln(artikel) {
     if (h) hashes.add(h);
   }
   return [...hashes];
+}
+
+/**
+ * Alle Personen, auf die Beiträge als Karte verweisen (ADR-0039) — ihr
+ * kind:0 wird mitgespiegelt. Nur Verweise aus dem eigenen Bestand; ein
+ * fremder Key kann so keine Profile in den Spiegel ziehen.
+ * @param {Event[]} artikel @returns {string[]}
+ */
+export function personenSammeln(artikel) {
+  return [...new Set(artikel.flatMap((e) => personenVerweise(e.content ?? '')))];
 }
 
 /**
@@ -261,6 +273,20 @@ export function spiegelErstellen({
       for (const relay of n.fehler) nichtErreichbar.add(relay);
     }
 
+    // Profile der Personen, auf die Seiten verweisen (ADR-0039). Wie der
+    // Lizenz-Lookup über alle Relays: Personenprofile liegen oft nicht dort,
+    // wo die Seite liegt. Je Person gilt das neueste kind:0.
+    /** @type {Event[]} */
+    const personenEvents = [];
+    const pubkeys = personenSammeln(artikel);
+    for (let i = 0; i < pubkeys.length; i += BLOCK) {
+      const n = await eventsVonAllen(relays, { kinds: [0], authors: pubkeys.slice(i, i + BLOCK) }, { holen });
+      personenEvents.push(...n.events);
+      Object.assign(quellen, n.quellen);
+      for (const relay of n.fehler) nichtErreichbar.add(relay);
+    }
+    const personen = neuestesJe(personenEvents, (e) => e.pubkey);
+
     // etag nur für Bilder, zu denen es überhaupt einen Nachweis gibt — sonst
     // gibt es keinen Schritt 5, den der etag entscheiden könnte.
     const attestiert = new Set([...nachweise.values()].flatMap((e) => e.tags.filter((t) => t[0] === 'x').map((t) => t[1])));
@@ -292,7 +318,7 @@ export function spiegelErstellen({
         },
         verworfen
       },
-      artikel, listen, termine, profil,
+      artikel, listen, termine, profil, personen,
       nachweise: [...nachweise.values()],
       quellen, etags
     };

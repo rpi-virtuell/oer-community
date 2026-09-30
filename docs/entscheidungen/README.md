@@ -53,5 +53,5 @@ aus der Community (0034), Gestaltung nach dem Landing-Entwurf (0040, offen).
 | [0036](0036-nur-echte-events-in-den-spiegel.md) | Nur Events mit gültiger Signatur kommen in den Spiegel | angenommen |
 | [0037](0037-lauf-ohne-artikel-relay-ist-ungueltig.md) | Ein Lauf ohne die bisherigen Artikel-Relays ist ungültig | angenommen |
 | [0038](0038-fremdbilder-mit-quellenzeile.md) | Fremdbilder mit Quellenzeile werden gezeigt, nicht entfernt | angenommen |
-
+| [0039](0039-team-aus-den-profilen.md) | Die Teamseite baut ihre Personen aus deren eigenem `kind:0` | offen |
 | [0040](0040-gestaltung-nach-landing-entwurf.md) | Der Hub übernimmt die Gestaltungssprache des FOERBICO-Landing-Entwurfs — mit den Token aus ADR-0031 | offen |

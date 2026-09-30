@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { hashAusUrl, hostAbgeloest } from './models/lizenz.js';
+import { PERSONENVERWEIS, pubkeyAusVerweis } from './models/profil.js';
 
 /** Bild-Syntax in Markdown: ![alt](quelle) — irgendwo im Text. */
 const BILD = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -15,14 +16,15 @@ const BILD = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 const BILD_MIT_UNTERSCHRIFT =
   /^[ \t]*!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)[ \t]*(?:\n(?![ \t]*\n)(?![ \t]*!\[)([^\n]+))?/gm;
 
-/** Wo ein Bild-Teil im gerenderten HTML steht. marked setzt den Platzhalter in ein <p>. */
-const PLATZHALTER = /(?:<p>)?\s*@@BILD:(\d+)@@\s*(?:<\/p>)?/g;
+/** Wo ein Bild- oder Personen-Teil im gerenderten HTML steht. marked setzt den Platzhalter in ein <p>. */
+const PLATZHALTER = /(?:<p>)?\s*@@(BILD|PERSON):(\d+)@@\s*(?:<\/p>)?/g;
 
 /**
  * @typedef {{ art: 'html', html: string }} HtmlTeil
  * @typedef {{ art: 'bild', url: string, hash: string, alt: string, unterschrift: string|null }} BildTeil
  * @typedef {{ art: 'fremdbild', url: string, alt: string, unterschrift: string }} FremdbildTeil
- * @typedef {HtmlTeil|BildTeil|FremdbildTeil} Teil
+ * @typedef {{ art: 'person', pubkey: string }} PersonTeil
+ * @typedef {HtmlTeil|BildTeil|FremdbildTeil|PersonTeil} Teil
  */
 
 /** Ein Link in der entschärften Unterschrift — der Quellverweis (ADR-0038). */
@@ -50,6 +52,10 @@ const QUELLENLINK = /<a href="https:\/\/[^"]+"/;
  *
  * Diese Datei rendert keine Figur: Die Datenschicht kennt die Oberfläche
  * nicht (CLAUDE.md). Sie liefert, was die Seite braucht.
+ *
+ * **Personenverweise werden zu Personen-Teilen** (ADR-0039): Eine Zeile, die
+ * nur `nostr:npub1…` oder `nostr:nprofile1…` enthält, wird zur Karte aus dem
+ * `kind:0` dieser Person. Unlesbare Verweise bleiben als Text stehen.
  *
  * Blockquotes bleiben stehen — bei FOERBICO sind es echte Zitate (ADR-0012).
  *
@@ -105,6 +111,16 @@ export function inhaltAufbereiten(markdown, { abgeloesteHosts = [] } = {}) {
   // Durchgang 2: Bilder mitten im Text — ohne Unterschrift.
   text = text.replace(BILD, (_treffer, alt, quelle) => merken(alt, quelle, null) ?? '');
 
+  // Durchgang 2b: Personenverweise auf eigener Zeile (ADR-0039).
+  /** @type {PersonTeil[]} */
+  const personen = [];
+  text = text.replace(PERSONENVERWEIS, (treffer, verweis) => {
+    const pubkey = pubkeyAusVerweis(verweis);
+    if (!pubkey) return treffer;
+    personen.push({ art: 'person', pubkey });
+    return `\n\n@@PERSON:${personen.length - 1}@@\n\n`;
+  });
+
   const gerendert = marked.parse(text, { async: false, gfm: true });
   const html = typeof gerendert === 'string' ? entschaerfen(gerendert) : '';
 
@@ -115,8 +131,8 @@ export function inhaltAufbereiten(markdown, { abgeloesteHosts = [] } = {}) {
   for (const treffer of html.matchAll(PLATZHALTER)) {
     const davor = html.slice(bisher, treffer.index);
     if (davor.trim() !== '') teile.push({ art: 'html', html: davor });
-    const bild = bilder[Number(treffer[1])];
-    if (bild) teile.push(bild);
+    const teil = treffer[1] === 'BILD' ? bilder[Number(treffer[2])] : personen[Number(treffer[2])];
+    if (teil) teile.push(teil);
     bisher = (treffer.index ?? 0) + treffer[0].length;
   }
   const rest = html.slice(bisher);

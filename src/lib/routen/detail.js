@@ -97,6 +97,7 @@ export async function detailLaden({ d, sprache, konfig, inhalt, anhang = '', ist
       },
       lizenz: ergebnis.lizenz, teile: ergebnis.teile, fliesstext: ergebnis.fliesstext,
       entfernteBilder: ergebnis.entfernteBilder, befund,
+      personen: ergebnis.personen, fehlendeProfile: ergebnis.fehlendeProfile,
       pfad: beitragsPfad(artikel),
       // Das d, das wirklich gerendert wurde — unter /en/ kann das Präfix
       // hinzugekommen sein; die Entwickleransicht meldet dieses (ADR-0033).

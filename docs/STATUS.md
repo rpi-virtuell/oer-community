@@ -28,6 +28,24 @@ Logos als absolute URL mit Zeile darunter eintragen
 (`© <Institution>, Quelle: [<host>](<url>)`); Porträts über `md2blossom` /
 `sync publish` mit `bilder.yaml` nach Blossom migrieren. Danach neu publizieren.
 
+## 2026-09-30 — Teamseite aus den Profilen (ADR-0039)
+
+**Passiert:** Jörg hat den Screenshot der alten Hugo-Teamseite geteilt und
+vorgegeben, die Personen aus ihren `kind:0` zu bauen. Eine Zeile mit nur
+`nostr:npub1…`/`nostr:nprofile1…` im Seitentext wird zur Personenkarte
+(Porträt 160×210 mit Akzentrahmen, Name, `about`, Kontakt); der Spiegel holt
+dafür das `kind:0` jeder verwiesenen Person über alle Relays. Fehlt ein
+Profil, nennt ein Hinweis den npub. Prüfung: `test/team-aus-profilen.test.js`.
+
+**Wo steht das Projekt:** Code auf `feat/team-aus-profilen`; die Seite
+`unser-team` trägt noch keine Verweise, sie zeigt deshalb vorerst nichts Neues.
+Gegen echte Relays nicht geprüft (in der Arbeitsumgebung gesperrt).
+
+**Nächster Schritt:** Redaktion: in `unser-team` unter jeder Institution je
+Person eine Zeile `nostr:npub1…` statt Bild und Text setzen; die Personen
+pflegen `picture`, `about` und ggf. `email` in ihrem Profil. Danach auf Forgejo
+nach `dev` mergen.
+
 ## 2026-09-30 — Ausfall des Artikel-Relays leert den Spiegel nicht mehr (ADR-0037)
 
 **Passiert:** Zweiter Befund des Code-Reviews. Fiel `relay.edufeed.org`
