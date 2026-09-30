@@ -52,3 +52,4 @@ aus der Community (0034).
 | [0035](0035-claude-arbeitet-auf-dem-github-spiegel.md) | Claude arbeitet auf dem GitHub-Spiegel, gemergt wird auf Forgejo | angenommen |
 | [0036](0036-nur-echte-events-in-den-spiegel.md) | Nur Events mit gültiger Signatur kommen in den Spiegel | angenommen |
 | [0037](0037-lauf-ohne-artikel-relay-ist-ungueltig.md) | Ein Lauf ohne die bisherigen Artikel-Relays ist ungültig | angenommen |
+| [0038](0038-fremdbilder-mit-quellenzeile.md) | Fremdbilder mit Quellenzeile werden gezeigt, nicht entfernt | angenommen |
