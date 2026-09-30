@@ -421,6 +421,36 @@ describe('Artikelseite', () => {
     expect(body).toMatch(/<img[^>]+alt="nosTr-schrein"/);
   });
 
+  it('zeigt ein Fremdbild im Text mit Rechtehinweis und Quellenlink, ohne Lizenzpille (ADR-0038)', () => {
+    const { body } = render(Artikelseite, {
+      props: {
+        data: seitendaten({
+          artikel: { ...seitendaten().artikel, bildUrl: null },
+          lizenz: { ok: false, grund: 'kein-bild' },
+          teile: [
+            { art: 'html', html: '<p>Davor</p>' },
+            {
+              art: 'fremdbild',
+              url: 'https://www.uni-frankfurt.de/logo.svg',
+              alt: 'Logo der Goethe-Universität',
+              unterschrift:
+                '© Goethe-Universität Frankfurt, Quelle: <a href="https://www.uni-frankfurt.de/" rel="noopener nofollow">uni-frankfurt.de</a>'
+            },
+            { art: 'html', html: '<p>Danach</p>' }
+          ],
+          entfernteBilder: []
+        }),
+        wortmarke: 'Testquelle'
+      }
+    });
+    expect(body).toMatch(/<img[^>]+src="https:\/\/www\.uni-frankfurt\.de\/logo\.svg"[^>]*alt="Logo der Goethe-Universität"/);
+    expect(body).toContain('© Goethe-Universität Frankfurt');
+    expect(body).toContain('href="https://www.uni-frankfurt.de/"');
+    expect(body).not.toContain('Lizenz ungeklärt');
+    expect(body.indexOf('Davor')).toBeLessThan(body.indexOf('logo.svg'));
+    expect(body.indexOf('logo.svg')).toBeLessThan(body.indexOf('Danach'));
+  });
+
   /** Seite ohne Cover, mit einem Blossom-Bild im Text. @param {object} lizenz */
   function mitFliesstextbild(lizenz) {
     const HASH = 'b'.repeat(64);

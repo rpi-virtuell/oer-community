@@ -1,5 +1,6 @@
 <script>
   import Bildbereich from './Bildbereich.svelte';
+  import Fremdbild from './Fremdbild.svelte';
   import DebugBereich from './DebugBereich.svelte';
   import { einstellungen } from '../einstellungen.svelte.js';
   import { kanonisch } from '$lib/kanonisch.js';
@@ -108,6 +109,8 @@
     {#each data.teile as teil}
       {#if teil.art === 'html'}
         {@html teil.html}
+      {:else if teil.art === 'fremdbild'}
+        <Fremdbild url={teil.url} alt={teil.alt} unterschrift={teil.unterschrift} />
       {:else}
         <Bildbereich
           lizenz={data.fliesstext[teil.hash] ?? { ok: false, grund: 'kein-nachweis' }}

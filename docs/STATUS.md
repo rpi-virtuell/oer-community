@@ -9,6 +9,25 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Fremdbilder mit Quellenzeile (ADR-0038)
+
+**Passiert:** Auf der Teamseite fehlen im Hub alle Bilder. Die Porträts sind
+relativ adressiert (`JoergLohrer.jpg`, `/hello-world/comenius-institut-logo.png`,
+im Englischen `../../unser-team/…`) und werden nach ADR-0015 entfernt.
+Institutionslogos sollen nicht kopiert, sondern von den Websites der
+Institutionen eingebettet werden, mit Rechtehinweis und Quellverweis. Das
+verbot ADR-0023 bisher. Neu: `inhaltAufbereiten` liefert Fremdbild-Teile
+(`art: 'fremdbild'`) für `https`-Bilder mit Quellenzeile, `Fremdbild.svelte`
+zeigt sie klein und mit Zeile; abgelöste Hosts bleiben ausgeschlossen.
+
+**Wo steht das Projekt:** Branch `feat/fremdlogos-mit-nachweis`,
+`pnpm check` und `pnpm test` grün.
+
+**Nächster Schritt:** Redaktion (Hugo-Quelle `Website/content/…unser-team`):
+Logos als absolute URL mit Zeile darunter eintragen
+(`© <Institution>, Quelle: [<host>](<url>)`); Porträts über `md2blossom` /
+`sync publish` mit `bilder.yaml` nach Blossom migrieren. Danach neu publizieren.
+
 ## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
 
 **Passiert:** Claude arbeitet auf dem GitHub-Spiegel
