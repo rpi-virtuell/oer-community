@@ -15,6 +15,9 @@ import Bildbereich from '../src/lib/komponenten/Bildbereich.svelte';
 import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 import { HUB_ANSICHTEN } from '../src/lib/routen/struktur.js';
 import NaechsteTermine from '../src/lib/komponenten/NaechsteTermine.svelte';
+import Startkopf from '../src/lib/komponenten/Startkopf.svelte';
+import Themenwolke from '../src/lib/komponenten/Themenwolke.svelte';
+import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 
 const VEROEFFENTLICHT = new Date(1788433547 * 1000).toISOString();
 
@@ -645,6 +648,79 @@ describe('NaechsteTermine (Startseitenblock, ADR-0034)', () => {
   it('ohne Termine rendert es nichts — kein leerer Block auf der Startseite', () => {
     const { body } = render(NaechsteTermine, { props: { karten: [] } });
     expect(body.replace(/<!--[\s\S]*?-->/g, '').trim()).toBe('');
+  });
+});
+
+describe('Startkopf (Hero der Startseite, ADR-0040)', () => {
+  it('nennt Titel und Vorspann — kein Logo, kein Panel: Logo und Wortmarke stehen schon in der Kopfzeile', () => {
+    const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: 'Offen. Vernetzt.' } });
+    expect(body).toMatch(/<h1[^>]*>Willkommen<\/h1>/);
+    expect(body).toContain('Offen. Vernetzt.');
+    expect(body).not.toContain('<img');
+    expect(body).not.toContain('class="panel');
+  });
+  it('ohne Vorspann kein leerer Absatz', () => {
+    const { body } = render(Startkopf, { props: { titel: 'Willkommen', vorspann: '' } });
+    expect(body).not.toMatch(/<p[^>]*class="vorspann"/);
+  });
+});
+
+describe('Themenwolke (ADR-0040)', () => {
+  const THEMEN = [
+    { name: 'OER', slug: 'oer', anzahl: 12 },
+    { name: 'Community', slug: 'community', anzahl: 6 },
+    { name: 'Nostr', slug: 'nostr', anzahl: 1 }
+  ];
+  it('verlinkt jedes Thema, nennt die Anzahl und skaliert nach Häufigkeit', () => {
+    const { body } = render(Themenwolke, { props: { themen: THEMEN } });
+    expect(body).toMatch(/<a[^>]+href="\/themen\/oer"[^>]+class="[^"]*stufe-5/);
+    expect(body).toMatch(/<a[^>]+href="\/themen\/nostr"[^>]+class="[^"]*stufe-1/);
+    expect(body).toContain('12');
+  });
+  it('ohne Themen rendert die Wolke einen Hinweis statt einer leeren Liste', () => {
+    const { body } = render(Themenwolke, { props: { themen: [] } });
+    expect(body).not.toContain('<a ');
+    expect(body).toContain('class="hinweis"');
+  });
+});
+
+describe('Übersicht als Aufmacher plus Raster (ADR-0040)', () => {
+  /** @param {number} n @returns {any[]} */
+  const karten = (n) =>
+    Array.from({ length: n }, (_, i) => ({
+      d: `k${i}`, pfad: `/k${i}`, titel: `Beitrag ${i}`, zusammenfassung: 'Anriss.', veroeffentlicht: VEROEFFENTLICHT,
+      themen: [{ name: 'OER', slug: 'oer' }],
+      cover: { url: `https://blossom.example/${i}.jpg`, alt: '', lizenz: { ok: false, grund: 'kein-nachweis' } }
+    }));
+  const props = (/** @type {number} */ n, seite = 1) => ({ karten: karten(n), seite, seiten: 2, basis: '/blog', ueberschrift: 'Blog' });
+
+  it('auf Seite 1 ist der neueste Beitrag der Aufmacher, die übrigen stehen im Raster', () => {
+    const { body } = render(Uebersicht, { props: props(4) });
+    const aufmacher = body.match(/class="karte aufmacher[^"]*"/g) ?? [];
+    expect(aufmacher).toHaveLength(1);
+    expect(body.indexOf('Beitrag 0')).toBeLessThan(body.indexOf('class="raster'));
+    expect(body.indexOf('Beitrag 1')).toBeGreaterThan(body.indexOf('class="raster'));
+  });
+  it('auf Seite 2 gibt es keinen Aufmacher — alle Karten im Raster', () => {
+    const { body } = render(Uebersicht, { props: props(4, 2) });
+    expect(body).not.toContain('karte aufmacher');
+    expect(body.indexOf('Beitrag 0')).toBeGreaterThan(body.indexOf('class="raster'));
+  });
+  it('ein einzelner Beitrag ist Aufmacher ohne leeres Raster', () => {
+    const { body } = render(Uebersicht, { props: props(1) });
+    expect(body).toContain('karte aufmacher');
+    expect(body).not.toContain('class="raster');
+  });
+});
+
+describe('Detail ohne Kopf (Startseite trägt den Startkopf)', () => {
+  it('lässt mit ohneKopf den <header> weg, hält aber Titel im <title>', () => {
+    const { body, head } = render(Artikelseite, {
+      props: { data: seitendaten({ artikel: { ...seitendaten().artikel, istSeite: true } }), wortmarke: 'T', ohneKopf: true }
+    });
+    expect(body).not.toContain('<h1');
+    expect(head).toContain('<title>');
+    expect(body).toContain('Absatz.');
   });
 });
 

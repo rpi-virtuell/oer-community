@@ -26,11 +26,14 @@
    *   },
    *   wortmarke: string,
    *   nurWortmarke?: boolean,
+   *   ohneKopf?: boolean,
    *   kanonischeUrl?: string|null,
    *   basisUrl?: string|null
    * }}
    */
-  let { data, wortmarke, nurWortmarke = false, kanonischeUrl = null, basisUrl = null } = $props();
+  // ohneKopf: die Startseite trägt Titel und Vorspann im Startkopf (ADR-0040);
+  // ein zweiter <h1> hier wäre derselbe Titel zweimal.
+  let { data, wortmarke, nurWortmarke = false, ohneKopf = false, kanonischeUrl = null, basisUrl = null } = $props();
 
   /**
    * Alternates müssen absolut sein, sonst wertet keine Suchmaschine sie aus.
@@ -72,6 +75,7 @@
 </svelte:head>
 
 <article>
+  {#if !ohneKopf}
   <header class="detail-kopf">
     <h1>{data.artikel.titel}</h1>
     {#if !data.artikel.istSeite}
@@ -87,6 +91,7 @@
       </div>
     {/if}
   </header>
+  {/if}
 
   {#if !data.artikel.istSeite}
     <Bildbereich
