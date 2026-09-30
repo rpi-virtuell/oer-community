@@ -19,6 +19,13 @@ describe('lizenzLabel', () => {
     );
   });
 
+  it('kennt die Unsplash-Lizenz auch unter ihrem deutschen Pfad', () => {
+    expect(lizenzLabel('https://unsplash.com/license')).toBe('Unsplash License');
+    expect(lizenzLabel('https://unsplash.com/de/lizenz')).toBe('Unsplash License');
+    expect(lizenzLabel('https://unsplash.com/fr/licence')).toBe('Unsplash License');
+    expect(lizenzLabel('https://unsplash.com/de/fotos/irgendwas')).toBe('https://unsplash.com/de/fotos/irgendwas');
+  });
+
   it('gibt Unbekanntes unverändert zurück, statt einen Namen zu erfinden', () => {
     expect(lizenzLabel('https://example.org/meine-lizenz')).toBe(
       'https://example.org/meine-lizenz'
