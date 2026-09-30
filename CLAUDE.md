@@ -220,6 +220,12 @@ Relays (ADR-0013) — nie nur das aus dem `naddr`.
   gegen die `id` vergleichen (ADR-0017).
 - **Bilder von abgelösten Hosts** (`ABGELOESTE_HOSTS`, Standard
   `oer.community`) gelten wie relative Pfade (ADR-0030).
+- **Fremdbilder mit Quellenzeile werden gezeigt** (ADR-0038): Ein hashloses
+  `https`-Bild allein auf seiner Zeile, direkt darunter eine Zeile mit
+  Quellenlink (Rechtehinweis) — etwa ein Institutionslogo von dessen
+  Website —, erscheint als Fremdbild ohne Lookup und ohne Lizenzpille.
+  Ohne Link in der Zeile: entfernen wie ADR-0015. Nicht für eigene Fotos;
+  die gehören auf Blossom.
 - **Ein Beitrag ist eine Seite**, wenn er `["l","seite","foerbico/typ"]`
   trägt (ADR-0027); Seiten erscheinen nicht im Blog.
 - **Das Menü beschriftet Einträge mit dem Seitentitel;** Ziele außerhalb
@@ -337,6 +343,12 @@ Specs `docs/superpowers/specs/`, Pläne `docs/superpowers/plans/`,
 benannt `YYYY-MM-DD-<thema>`.
 
 **Branches:** `dev` arbeiten · `feat/<thema>` je Vorhaben · `main` freigegeben.
+
+**Claude arbeitet auf dem GitHub-Spiegel** (`github.com/rpi-virtuell/oer-community`),
+nur auf `feat/<thema>`-Branches von `dev` aus. Der Workflow
+`.github/workflows/nach-forgejo.yml` überträgt sie nach Forgejo; **gemergt
+wird nur auf Forgejo**, nie auf GitHub, und `main`/`dev` werden von GitHub
+aus nie beschrieben (ADR-0035).
 
 **Vor jedem Merge:**
 

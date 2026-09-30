@@ -9,6 +9,43 @@ Regeln stehen in `../CLAUDE.md`, Begründungen in
 
 ---
 
+## 2026-09-30 — Fremdbilder mit Quellenzeile (ADR-0038)
+
+**Passiert:** Auf der Teamseite fehlen im Hub alle Bilder. Die Porträts sind
+relativ adressiert (`JoergLohrer.jpg`, `/hello-world/comenius-institut-logo.png`,
+im Englischen `../../unser-team/…`) und werden nach ADR-0015 entfernt.
+Institutionslogos sollen nicht kopiert, sondern von den Websites der
+Institutionen eingebettet werden, mit Rechtehinweis und Quellverweis. Das
+verbot ADR-0023 bisher. Neu: `inhaltAufbereiten` liefert Fremdbild-Teile
+(`art: 'fremdbild'`) für `https`-Bilder mit Quellenzeile, `Fremdbild.svelte`
+zeigt sie klein und mit Zeile; abgelöste Hosts bleiben ausgeschlossen.
+
+**Wo steht das Projekt:** Branch `feat/fremdlogos-mit-nachweis`,
+`pnpm check` und `pnpm test` grün.
+
+**Nächster Schritt:** Redaktion (Hugo-Quelle `Website/content/…unser-team`):
+Logos als absolute URL mit Zeile darunter eintragen
+(`© <Institution>, Quelle: [<host>](<url>)`); Porträts über `md2blossom` /
+`sync publish` mit `bilder.yaml` nach Blossom migrieren. Danach neu publizieren.
+
+## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
+
+**Passiert:** Claude arbeitet auf dem GitHub-Spiegel
+(`rpi-virtuell/oer-community`), Haupt-Repository bleibt Forgejo. Neuer
+Workflow `.github/workflows/nach-forgejo.yml` pusht jeden `feat/**`-Branch
+von GitHub nach Forgejo. `main` und `dev` werden **nie** von GitHub aus
+beschrieben; gemergt wird auf Forgejo, der Spiegel bringt den Stand zurück.
+
+Festgehalten in ADR-0035, CLAUDE.md (Arbeitsweise) und `docs/betrieb.md`.
+
+**Wo steht das Projekt:** Workflow liegt auf `feat/forgejo-sync`; Secret
+`FORGEJO_TOKEN` und Variable `FORGEJO_USER` sind im GitHub-Repo angelegt
+(Jörg, 30.09.).
+
+**Nächster Schritt:** Jörg: prüfen, dass `feat/forgejo-sync` auf Forgejo
+angekommen ist, und ihn dort nach `dev` mergen — der erste Durchlauf des
+neuen Wegs.
+
 ## 2026-09-15 — Repository heißt oer-community
 
 **Passiert:** Auf Forgejo umbenannt (`Comenius-Institut/oer-community`,

@@ -1,6 +1,6 @@
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
-import { hashAusUrl } from './models/lizenz.js';
+import { hashAusUrl, hostAbgeloest } from './models/lizenz.js';
 
 /** Bild-Syntax in Markdown: ![alt](quelle) — irgendwo im Text. */
 const BILD = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -21,8 +21,12 @@ const PLATZHALTER = /(?:<p>)?\s*@@BILD:(\d+)@@\s*(?:<\/p>)?/g;
 /**
  * @typedef {{ art: 'html', html: string }} HtmlTeil
  * @typedef {{ art: 'bild', url: string, hash: string, alt: string, unterschrift: string|null }} BildTeil
- * @typedef {HtmlTeil|BildTeil} Teil
+ * @typedef {{ art: 'fremdbild', url: string, alt: string, unterschrift: string }} FremdbildTeil
+ * @typedef {HtmlTeil|BildTeil|FremdbildTeil} Teil
  */
+
+/** Ein Link in der entschärften Unterschrift — der Quellverweis (ADR-0038). */
+const QUELLENLINK = /<a href="https:\/\/[^"]+"/;
 
 /**
  * Säubert Markdown und zerlegt es in Teile: gerendertes HTML und Bilder.
@@ -37,21 +41,29 @@ const PLATZHALTER = /(?:<p>)?\s*@@BILD:(\d+)@@\s*(?:<\/p>)?/g;
  * Zu ihnen gibt es keinen Hash und damit keinen auffindbaren Nachweis. Sie
  * werden gezählt; die Zahl ist die Redaktions-Aufgabenliste.
  *
+ * **Ausnahme: Fremdbilder mit Quellenzeile** (ADR-0038). Ein absolutes
+ * `https`-Bild, das allein auf seiner Zeile steht und direkt darunter eine
+ * Zeile mit Link trägt — Rechtehinweis und Quellverweis, z. B. das Logo
+ * einer Partnerinstitution von deren Website —, wird als Fremdbild-Teil
+ * gezeigt. Die Zeile *ist* hier der Nachweis; ohne sie bleibt es beim
+ * Entfernen. Abgelöste Hosts (ADR-0030) bleiben ausgeschlossen.
+ *
  * Diese Datei rendert keine Figur: Die Datenschicht kennt die Oberfläche
  * nicht (CLAUDE.md). Sie liefert, was die Seite braucht.
  *
  * Blockquotes bleiben stehen — bei FOERBICO sind es echte Zitate (ADR-0012).
  *
  * @param {string} markdown
+ * @param {{ abgeloesteHosts?: string[] }} [optionen]
  * @returns {{ teile: Teil[], entfernteBilder: string[] }}
  */
-export function inhaltAufbereiten(markdown) {
+export function inhaltAufbereiten(markdown, { abgeloesteHosts = [] } = {}) {
   const roh = markdown ?? '';
   if (roh.trim() === '') return { teile: [], entfernteBilder: [] };
 
   /** @type {string[]} */
   const entfernteBilder = [];
-  /** @type {BildTeil[]} */
+  /** @type {(BildTeil|FremdbildTeil)[]} */
   const bilder = [];
 
   /**
@@ -64,6 +76,11 @@ export function inhaltAufbereiten(markdown) {
   const merken = (alt, quelle, unterschrift) => {
     const hash = hashAusUrl(quelle);
     if (!hash) {
+      const zeile = unterschrift ? inlineEntschaerfen(unterschrift) : '';
+      if (fremdbildZeigbar(quelle, zeile, abgeloesteHosts)) {
+        bilder.push({ art: 'fremdbild', url: quelle, alt, unterschrift: zeile });
+        return `\n\n@@BILD:${bilder.length - 1}@@\n\n`;
+      }
       entfernteBilder.push(quelle);
       return null;
     }
@@ -109,6 +126,21 @@ export function inhaltAufbereiten(markdown) {
 }
 
 /**
+ * Darf ein hashloses Bild als Fremdbild erscheinen (ADR-0038)? Nur absolut
+ * über `https`, nicht von einem abgelösten Host, und nur mit einer
+ * Unterschrift, die einen Quellenlink trägt.
+ * @param {string} quelle
+ * @param {string} zeile  entschärfte Unterschrift, '' wenn keine
+ * @param {string[]} abgeloesteHosts
+ * @returns {boolean}
+ */
+function fremdbildZeigbar(quelle, zeile, abgeloesteHosts) {
+  if (!/^https:\/\//i.test(quelle)) return false;
+  if (hostAbgeloest(quelle, abgeloesteHosts)) return false;
+  return QUELLENLINK.test(zeile);
+}
+
+/**
  * Rendert eine Markdown-Zeile ohne Absatz und entschärft sie — für die
  * Bildunterschrift, die Links wie `[CC0](https://…)` enthalten darf.
  * @param {string} markdown
@@ -129,7 +161,8 @@ function inlineEntschaerfen(markdown) {
  * Sanitizern sind Eigenbauten regelmäßig lückenhaft.
  *
  * `img` steht bewusst **nicht** auf der Liste: Bilder mit Hash sind vorher zu
- * Bild-Teilen geworden (ADR-0023), hashlose entfernt (ADR-0015). Ein `<img>`
+ * Bild-Teilen geworden (ADR-0023), Fremdbilder mit Quellenzeile zu
+ * Fremdbild-Teilen (ADR-0038), alle übrigen entfernt (ADR-0015). Ein `<img>`
  * im Roh-HTML des Events käme an beiden vorbei — also raus.
  *
  * @param {string} html

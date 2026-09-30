@@ -186,3 +186,64 @@ describe('inhaltAufbereiten — Roh-HTML wird entschärft', () => {
     expect(html).toContain('href="https://example.org/seite"');
   });
 });
+
+describe('inhaltAufbereiten — Fremdbilder mit Quellenzeile (ADR-0038)', () => {
+  const LOGO = 'https://www.uni-frankfurt.de/logo.svg';
+  const ZEILE = '© Goethe-Universität Frankfurt, Quelle: [uni-frankfurt.de](https://www.uni-frankfurt.de/)';
+
+  /** Nur die Fremdbild-Teile. */
+  function fremdVon(/** @type {ReturnType<typeof inhaltAufbereiten>} */ r) {
+    return r.teile.filter((t) => t.art === 'fremdbild');
+  }
+
+  it('zeigt ein absolutes Bild ohne Hash, wenn darunter eine Zeile mit Quellenlink steht', () => {
+    const r = inhaltAufbereiten(`Davor\n\n![Logo der Goethe-Universität](${LOGO})\n${ZEILE}\n\nDanach`);
+    expect(r.entfernteBilder).toEqual([]);
+    const [f] = fremdVon(r);
+    expect(f).toMatchObject({ art: 'fremdbild', url: LOGO, alt: 'Logo der Goethe-Universität' });
+    expect(f && 'unterschrift' in f ? f.unterschrift : '').toContain('href="https://www.uni-frankfurt.de/"');
+    expect(f && 'unterschrift' in f ? f.unterschrift : '').toContain('©');
+    // Die Zeile steht einmal — am Bild, nicht zusätzlich im Text.
+    expect(htmlVon(r)).not.toContain('Quelle:');
+    expect(htmlVon(r)).toContain('Davor');
+    expect(htmlVon(r)).toContain('Danach');
+  });
+
+  it('entfernt das Fremdbild weiter, wenn die Zeile keinen Link trägt', () => {
+    const r = inhaltAufbereiten(`![Logo](${LOGO})\n© Goethe-Universität Frankfurt`);
+    expect(fremdVon(r)).toEqual([]);
+    expect(r.entfernteBilder).toEqual([LOGO]);
+    expect(htmlVon(r)).toContain('© Goethe-Universität Frankfurt');
+  });
+
+  it('entfernt das Fremdbild weiter ohne Zeile darunter', () => {
+    const r = inhaltAufbereiten(`![Logo](${LOGO})\n\nText`);
+    expect(fremdVon(r)).toEqual([]);
+    expect(r.entfernteBilder).toEqual([LOGO]);
+  });
+
+  it('entfernt relative Bilder auch mit Quellenzeile (ADR-0015)', () => {
+    const r = inhaltAufbereiten(`![Logo](/hello-world/logo.png)\n${ZEILE}`);
+    expect(fremdVon(r)).toEqual([]);
+    expect(r.entfernteBilder).toEqual(['/hello-world/logo.png']);
+  });
+
+  it('entfernt Fremdbilder von abgelösten Hosts auch mit Quellenzeile (ADR-0030)', () => {
+    const r = inhaltAufbereiten(`![Logo](https://oer.community/logo.png)\n${ZEILE}`, {
+      abgeloesteHosts: ['oer.community']
+    });
+    expect(fremdVon(r)).toEqual([]);
+    expect(r.entfernteBilder).toEqual(['https://oer.community/logo.png']);
+  });
+
+  it('nimmt nur https — ein http-Bild wäre gemischter Inhalt', () => {
+    const r = inhaltAufbereiten(`![Logo](http://example.org/logo.png)\n${ZEILE}`);
+    expect(fremdVon(r)).toEqual([]);
+  });
+
+  it('ein Bild mitten im Satz bleibt entfernt — es hat keine eigene Zeile', () => {
+    const r = inhaltAufbereiten(`Text ![Logo](${LOGO}) mehr Text\n${ZEILE}`);
+    expect(fremdVon(r)).toEqual([]);
+    expect(r.entfernteBilder).toEqual([LOGO]);
+  });
+});

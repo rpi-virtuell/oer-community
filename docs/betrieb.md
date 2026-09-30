@@ -41,6 +41,26 @@ git push origin main
 `~/SourceCode/community-hub` einmal `git checkout main` — danach kann der
 Hilfsbranch weg und die zwei Zeilen werden zu einer.
 
+## GitHub-Spiegel und Übertragung nach Forgejo
+
+Haupt-Repository ist Forgejo; `github.com/rpi-virtuell/oer-community` ist
+sein Spiegel. Claude arbeitet dort auf `feat/**`-Branches (ADR-0035). Der
+Workflow `.github/workflows/nach-forgejo.yml` pusht jeden solchen Branch bei
+jedem Push nach Forgejo; gemergt wird auf Forgejo, der Spiegel bringt `dev`
+und `main` zurück.
+
+Eingerichtet im GitHub-Repository unter Settings → Secrets and variables →
+Actions (seit 30.09.2026):
+
+| Name | Art | Inhalt |
+|---|---|---|
+| `FORGEJO_TOKEN` | Repository-Secret | Forgejo-Token mit `write:repository` |
+| `FORGEJO_USER` | Repository-Variable | Forgejo-Benutzername zum Token |
+
+Scheitert ein Lauf (GitHub → Actions → „Nach Forgejo übertragen"), liegt der
+Branch nicht auf Forgejo. Meist ist der Token abgelaufen; neuen anlegen,
+Secret ersetzen, Lauf neu starten.
+
 ## Zweiter Server (Hetzner, systemd)
 
 **Server:** `46.225.82.96` (Hetzner, Ubuntu 24.04.4, 7,6 GB RAM, 65 GB frei)

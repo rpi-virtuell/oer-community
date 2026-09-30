@@ -101,7 +101,7 @@ export async function beitragLaden({ adresse, konfig, inhalt }) {
   const hosts = konfig.abgeloesteHosts;
 
   const lizenz = lizenzPruefen({ bildUrl: artikel.bildUrl, bildHash: artikel.bildHash, nachweis, etag, abgeloesteHosts: hosts });
-  const { teile, entfernteBilder } = inhaltAufbereiten(artikel.inhalt);
+  const { teile, entfernteBilder } = inhaltAufbereiten(artikel.inhalt, { abgeloesteHosts: hosts });
 
   // Bilder im Fließtext mit Hash-URL (ADR-0023): je Hash einmal auflösen.
   // Zeigt der Text das Cover noch einmal — der Referenzfall —, ist das
