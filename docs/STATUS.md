@@ -17,11 +17,15 @@ Workflow `.github/workflows/nach-forgejo.yml` pusht jeden `feat/**`-Branch
 von GitHub nach Forgejo. `main` und `dev` werden **nie** von GitHub aus
 beschrieben; gemergt wird auf Forgejo, der Spiegel bringt den Stand zurück.
 
-**Wo steht das Projekt:** Workflow liegt auf `feat/forgejo-sync`; er braucht
-das Secret `FORGEJO_TOKEN` und die Variable `FORGEJO_USER` im GitHub-Repo.
+Festgehalten in ADR-0035, CLAUDE.md (Arbeitsweise) und `docs/betrieb.md`.
 
-**Nächster Schritt:** Jörg: Token anlegen und hinterlegen, dann zeigt der
-erste Lauf dieses Branches, ob der Push auf Forgejo ankommt.
+**Wo steht das Projekt:** Workflow liegt auf `feat/forgejo-sync`; Secret
+`FORGEJO_TOKEN` und Variable `FORGEJO_USER` sind im GitHub-Repo angelegt
+(Jörg, 30.09.).
+
+**Nächster Schritt:** Jörg: prüfen, dass `feat/forgejo-sync` auf Forgejo
+angekommen ist, und ihn dort nach `dev` mergen — der erste Durchlauf des
+neuen Wegs.
 
 ## 2026-09-15 — Repository heißt oer-community
 
