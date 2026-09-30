@@ -105,8 +105,11 @@
        wie beim Cover; der Alt-Text kommt aus dem Markdown, die Unterschrift
        aus dem Nachweis — oder, wenn der fehlt, aus der Zeile der Autor:in. -->
   <div class="inhalt">
-    {#each data.teile as teil}
+    <!-- Die Teile stehen in der Reihenfolge des Textes und ordnen sich nie
+         um; die Stelle ist der Schlüssel. -->
+    {#each data.teile as teil, stelle (stelle)}
       {#if teil.art === 'html'}
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html teil.html}
       {:else}
         <Bildbereich

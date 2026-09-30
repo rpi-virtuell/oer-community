@@ -16,14 +16,6 @@ import { GRUND_TEXT } from '../src/lib/models/lizenz.js';
 import { HUB_ANSICHTEN } from '../src/lib/routen/struktur.js';
 import NaechsteTermine from '../src/lib/komponenten/NaechsteTermine.svelte';
 
-/** @type {any} */
-const ARTIKEL = JSON.parse(
-  readFileSync(
-    new URL('./fixtures/artikel-30023-die-kraft-der-gemeinschaft.json', import.meta.url),
-    'utf8'
-  )
-)[0];
-
 const VEROEFFENTLICHT = new Date(1788433547 * 1000).toISOString();
 
 /** @param {Partial<Record<string, unknown>>} abweichung */

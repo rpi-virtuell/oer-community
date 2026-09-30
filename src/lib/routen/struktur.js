@@ -9,7 +9,7 @@ import { strukturLaden } from '../loaders/struktur.js';
 import { termineListe } from '../loaders/termine.js';
 import { englischVorhanden, gegenstueck } from '../loaders/uebersetzungen.js';
 import { beitragsPfad, istStartseitenD } from '../models/artikel.js';
-import { basisUrlBestimmen, kanonisch } from '../kanonisch.js';
+import { basisUrlBestimmen } from '../kanonisch.js';
 import { startPfad, t } from '../sprache.js';
 
 export { kanonisch, basisUrlBestimmen } from '../kanonisch.js';

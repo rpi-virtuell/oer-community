@@ -347,10 +347,21 @@ aus nie beschrieben (ADR-0035).
 **Vor jedem Merge:**
 
 ```
-pnpm check && pnpm test
+pnpm check && pnpm lint && pnpm test && pnpm test:e2e
 ```
 
-(`lint` und `test:e2e` gibt es noch nicht; offener Punkt der Spec vom 14.09.)
+`pnpm lint` ist ESLint mit dem Svelte-Plugin (`eslint.config.js`):
+ungenutzte Variablen, Svelte-Fallen wie fehlende `each`-Schlüssel. Jedes
+`{@html}` braucht ein `eslint-disable-next-line` mit Begründung, woher das
+HTML gesäubert kommt. Formatierung prüft es nicht.
+
+`pnpm test:e2e` sind Playwright-Rauchtests (`test/e2e/`) gegen den
+**gebauten** Server: `test/e2e/server.mjs` legt den Spiegel aus der
+Testquelle an und nennt ein Relay, das niemand beantwortet — ohne Netz,
+wie nach einem Relay-Ausfall. Geprüft wird, was Vitest nicht sieht:
+Build, Start, Hydration ohne Browserfehler, Navigation, Umschalter,
+Lesbarkeit ohne JavaScript. Auf dem GitHub-Spiegel laufen alle vier
+Befehle für jeden `feat/**`-Branch (`.github/workflows/pruefen.yml`).
 
 Tests laufen gegen ein Mock-Relay mit echten Events aus `test/fixtures/` —
 ohne Netz und ohne Abhängigkeit von der Publikationstätigkeit anderer.
