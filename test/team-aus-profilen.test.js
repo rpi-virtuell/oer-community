@@ -60,7 +60,8 @@ const KONFIG = {
   blossomUrl: 'https://blossom.edufeed.org/', abgeloesteHosts: ['oer.community'],
   spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
   startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
-  redaktionD: 'redaktion', community: null, edufeedUrl: 'https://dev.edufeed.org'
+  redaktionD: 'redaktion', community: null, edufeedUrl: 'https://dev.edufeed.org',
+  profilRelays: [], profilbilderPfad: 'x'
 };
 
 describe('personenVerweise und personAusEvent', () => {
@@ -118,7 +119,8 @@ describe('Spiegel holt die kind:0 der verwiesenen Personen', () => {
     const s = spiegelErstellen({
       konfig: KONFIG, holen, etagHolen: async () => undefined,
       speicher: { lesen: async () => null, schreiben: async () => {} },
-      pruefen: () => true // Fixtures sind unsigniert; die Prüfung selbst testet signatur.test.js
+      pruefen: () => true, // Fixtures sind unsigniert; die Prüfung selbst testet signatur.test.js
+      bildHolen: async () => null, bildspeicher: { pfadVon: (d) => d, vorhanden: async () => false, schreiben: async () => {} }
     });
     const { inhalt } = await s.auffrischen();
     expect(gefragt.map((g) => g.url).sort()).toEqual([RELAY, RPI].sort());
@@ -137,7 +139,8 @@ describe('Teamseite in der Server-Darstellung', () => {
     ...leererInhalt(),
     stand: { zeitpunkt: '2026-09-30T10:00:00Z', dauerMs: 1, gefragteRelays: [RELAY], nichtErreichbar: [], anzahl: { artikel: 1, listen: 0, nachweise: 0, profil: 0, termine: 0 } },
     artikel: [/** @type {any} */ (TEAMSEITE)],
-    personen: [/** @type {any} */ (JENS_PROFIL)]
+    personen: [/** @type {any} */ (JENS_PROFIL)],
+    profilbilder: { [JENS]: { url: 'https://blossom.edufeed.org/jens.jpg', datei: `${JENS}.jpg`, typ: 'image/jpeg', hash: 'f'.repeat(64) } }
   };
 
   it('beitragLaden liefert Karten je Person und nennt fehlende Profile als npub', async () => {
@@ -145,7 +148,14 @@ describe('Teamseite in der Server-Darstellung', () => {
     if (!r.ok) throw new Error(r.meldung);
     expect(Object.keys(r.personen)).toEqual([JENS]);
     expect(r.personen[JENS].aboutHtml).toContain('<strong>FOERBICO</strong>');
+    expect(r.personen[JENS].bildUrl).toBe(`/profilbild/${JENS}?v=${'f'.repeat(12)}`);
     expect(r.fehlendeProfile).toEqual([npubEncode(GINA)]);
+  });
+
+  it('ohne gehaltenes Bild gibt es kein Bild — der Leser spricht nie mit dem Fremdhost', async () => {
+    const r = await beitragLaden({ adresse: { kind: 30023, author: AUTOR, d: 'unser-team', relays: [] }, konfig: KONFIG, inhalt: { ...inhalt, profilbilder: {} } });
+    if (!r.ok) throw new Error(r.meldung);
+    expect(r.personen[JENS].bildUrl).toBeNull();
   });
 
   it('rendert Porträt, Name, Bio und Kontakt; keine leere Karte ohne Profil', async () => {
@@ -162,7 +172,8 @@ describe('Teamseite in der Server-Darstellung', () => {
         })
       }
     });
-    expect(body).toContain('src="https://blossom.edufeed.org/jens.jpg"');
+    expect(body).toContain(`src="/profilbild/${JENS}?v=${'f'.repeat(12)}"`);
+    expect(body).not.toContain('blossom.edufeed.org/jens.jpg');
     expect(body).toContain('alt="Dr. Jens Dechow"');
     expect(body).toContain('<strong>FOERBICO</strong>');
     expect(body).toContain('href="mailto:dechow@comenius.de"');

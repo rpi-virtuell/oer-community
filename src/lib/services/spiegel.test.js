@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { hashesSammeln, leererInhalt, spiegelErstellen } from './spiegel.js';
+import * as nip19 from 'nostr-tools/nip19';
+import { dateiBildspeicher, hashesSammeln, leererInhalt, spiegelErstellen } from './spiegel.js';
 import { hashAusUrl } from '../models/lizenz.js';
 
 /** @param {string} datei */
@@ -20,7 +21,7 @@ const KONFIG = {
   blossomUrl: 'https://blossom.edufeed.org/', abgeloesteHosts: ['oer.community'],
   spiegelPfad: 'x.json', spiegelIntervallS: 600, spiegelStartwartezeitS: 20,
   startseiteD: 'startseite', navigationD: 'navigation', fusszeileD: 'fusszeile',
-  redaktionD: 'redaktion',
+  redaktionD: 'redaktion', profilRelays: [], profilbilderPfad: 'x',
   community: null, edufeedUrl: 'https://dev.edufeed.org'
 };
 
@@ -390,5 +391,134 @@ describe('Termine und Redaktionsliste (ADR-0034)', () => {
     const s = spiegelErstellen({ konfig: KONFIG, holen: relays(), etagHolen: async () => undefined, speicher: speicherAttrappe(knapp) });
     expect(await s.ausDateiLaden()).toBe(true);
     expect(s.lesen().termine).toEqual([]);
+  });
+});
+
+describe('Profile der verwiesenen Personen und ihre Bilder (ADR-0039)', () => {
+  const PERSON_A = 'a1'.repeat(32);
+  const PERSON_B = 'b2'.repeat(32);
+  const PROFILRELAY = 'wss://purplepag.es/';
+  const npub = (/** @type {string} */ hex) => nip19.npubEncode(hex);
+  const SEITE = {
+    ...ARTIKEL_NEU, id: 's'.repeat(64),
+    content: `## Team\n\nnostr:${npub(PERSON_A)}\n\nnostr:${npub(PERSON_B)}\n`,
+    tags: [['d', 'unser-team'], ['title', 'Unser Team'], ['published_at', '1790000000'], ['l', 'seite', 'foerbico/typ']]
+  };
+  /** @param {string} pubkey @param {number} created_at @param {object} inhalt */
+  const kind0 = (pubkey, created_at, inhalt) => ({ ...PROFIL, id: pubkey.slice(0, 8).padEnd(60, '0') + String(created_at).padStart(4, '0'), pubkey, created_at, content: JSON.stringify(inhalt) });
+  const A_ALT = kind0(PERSON_A, 10, { name: 'A alt', picture: 'https://i.example/a-alt.png' });
+  const A_NEU = kind0(PERSON_A, 20, { name: 'A', picture: 'https://i.example/a.png' });
+  const B = kind0(PERSON_B, 5, { name: 'B' });
+  const KONFIG_PROFIL = { ...KONFIG, profilRelays: [PROFILRELAY] };
+
+  /** Bildspeicher-Attrappe im Speicher. */
+  function bildspeicherAttrappe() {
+    /** @type {Map<string, Uint8Array>} */
+    const dateien = new Map();
+    return {
+      dateien,
+      pfadVon: (/** @type {string} */ d) => `x/${d}`,
+      vorhanden: async (/** @type {string} */ d) => dateien.has(d),
+      schreiben: async (/** @type {string} */ d, /** @type {Uint8Array} */ b) => { dateien.set(d, b); }
+    };
+  }
+  /** Attrappe des Bildabrufs: liefert ein PNG für jede Adresse. @param {string[]} [protokoll] */
+  const bildHolenAttrappe = (protokoll = []) => async (/** @type {string} */ url) => {
+    protokoll.push(url);
+    return { bytes: new Uint8Array([1]), typ: 'image/png', hash: 'h' + url.length };
+  };
+  /** Relay-Attrappe: die Seite liegt auf RELAY, das neueste Profil von A nur auf dem Profil-Relay. @param {string[]} [gefragt] */
+  function relaysMitSeite(gefragt = []) {
+    /** @type {import('./relay.js').eventsHolen} */
+    return async (url, filter) => {
+      const kinds = /** @type {number[]} */ (filter.kinds);
+      if (kinds.includes(30023)) return { events: url === RELAY ? [SEITE] : [], erreicht: true };
+      const authors = /** @type {string[]|undefined} */ (filter.authors);
+      if (kinds.includes(0) && authors?.includes(PERSON_A)) {
+        gefragt.push(url);
+        if (url === PROFILRELAY) return { events: [A_ALT, A_NEU], erreicht: true };
+        if (url === RELAY) return { events: [A_ALT, B], erreicht: true };
+        return { events: [], erreicht: true };
+      }
+      if (kinds.includes(0)) return { events: url === RELAY ? [PROFIL] : [], erreicht: true };
+      return { events: [], erreicht: true };
+    };
+  }
+  /** @param {Partial<Parameters<typeof spiegelErstellen>[0]>} [ab] */
+  const spiegel = (ab = {}) => spiegelErstellen({
+    konfig: KONFIG_PROFIL, holen: relaysMitSeite(), etagHolen: async () => undefined, speicher: speicherAttrappe(),
+    bildHolen: bildHolenAttrappe(), bildspeicher: bildspeicherAttrappe(), pruefen: () => true, ...ab
+  });
+
+  it('fragt die kind:0 auch über die Profil-Relays; je Person gilt das neueste', async () => {
+    /** @type {string[]} */
+    const gefragt = [];
+    const s = spiegel({ holen: relaysMitSeite(gefragt) });
+    const { inhalt } = await s.auffrischen();
+    expect(new Set(gefragt)).toEqual(new Set([RELAY, RPI, PROFILRELAY]));
+    expect(inhalt.personen?.map((e) => e.pubkey).sort()).toEqual([PERSON_A, PERSON_B].sort());
+    expect(inhalt.personen?.find((e) => e.pubkey === PERSON_A)?.id).toBe(A_NEU.id);
+    expect(inhalt.quellen[A_NEU.id]).toEqual([PROFILRELAY]);
+  });
+
+  it('ohne Verweise wird kein Profil-Relay gefragt', async () => {
+    /** @type {string[]} */
+    const gefragt = [];
+    /** @type {import('./relay.js').eventsHolen} */
+    const holen = async (url, filter) => {
+      gefragt.push(url);
+      return relays()(url, filter);
+    };
+    const s = spiegel({ holen });
+    await s.auffrischen();
+    expect(gefragt).not.toContain(PROFILRELAY);
+  });
+
+  it('hält die Profilbilder auf der Platte und holt sie nur, wenn Adresse oder Datei fehlen', async () => {
+    /** @type {string[]} */
+    const geholt = [];
+    const speicher = bildspeicherAttrappe();
+    const s = spiegel({ bildHolen: bildHolenAttrappe(geholt), bildspeicher: speicher });
+    const { inhalt } = await s.auffrischen();
+    expect(geholt).toEqual(['https://i.example/a.png']);
+    expect(inhalt.profilbilder[PERSON_A]).toEqual({ url: 'https://i.example/a.png', datei: `${PERSON_A}.png`, typ: 'image/png', hash: 'h23' });
+    expect(inhalt.profilbilder[PERSON_B]).toBeUndefined();
+    expect(speicher.dateien.has(`${PERSON_A}.png`)).toBe(true);
+    expect(s.bildpfad(`${PERSON_A}.png`)).toBe(`x/${PERSON_A}.png`);
+
+    // Zweiter Lauf, nichts geändert: kein neuer Abruf.
+    await s.auffrischen();
+    expect(geholt).toHaveLength(1);
+
+    // Datei weg: wieder holen.
+    speicher.dateien.delete(`${PERSON_A}.png`);
+    await s.auffrischen();
+    expect(geholt).toHaveLength(2);
+  });
+
+  it('scheitert der Abruf, bleibt das bisherige Bild stehen; ohne bisheriges gibt es keins', async () => {
+    const speicher = bildspeicherAttrappe();
+    const lage = { kaputt: false };
+    /** @param {string} url @returns {Promise<import('./profilbilder.js').Profilbilddaten|null>} */
+    const bildHolen = async (url) => (lage.kaputt ? null : bildHolenAttrappe()(url));
+    const s = spiegel({ bildHolen, bildspeicher: speicher });
+    await s.auffrischen();
+    lage.kaputt = true;
+    speicher.dateien.delete(`${PERSON_A}.png`);
+    const { inhalt } = await s.auffrischen();
+    expect(inhalt.profilbilder[PERSON_A]).toBeUndefined();
+  });
+
+  it('ein Bild nur aus dem Pfad, nicht aus einem Verzeichnis darüber', () => {
+    const speicher = dateiBildspeicher('x');
+    expect(speicher.pfadVon('../../etc/passwd')).toBe('x/passwd');
+  });
+
+  it('eine ältere Datei ohne personen/profilbilder wird aufgefüllt', async () => {
+    const knapp = JSON.stringify({ stand: null, artikel: [ARTIKEL_NEU], nachweise: [] });
+    const s = spiegel({ speicher: speicherAttrappe(knapp) });
+    expect(await s.ausDateiLaden()).toBe(true);
+    expect(s.lesen().personen).toEqual([]);
+    expect(s.lesen().profilbilder).toEqual({});
   });
 });

@@ -12,12 +12,13 @@
  * (Architekturtest). Sie kennt die Oberfläche nicht.
  */
 
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { basename, dirname, join } from 'node:path';
 import { hashAusUrl } from '../models/lizenz.js';
 import { echtesEvent } from '../models/signatur.js';
-import { personenVerweise } from '../models/profil.js';
+import { personAusEvent, personenVerweise } from '../models/profil.js';
 import { etagHolen as etagHolenEcht } from './blossom.js';
+import { ENDUNG_JE_TYP, profilbildHolen as profilbildHolenEcht } from './profilbilder.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
 // Re-Export: services/relay.js darf nur diese Datei importieren
@@ -36,6 +37,11 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {number} [verworfen]  Events mit ungültiger Signatur oder falscher id, nicht übernommen (ADR-0036)
  */
 /**
+ * Ein Profilbild auf der Platte (ADR-0039): woher es kam, wie die Datei
+ * heißt, was sie ist. Der Hash ist der ETag der Auslieferung.
+ * @typedef {{ url: string, datei: string, typ: string, hash: string }} Profilbild
+ */
+/**
  * @typedef {object} Inhalt
  * @property {Stand|null} stand
  * @property {Event[]} artikel
@@ -43,6 +49,7 @@ export { ABFRAGEGRUND_TEXT, ZUSAMMENFUEHREN_UNERREICHBAR } from './relay.js';
  * @property {Event[]} termine  Termine der Community, kind 31922/31923 (ADR-0034)
  * @property {Event|null} profil
  * @property {Event[]} [personen]  kind:0 der Personen, auf die Seiten verweisen (ADR-0039)
+ * @property {Record<string, Profilbild>} profilbilder  je Pubkey das gehaltene Profilbild (ADR-0039)
  * @property {Event[]} nachweise
  * @property {Record<string, string[]>} quellen
  * @property {Record<string, string>} etags
@@ -78,6 +85,36 @@ export function dateiSpeicher(pfad) {
   };
 }
 
+/**
+ * Bilddateien auf der Platte (ADR-0039): ein Verzeichnis, Dateiname je
+ * Pubkey. Schreiben wie beim Stand: erst temporär, dann umbenennen.
+ * @param {string} verzeichnis
+ */
+export function dateiBildspeicher(verzeichnis) {
+  /** Nur der Dateiname zählt — ein Pfad in `datei` bliebe im Verzeichnis. @param {string} datei */
+  const pfadVon = (datei) => join(verzeichnis, basename(datei));
+  return {
+    pfadVon,
+    /** @param {string} datei */
+    async vorhanden(datei) {
+      try {
+        return (await stat(pfadVon(datei))).isFile();
+      } catch {
+        return false;
+      }
+    },
+    /** @param {string} datei @param {Uint8Array} bytes */
+    async schreiben(datei, bytes) {
+      await mkdir(verzeichnis, { recursive: true });
+      const ziel = pfadVon(datei);
+      await writeFile(`${ziel}.tmp`, bytes);
+      await rename(`${ziel}.tmp`, ziel);
+    }
+  };
+}
+
+/** @typedef {ReturnType<typeof dateiBildspeicher>} Bildspeicher */
+
 /** Standard-Planer: setInterval, das den Prozess nicht am Beenden hindert.
  * @param {() => unknown} fn @param {number} ms */
 function intervallPlanen(fn, ms) {
@@ -95,7 +132,7 @@ function istInhalt(x) {
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
-  return { stand: null, artikel: [], listen: [], termine: [], profil: null, personen: [], nachweise: [], quellen: {}, etags: {} };
+  return { stand: null, artikel: [], listen: [], termine: [], profil: null, personen: [], profilbilder: {}, nachweise: [], quellen: {}, etags: {} };
 }
 
 /** @param {string[][]} tags @param {string} name */
@@ -186,6 +223,8 @@ export function personenSammeln(artikel) {
  * @param {Konfig} eingabe.konfig
  * @param {typeof eventsHolen} [eingabe.holen]        nur zum Prüfen austauschbar
  * @param {typeof etagHolenEcht} [eingabe.etagHolen]  dito
+ * @param {typeof profilbildHolenEcht} [eingabe.bildHolen]  dito (ADR-0039)
+ * @param {Bildspeicher} [eingabe.bildspeicher]         dito (ADR-0039)
  * @param {() => number} [eingabe.jetzt]               dito
  * @param {ReturnType<typeof dateiSpeicher>} [eingabe.speicher]  dito
  * @param {(fn: () => unknown, ms: number) => { stoppen(): void }} [eingabe.planen]  dito
@@ -193,6 +232,7 @@ export function personenSammeln(artikel) {
  */
 export function spiegelErstellen({
   konfig, holen = eventsHolen, etagHolen = etagHolenEcht, jetzt = () => Date.now(),
+  bildHolen = profilbildHolenEcht, bildspeicher = dateiBildspeicher(konfig.profilbilderPfad),
   speicher = dateiSpeicher(konfig.spiegelPfad), planen = intervallPlanen, pruefen = echtesEvent
 }) {
   let inhalt = leererInhalt();
@@ -274,19 +314,22 @@ export function spiegelErstellen({
     }
 
     // Profile der Personen, auf die Seiten verweisen (ADR-0039). Wie der
-    // Lizenz-Lookup über alle Relays: Personenprofile liegen oft nicht dort,
-    // wo die Seite liegt. Je Person gilt das neueste kind:0 — auch hier nur
+    // Lizenz-Lookup über alle Relays, zusätzlich über die Profil-Relays: Ein
+    // kind:0 liegt oft nicht dort, wo die Seite liegt, manches nur auf einem
+    // reinen Profil-Relay. Je Person gilt das neueste kind:0 — auch hier nur
     // echte Events (ADR-0036).
     /** @type {Event[]} */
     const personenEvents = [];
     const pubkeys = personenSammeln(artikel);
+    const profilRelays = [...new Set([...relays, ...konfig.profilRelays])];
     for (let i = 0; i < pubkeys.length; i += BLOCK) {
-      const n = await fragen({ kinds: [0], authors: pubkeys.slice(i, i + BLOCK) });
+      const n = nurEchte(await eventsVonAllen(profilRelays, { kinds: [0], authors: pubkeys.slice(i, i + BLOCK) }, { holen }));
       personenEvents.push(...n.events);
       Object.assign(quellen, n.quellen);
       for (const relay of n.fehler) nichtErreichbar.add(relay);
     }
     const personen = neuestesJe(personenEvents, (e) => e.pubkey);
+    const profilbilder = await profilbilderAuffrischen(personen, inhalt.profilbilder ?? {});
 
     // etag nur für Bilder, zu denen es überhaupt einen Nachweis gibt — sonst
     // gibt es keinen Schritt 5, den der etag entscheiden könnte.
@@ -319,7 +362,7 @@ export function spiegelErstellen({
         },
         verworfen
       },
-      artikel, listen, termine, profil, personen,
+      artikel, listen, termine, profil, personen, profilbilder,
       nachweise: [...nachweise.values()],
       quellen, etags
     };
@@ -333,6 +376,44 @@ export function spiegelErstellen({
     }
 
     return { gueltig: true, inhalt };
+  }
+
+  /**
+   * Profilbilder auf der Platte nachziehen (ADR-0039): Ein Bild wird neu
+   * geholt, wenn sich die Adresse im Profil geändert hat oder die Datei
+   * fehlt. Scheitert der Abruf, bleibt das bisherige Bild stehen — ein
+   * älteres Porträt ist besser als keins, und der nächste Lauf versucht es
+   * wieder. Ohne Adresse im Profil gibt es auch kein gehaltenes Bild; der
+   * Leser bekommt das Bild vom Hub oder gar nicht, nie vom Fremdhost.
+   * @param {Event[]} profile @param {Record<string, Profilbild>} bisher
+   * @returns {Promise<Record<string, Profilbild>>}
+   */
+  async function profilbilderAuffrischen(profile, bisher) {
+    /** @type {Record<string, Profilbild>} */
+    const neu = {};
+    for (const event of profile) {
+      const person = personAusEvent(event);
+      const alt = bisher[event.pubkey];
+      if (!person?.bildUrl) continue;
+      if (alt && alt.url === person.bildUrl && (await bildspeicher.vorhanden(alt.datei))) {
+        neu[event.pubkey] = alt;
+        continue;
+      }
+      const bild = await bildHolen(person.bildUrl);
+      if (!bild) {
+        if (alt && (await bildspeicher.vorhanden(alt.datei))) neu[event.pubkey] = alt;
+        continue;
+      }
+      const datei = `${event.pubkey}.${ENDUNG_JE_TYP[bild.typ]}`;
+      try {
+        await bildspeicher.schreiben(datei, bild.bytes);
+        neu[event.pubkey] = { url: person.bildUrl, datei, typ: bild.typ, hash: bild.hash };
+      } catch (ursache) {
+        console.warn('Spiegel: Profilbild nicht geschrieben —', ursache instanceof Error ? ursache.message : ursache);
+        if (alt && (await bildspeicher.vorhanden(alt.datei))) neu[event.pubkey] = alt;
+      }
+    }
+    return neu;
   }
 
   async function ausDateiLaden() {
@@ -377,6 +458,8 @@ export function spiegelErstellen({
 
   return {
     lesen: () => inhalt,
+    /** Wo ein gehaltenes Profilbild liegt — für die Bildroute (ADR-0039). @param {string} datei */
+    bildpfad: (datei) => bildspeicher.pfadVon(datei),
     letzterFehlschlag: () => fehlschlag,
     auffrischen,
     ausDateiLaden,

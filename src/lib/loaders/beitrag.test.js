@@ -26,7 +26,7 @@ const KONFIG = {
   startseiteD: 'startseite',
   navigationD: 'navigation',
   fusszeileD: 'fusszeile',
-  redaktionD: 'redaktion',
+  redaktionD: 'redaktion', profilRelays: [], profilbilderPfad: 'x',
   community: null,
   edufeedUrl: 'https://dev.edufeed.org'
 };

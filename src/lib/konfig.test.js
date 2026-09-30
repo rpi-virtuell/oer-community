@@ -120,3 +120,23 @@ describe('konfigLesen: Kalender aus der Community (ADR-0034)', () => {
     expect(() => konfigLesen({ ...GUELTIG, EDUFEED_URL: 'http://app.edufeed.org' })).toThrow(/EDUFEED_URL/);
   });
 });
+
+describe('konfigLesen: Profil-Relays und Profilbilder (ADR-0039)', () => {
+  const GUELTIG = { QUELLE_AUTOR: 'a'.repeat(64), RELAYS: 'wss://relay.edufeed.org/', BLOSSOM_URL: 'https://blossom.edufeed.org/' };
+
+  it('nimmt keine Profil-Relays und daten/profilbilder als Standard', () => {
+    const k = konfigLesen(GUELTIG);
+    expect(k.profilRelays).toEqual([]);
+    expect(k.profilbilderPfad).toBe('daten/profilbilder');
+  });
+
+  it('liest PROFIL_RELAYS und PROFILBILDER_PFAD', () => {
+    const k = konfigLesen({ ...GUELTIG, PROFIL_RELAYS: 'wss://purplepag.es/, wss://relay.damus.io/', PROFILBILDER_PFAD: '/var/bilder' });
+    expect(k.profilRelays).toEqual(['wss://purplepag.es/', 'wss://relay.damus.io/']);
+    expect(k.profilbilderPfad).toBe('/var/bilder');
+  });
+
+  it('verwirft Profil-Relays, die nicht wss sind', () => {
+    expect(() => konfigLesen({ ...GUELTIG, PROFIL_RELAYS: 'https://purplepag.es/' })).toThrow(/PROFIL_RELAYS/);
+  });
+});

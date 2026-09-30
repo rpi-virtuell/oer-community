@@ -55,7 +55,8 @@ import { etagAusSpiegel, nachweiseAusSpiegel } from './lizenz.js';
 
 /**
  * Eine Person, wie die Karte sie braucht: das Modell plus die gesäuberte
- * Selbstbeschreibung. Bilder im `about` fallen weg wie überall (ADR-0015).
+ * Selbstbeschreibung; `bildUrl` zeigt auf den Hub, nie auf den Fremdhost.
+ * Bilder im `about` fallen weg wie überall (ADR-0015).
  * @typedef {Omit<import('../models/profil.js').Person, 'about'> & { aboutHtml: string }} PersonAnzeige
  */
 
@@ -147,7 +148,12 @@ export async function beitragLaden({ adresse, konfig, inhalt }) {
     const aboutHtml = about
       ? inhaltAufbereiten(about).teile.map((t) => (t.art === 'html' ? t.html : '')).join('')
       : '';
-    personen[teil.pubkey] = { ...rest, aboutHtml };
+    // Das Porträt kommt vom Hub, nie vom Fremdhost (ADR-0039): Der Spiegel
+    // hält es unter /profilbild/<pubkey>; was er nicht hält, bleibt ohne
+    // Bild. Der Hash in der Adresse erneuert den Browser-Cache mit dem Bild.
+    const bild = inhalt.profilbilder?.[teil.pubkey];
+    const bildUrl = bild ? `/profilbild/${teil.pubkey}?v=${bild.hash.slice(0, 12)}` : null;
+    personen[teil.pubkey] = { ...rest, aboutHtml, bildUrl };
   }
   const fehlendeProfile = [...ohneProfil].map((p) => npubEncode(p));
 
