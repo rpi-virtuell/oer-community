@@ -55,6 +55,18 @@ Actions (seit 30.09.2026):
 | `FORGEJO_TOKEN` | Repository-Secret | Forgejo-Token mit `write:repository` |
 | `FORGEJO_USER` | Repository-Variable | Forgejo-Benutzername zum Token |
 
+**Der Spiegel hinkt.** Forgejo schiebt `main` und `dev` nicht sofort nach
+GitHub; am 30.09.2026 lag der Spiegel zeitweise einen Nachmittag zurück, und
+gemergte Branches, die auf Forgejo schon gelöscht waren, standen dort noch.
+Umgekehrt legt der Übertragungs-Workflow einen auf Forgejo gelöschten
+`feat/**`-Branch wieder an, sobald auf GitHub noch einmal darauf gepusht
+wird. Deshalb vor dem Abzweigen eines `feat/**`-Branches auf GitHub den
+`dev`-Stand mit Forgejo vergleichen (`git ls-remote --heads` beider Remotes)
+und im Zweifel `dev` von Forgejo pushen; die Sitzung auf GitHub setzt sonst
+auf einem alten Stand auf und löst Konflikte, die es auf Forgejo nicht mehr
+gibt. Gemergte Branches auf Forgejo löschen und danach prüfen, ob sie auf
+GitHub ebenfalls weg sind.
+
 Scheitert ein Lauf (GitHub → Actions → „Nach Forgejo übertragen"), liegt der
 Branch nicht auf Forgejo. Meist ist der Token abgelaufen; neuen anlegen,
 Secret ersetzen, Lauf neu starten.
