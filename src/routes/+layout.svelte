@@ -14,6 +14,13 @@
   // der anderen Sprache (ADR-0033). `page.data` trägt Layout- und Seitendaten
   // zusammen; `uebersetzung` kommt nur von Detailseiten.
   const wechselPfad = $derived(page.data.uebersetzung?.pfad ?? startPfad(andere));
+
+  // `<html lang>` setzt der Server je Antwort (hooks.server.js). Nach einem
+  // Wechsel im Browser, etwa über den Umschalter, lädt keine neue Seite —
+  // ohne das hier bliebe ein englischer Text als Deutsch ausgezeichnet.
+  $effect(() => {
+    document.documentElement.lang = data.struktur.sprache;
+  });
 </script>
 
 <Kopfzeile
