@@ -27,6 +27,7 @@ zeigt sie klein und mit Zeile; abgelöste Hosts bleiben ausgeschlossen.
 Logos als absolute URL mit Zeile darunter eintragen
 (`© <Institution>, Quelle: [<host>](<url>)`); Porträts über `md2blossom` /
 `sync publish` mit `bilder.yaml` nach Blossom migrieren. Danach neu publizieren.
+
 ## 2026-09-30 — Ausfall des Artikel-Relays leert den Spiegel nicht mehr (ADR-0037)
 
 **Passiert:** Zweiter Befund des Code-Reviews. Fiel `relay.edufeed.org`
@@ -54,6 +55,39 @@ Verworfenes zählt `stand.verworfen`.
 
 **Nächster Schritt:** Auf Forgejo nach `dev` mergen. Danach der zweite
 Befund des Reviews: ein Lauf ohne Artikel-Relay darf den Stand nicht leeren.
+
+## 2026-09-30 — `pnpm lint` und `pnpm test:e2e`
+
+**Passiert:** Die beiden offenen Befehle aus der Spec vom 14.09. gibt es
+jetzt. `pnpm lint` ist ESLint 10 mit `eslint-plugin-svelte`
+(`eslint.config.js`); `svelte/no-navigation-without-resolve` ist aus, weil
+die Adressen das `d` sind und es keinen `paths.base` gibt. Die drei
+`{@html}`-Stellen (Detail, Bildbereich, Fußzeile) tragen je ein
+`eslint-disable-next-line` mit Herkunft des gesäuberten HTML. Behoben:
+zwei ungenutzte Werte (`ARTIKEL` in `test/oberflaeche.test.js`, Import
+`kanonisch` in `routen/struktur.js`), `{#each}` der Textteile mit
+Schlüssel.
+
+`pnpm test:e2e` ist Playwright (Chromium) mit acht Rauchtests in
+`test/e2e/rauchtest.spec.js` gegen den gebauten Server;
+`test/e2e/server.mjs` legt den Spiegel aus der Testquelle samt Tagung an
+und lässt kein Relay antworten. **Gefunden und behoben:** Nach dem
+Umschalter DE → EN im Browser blieb `<html lang="de">`, weil nur der Server
+`lang` setzt und die Navigation clientseitig läuft. `+layout.svelte` setzt
+`lang` jetzt auch nach jedem Wechsel.
+
+Neuer Workflow `.github/workflows/pruefen.yml`: check, lint, test und
+test:e2e für jeden `feat/**`-Branch auf dem GitHub-Spiegel. Woodpecker
+führt `lint` zusätzlich aus.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, `pnpm lint` ohne Befund,
+427 Tests grün, 8 E2E-Tests grün. Prettier ist bewusst nicht dabei: Es
+würde 64 Dateien umformatieren und jeden offenen Branch in Konflikte
+bringen.
+
+**Nächster Schritt:** Jörg: `feat/lint-e2e` auf Forgejo nach `dev` mergen,
+wenn „Prüfen" auf GitHub grün ist. Ob Prettier kommt, ist eine eigene
+Entscheidung — am besten an einem Tag ohne offene Branches.
 
 ## 2026-09-30 — Arbeitsbranches vom GitHub-Spiegel nach Forgejo
 

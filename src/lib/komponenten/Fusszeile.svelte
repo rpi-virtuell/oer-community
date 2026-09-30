@@ -51,6 +51,7 @@
     <p class="marke">{wortmarke}</p>
     {#if fusstextHtml}
       <!-- Gesäubertes HTML aus inhaltAufbereiten (Task 6) — deshalb erlaubt in {@html}. -->
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
       <div class="text">{@html fusstextHtml}</div>
     {:else}
       <p class="text">
